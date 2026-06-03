@@ -2,6 +2,7 @@ import { createServer,Server } from "http";
 import { buildApp } from "./app.js";
 import { env } from "./config/index.js";
 import logger from "./common/logger.js";
+import { dbConnection } from "./database/connection.js";
 
 
 const PORT= env.PORT
@@ -10,6 +11,7 @@ async function buildServer():Promise<void>{
 
     try{
     
+        await dbConnection()
         const app =buildApp()
         const server:Server=createServer(app)
 

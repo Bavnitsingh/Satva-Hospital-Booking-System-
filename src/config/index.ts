@@ -9,6 +9,9 @@ export const env={
     NODE_ENV:process.env.NODE_ENV || 'DEVELOPMENT',
 
     // logger setup 
-    LOG_LEVEL:process.env.LOG_LEVEL || 'info'
+    LOG_LEVEL:process.env.LOG_LEVEL || 'info',
+
+    //DATABASE URL 
+    DATABASE_URL:process.env.DATABASE_URL 
 
 }

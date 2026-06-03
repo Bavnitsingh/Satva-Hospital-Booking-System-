@@ -36,13 +36,13 @@ git pull origin development
 ```
 
 ### 2. Create Your Feature Branch
-Create and switch to your designated feature branch using the `auth/` prefix naming convention.
+Create and switch to your designated feature branch using the `feature/` prefix naming convention.
 ```bash
 # Example for feature 1
-git switch -c auth/feature1
+git switch -c feature/feature1
 
 # Example for feature 2
-git switch -c auth/feature2
+git switch -c feature/feature2
 ```
 
 ### 3. Commit Your Work Locally
@@ -55,7 +55,7 @@ git commit -m "feat: add user login validation logic"
 ### 4. Push Your Branch to GitLab
 When your feature is ready, push your individual branch to the remote GitLab repository.
 ```bash
-git push -u origin auth/feature1
+git push -u origin feature/feature1
 ```
 *(Note: The `-u` flag sets the upstream tracking branch for future pushes).*
 
@@ -76,5 +76,5 @@ git switch development
 git pull origin development
 
 # Safely delete your local feature branch
-git branch -d auth/feature1
+git branch -d feature/feature1
 ```

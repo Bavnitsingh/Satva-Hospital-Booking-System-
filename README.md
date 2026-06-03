@@ -8,7 +8,7 @@ This repository enforces a structured branching strategy to ensure code quality 
 
 *   **`main` (Protected)**: Production-ready code. Direct pushes are disabled. Code only enters `main` via approved Merge Requests (MRs) from `development`.
 *   **`development`**: The integration branch for testing features. All features must merge here first.
-*   **`auth/feature-name`**: Individual developer branches used to build specific authentication features.
+*   **`feature/feature-name`**: Individual developer branches used to build specific authentication features.
 
 ---
 
@@ -17,8 +17,8 @@ This repository enforces a structured branching strategy to ensure code quality 
 ```mermaid
 graph TD
     A[main branch - Protected] -->|Initialized from| B(development branch)
-    B -->|git switch -c| C[auth/feature1]
-    B -->|git switch -c| D[auth/feature2]
+    B -->|git switch -c| C[feature/feature1]
+    B -->|git switch -c| D[feature/feature2]
     C -->|Push & Merge Request| B
     D -->|Push & Merge Request| B
     B -->|Staged & Tested MR| A

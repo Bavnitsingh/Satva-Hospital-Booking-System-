@@ -1,7 +1,7 @@
 import { createServer,Server } from "http";
 import { buildApp } from "./app.js";
 import { env } from "./config/index.js";
-import { create } from "domain";
+import logger from "./common/logger.js";
 
 
 const PORT= env.PORT
@@ -14,6 +14,7 @@ async function buildServer():Promise<void>{
         const server:Server=createServer(app)
 
         server.listen(PORT,()=>{
+            logger.info("server started running")
             console.log(`Server is running on http://localhost:${PORT}`)
             console.log(`Server is in ${NODE_ENV} ENVIRONMENT`)
         })
@@ -22,6 +23,7 @@ async function buildServer():Promise<void>{
 
     }
     catch(error){
+        logger.error('server stopped')
         console.log(`Failed to start Server`,error)
 
     }

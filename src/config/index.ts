@@ -6,6 +6,9 @@ export const env={
     PORT:Number(process.env.PORT) || 3333,
    
     //SERVER ENVIRONMENT
-    NODE_ENV:process.env.NODE_ENV || 'DEVELOPMENT'
+    NODE_ENV:process.env.NODE_ENV || 'DEVELOPMENT',
+
+    // logger setup 
+    LOG_LEVEL:process.env.LOG_LEVEL || 'info'
 
 }

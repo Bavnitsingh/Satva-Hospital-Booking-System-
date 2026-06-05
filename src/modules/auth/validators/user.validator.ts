@@ -42,20 +42,7 @@ export const userRegisterSchema = z
 export type UserRegisterSchema = z.infer<typeof userRegisterSchema>;
 
 export const userLoginSchema = z.object({
-  identifier: z
-    .string()
-    .trim()
-    .refine(
-      (value) => {
-        const isEmail = z.string().email().safeParse(value).success;
-        const isPhone = isValidPhoneNumber(value);
-
-        return isEmail || isPhone;
-      },
-      {
-        message: "Enter a valid email address or mobile number",
-      },
-    ),
+  email: z.string().trim().email("Invalid email address"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")

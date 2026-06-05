@@ -15,3 +15,5 @@ export const catchAsync=(fn:AsyncHandler)=>{
         fn(req,res,next).catch(next)
     }
 }
+
+

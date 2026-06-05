@@ -38,6 +38,7 @@ export class AuthController {
       statusCode: 200,
     });
   });
+
   
   getDoctorLoginPage=catchAsync(async(req:Request,res:Response)=>{
     res.render('auth/doctor/doctorLogin')

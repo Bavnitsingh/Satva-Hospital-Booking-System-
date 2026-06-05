@@ -16,10 +16,7 @@ export const userRegisterSchema = z
       .string()
       .trim()
       .min(1, "First Line of address is required"),
-    address_line2: z
-      .string()
-      .trim()
-      .min(1, "Second Line of address is required"),
+    address_line2: z.string().trim().optional(),
     email: z.string().trim().email("Invalid email address"),
     password: z
       .string()
@@ -45,7 +42,20 @@ export const userRegisterSchema = z
 export type UserRegisterSchema = z.infer<typeof userRegisterSchema>;
 
 export const userLoginSchema = z.object({
-  email: z.string().trim().email("Invalid email address"),
+  identifier: z
+    .string()
+    .trim()
+    .refine(
+      (value) => {
+        const isEmail = z.string().email().safeParse(value).success;
+        const isPhone = isValidPhoneNumber(value);
+
+        return isEmail || isPhone;
+      },
+      {
+        message: "Enter a valid email address or mobile number",
+      },
+    ),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")

@@ -1,11 +1,29 @@
 import { Router } from "express";
-import auth from "../modules/auth/auth.routes.js";
-import getHomePage from "../modules/auth/auth.controller.js";
-const router:Router=Router();
-
-router.use("/auth",auth)
-router.get("/home",getHomePage)
+import { AuthRoutes } from "../modules/auth/auth.routes.js";
+import { Routes } from "../common/interfaces/routes.interfaces.js";
 
 
+export function buildApiRouter():Router{
 
-export default router;
+const router=Router()
+
+const routes:Routes[]=[
+    // add all routes here
+    new AuthRoutes()
+]
+
+
+
+routes.forEach((route)=>{
+    router.use(route.path,route.router)
+    
+})
+
+
+return router;
+}
+
+
+
+
+

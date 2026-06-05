@@ -26,6 +26,9 @@ export const userRegisterSchema = z
         /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/,
         "Must include uppercase, lowercase, digit and special character",
       ),
+    gender: z.enum(["MALE", "FEMALE", "OTHER"], {
+      message: "Please select a valid gender",
+    }),
     dob: z.coerce
       .date()
       .min(new Date("1900-01-01"), {

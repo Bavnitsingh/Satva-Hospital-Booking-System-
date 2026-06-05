@@ -16,7 +16,7 @@ export function buildApp(): Application {
   app.use(express.static("public"))
 
   //ROUTER 
-  app.use(router)
+  app.use("/api/v1",router)
 
   return app;
 }

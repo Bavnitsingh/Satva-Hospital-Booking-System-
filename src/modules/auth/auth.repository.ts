@@ -45,6 +45,24 @@ export class UserRepository {
     return rows[0];
   }
 
+  async findUserById(user_id:number){
+    const result:any=await query('Select * from users where user_id=?',[user_id])
+    
+    return result[0]
+  }
+
+
+  async createGoogleUser(email:string,passwordHash:string,google_sub:string){
+    const result:any=await query(`Insert into users(email,password_hash,role,google_sub) values(?,?,'PATIENT',?)`,[email,passwordHash,google_sub])
+
+    const userId=result.insertId;
+
+    const rows:any=await query(`SELECT * FROM users where user_id=?`,[userId])
+
+    return rows[0]
+  }
+
+
   async createPatient(
     userId: number,
     firstName: string,

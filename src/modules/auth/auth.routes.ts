@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { Routes } from "../../common/interfaces/routes.interfaces.js";
 import { AuthController } from "./auth.controller.js";
+import passport from './utils/googleauth.js'
 
 export class AuthRoutes implements Routes {
   path: string = "/auth";
@@ -17,5 +18,23 @@ export class AuthRoutes implements Routes {
 
     this.router.post("/register", this.authContoller.register);
     this.router.post("/login", this.authContoller.login);
-  }
+    this.router.get('/google',passport.authenticate('google',{scope:[
+        'profile',
+        'email',
+        //  'https://www.googleapis.com/auth/user.phonenumbers.read',
+        //  'https://www.googleapis.com/auth/user.birthday.read',
+        // 'https://www.googleapis.com/auth/user.gender.read',
+
+    ]
+    }))
+
+this.router.get('/google/callback',passport.authenticate('google',{scope:['profile',
+    'email',
+    // 'https://www.googleapis.com/auth/user.phonenumbers.read'
+],
+successRedirect:'/dashboard'}
+))
+
+
+}
 }

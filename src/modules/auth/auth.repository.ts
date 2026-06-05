@@ -14,7 +14,7 @@ export class UserRepository {
     return rows.length > 0 ? rows[0] : null;
   }
 
-  async createUser(email: string, passwordHash: string) {
+  async createUser(email: string, passwordHash: string,role:string) {
     const result: any = await query(
       `
         INSERT INTO users(
@@ -25,10 +25,10 @@ export class UserRepository {
         VALUES(
             ?,
             ?,
-            'PATIENT'
+            ?
         )
         `,
-      [email, passwordHash],
+      [email, passwordHash,role],
     );
 
     const userId = result.insertId;
@@ -86,4 +86,37 @@ export class UserRepository {
       [userId],
     );
   }
+
+  async createDoctor(data: any) {
+
+    const result = await query(
+        `
+        INSERT INTO doctors (
+            user_id,
+            hospital_id,
+            first_name,
+            last_name,
+            gender,
+            experience_years,
+            consultation_fee,
+            bio,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `,
+        [
+            data.user_id,
+            data.hospital_id,
+            data.first_name,
+            data.last_name,
+            data.gender,
+            data.experience_years,
+            data.consultation_fee,
+            data.bio
+        ]
+    );
+    return result;
+}
+
 }

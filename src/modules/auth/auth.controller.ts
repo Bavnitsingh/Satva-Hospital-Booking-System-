@@ -37,4 +37,15 @@ export class AuthController {
       statusCode: 200,
     });
   });
+
+  registerDoctor = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.authService.registerDoctor(req.body);
+
+    generalResponse({
+      res,
+      data: result,
+      message: "Doctor Registration Successful",
+      statusCode: 201,
+    });
+  });
 }

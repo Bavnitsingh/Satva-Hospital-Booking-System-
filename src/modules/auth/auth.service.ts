@@ -18,13 +18,55 @@ export class AuthService {
 
   private userRepo = new UserRepository();
 
+    async registerDoctor(data: any) {
+
+    const existingUser =
+        await this.userRepo.findUserByEmail(data.email);
+
+    if (existingUser) {
+        throw new Error("Email already exists");
+    }
+
+    const hashedPassword =
+        await getHashedPassword(data.password);
+
+    // 1. CREATE USER
+    const user = await this.userRepo.createUser(
+        data.email,
+        hashedPassword,
+        "DOCTOR"
+    );
+
+    await this.userRepo.createDoctor({
+        user_id: user.user_id,
+        hospital_id: data.hospitalId,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        gender: data.gender,
+        experience_years: data.experienceYears,
+        consultation_fee: data.consultationFee,
+        bio: data.bio
+    });
+
+    const accessToken = sign({
+        id: user.user_id,
+        email: user.email,
+        role: user.role
+    });
+
+    return {
+        accessToken,
+        user
+    };
+}
+
   async register(data: any) {
     const existingUser = await this.userRepo.findUserByEmail(data.email);
     if (existingUser) throw new Error("Email already exist");
 
     const hashedPassword = await getHashedPassword(data.password);
 
-    const user = await this.userRepo.createUser(data.email, hashedPassword);
+    const user = await this.userRepo.createUser(data.email, hashedPassword, "PATIENT");
 
     await this.userRepo.createPatient(
       user.user_id,
@@ -43,6 +85,9 @@ export class AuthService {
     });
     return { user, token };
   }
+
+
+
 
   async login(data: any) {
     const user = await this.userRepo.findUserByEmail(data.email);

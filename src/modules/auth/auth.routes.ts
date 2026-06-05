@@ -1,9 +1,21 @@
 import { Router } from "express";
+import { Routes } from "../../common/interfaces/routes.interfaces.js";
+import { AuthController } from "./auth.controller.js";
 
-const router:Router=Router()
+export class AuthRoutes implements Routes {
+  path: string = "/auth";
+  router: Router = Router();
+  authContoller = new AuthController();
 
+  constructor() {
+    this.initializationRoutes();
+  }
 
-// router.use("/login")
+  private initializationRoutes(): void {
+    // use this way for
+    // this.router.post('/register',middleware,this.contoller.register)
 
-
-export default router;
+    this.router.post("/register", this.authContoller.register);
+    this.router.post("/login", this.authContoller.login);
+  }
+}

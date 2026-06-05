@@ -2,7 +2,8 @@ import { createServer,Server } from "http";
 import { buildApp } from "./app.js";
 import { env } from "./config/index.js";
 import logger from "./common/logger.js";
-import { dbConnection,query } from "./database/connection.js";
+import { dbConnection,pool,query } from "./database/connection.js";
+
 
 
 

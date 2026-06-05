@@ -1,34 +1,36 @@
-import {Pool,QueryResult} from 'pg'
-import { env } from '../config/index.js'
+import mysql from 'mysql2/promise';
 import logger from '../common/logger.js';
+import { env } from '../config/index.js';
 
-const pool=new Pool({
-    connectionString:env.DATABASE_URL,
-      ssl: {
-        rejectUnauthorized: false // Accommodates self-signed certificates safely for dev
-    }
-})
+export const pool = mysql.createPool({
+  host: env.DB_HOST,
+  port: env.DB_PORT,
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
+  database: env.DB_NAME,
 
-export async function dbConnection():Promise<void>{
-    try{
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-    const connection=await pool.connect()
-    if(connection){
-        logger.info('Database connected successfully')
-    }
-    connection.release()
-    }
+export async function dbConnection(): Promise<void> {
+  try {
+    const connection = await pool.getConnection();
 
-    catch(err){
-        logger.error('error connecting database')
-      throw err;
-    }
-  
+    logger.info('Database connected successfully');
+
+    connection.release();
+  } catch (error) {
+    logger.error(error);
+    throw error;
+  }
 }
 
-
-// use query function to run postgreSQL query
-export const query = (text: string, params?: any[]): Promise<QueryResult> => {
-  return pool.query(text, params);
-};
-
+export async function query(
+  sql: string,
+  params: any[] = []
+) {
+  const [rows] = await pool.execute(sql, params);
+  return rows;
+}

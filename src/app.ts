@@ -17,6 +17,6 @@ export function buildApp(): Application {
 
   //ROUTER 
   app.use("/api/v1",buildApiRouter())
-
+  
   return app;
 }

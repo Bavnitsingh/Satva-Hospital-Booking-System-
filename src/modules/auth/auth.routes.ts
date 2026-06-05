@@ -15,6 +15,7 @@ export class AuthRoutes implements Routes {
     // use this way for
     // this.router.post('/register',middleware,this.contoller.register)
     this.router.post("/register-doctor", this.authController.registerDoctor);
+    this.router.post("/register-admin", this.authController.registerAdmin);
     this.router.post("/register", this.authController.register);
     this.router.post("/login", this.authController.login);
   }

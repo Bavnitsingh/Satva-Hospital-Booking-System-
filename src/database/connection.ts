@@ -27,6 +27,7 @@ export async function dbConnection():Promise<void>{
 }
 
 
+// use query function to run postgreSQL query
 export const query = (text: string, params?: any[]): Promise<QueryResult> => {
   return pool.query(text, params);
 };

@@ -18,15 +18,7 @@ export class AuthController {
 
   // })
 
-  register = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.register(req.body);
-    generalResponse({
-      res,
-      data: result,
-      message: "Registration Successfull",
-      statusCode: 201,
-    });
-  });
+
 
   login = catchAsync(async (req: Request, res: Response) => {
     const result = await this.authService.login(req.body);
@@ -35,6 +27,38 @@ export class AuthController {
       data: result,
       message: "Logged in Successfully",
       statusCode: 200,
+    });
+  });
+
+  registerDoctor = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.authService.registerDoctor(req.body);
+
+    generalResponse({
+      res,
+      data: result,
+      message: "Doctor Registration Successful",
+      statusCode: 201,
+    });
+  });
+
+  registerAdmin = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.authService.registerAdmin(req.body);
+
+    generalResponse({
+      res,
+      data: result,
+      message: "Admin Registration Successful",
+      statusCode: 201,
+    });
+  });
+  
+  register = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.authService.register(req.body);
+    generalResponse({
+      res,
+      data: result,
+      message: "Registration Successfull",
+      statusCode: 201,
     });
   });
 }

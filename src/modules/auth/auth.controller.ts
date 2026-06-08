@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../common/helpers/catch-async.js";
 import { generalResponse } from "../../common/helpers/general-response.js";
 import { AuthService } from "./auth.service.js";
+import { HttpException } from "../../common/helpers/http-exception.js";
 
 export class AuthController {
   private authService = new AuthService();
@@ -37,4 +38,133 @@ export class AuthController {
       statusCode: 200,
     });
   });
+
+  listSendOtpPage = async (req: Request, res: Response) => {
+    try {
+      res.render("auth/forgot-password-page")
+    }
+    catch (e) {
+      throw e
+    }
+  }
+
+  // showMail = async (req: Request, res: Response) => {
+  //   try {
+
+  //     if (!req.session.isEmailVerified) {
+  //      return res.redirect("/send-otp-page")
+  //     }
+
+  //     let otp = await this.authService.getOtp(req.session.email as string);
+  //     if (otp) {
+  //       console.log(otp)
+  //       return res.render("auth/show-email", { otp });
+  //     }
+  //     else {
+  //       return res.redirect("api/send-otp-page");
+  //     }
+  //   }
+  //   catch (e) {
+  //     console.log(e);
+  //     let error = e instanceof Error ? e.message : "error in registring user";
+  //     const status = e instanceof HttpException ? e.statusCode : 400;
+  //     return generalResponse({ res, data: status, message: "Failed to send otp", statusCode: 200 });
+  //   }
+  // }
+
+  showMail = async (req: Request, res: Response) => {
+  try {
+    if (!req.session.isEmailVerified || !req.session.email) {
+      return res.redirect("/forgot-password-page");
+    }
+
+    const otp = await this.authService.getLatestOtpService(req.session.email);
+
+    console.log("hdasfds",otp)
+    if (!otp) {
+      return res.redirect("/forgot-password-page");
+    }
+
+    console.log("OTP to show:", otp);
+    return res.render("auth/show-email", { otp_code : otp });
+  } catch (e) {
+    console.log(e);
+    return generalResponse({
+      res,
+      data: null,
+      message: "Failed to load OTP page",
+      statusCode: 500,
+    });
+  }
+};
+  showEnterOtpPage = async (req: Request, res: Response) => {
+    if (!req.session.isEmailVerified) {
+      return res.redirect("/forgot-password-page.ejs");
+    }
+    return res.render("auth/enter-otp-page");
+  }
+
+  sendOtp = async (req: Request, res: Response) => {
+  const email = req.body.email;
+  if (!email) return generalResponse({ res, message: "Email required", statusCode: 400 });
+
+  const response = await this.authService.getOtp(email);
+
+  req.session.isEmailVerified = true;
+  req.session.email = email;
+  req.session.user_id = response.data.user_id;
+
+  return generalResponse({ res, message: "OTP sent successfully", statusCode: 200 });
+};
+
+  verifyOtp = async (email: string, otp: string) => {
+
+    let response = await this.authService.verifyOtp(email, otp);
+    // req.session.isOtpVerified = true;
+
+    return response.success;
+    // catch (e) {
+    //     console.log(e);
+    //     let error = e instanceof Error ? e.message : "error in registring user";
+    //     return sendResponse(res, 400, "Failed to vefiy otp", error);
+    // }
+  }
+
+  resetPassword = async (req: Request, res: Response) => {
+    try {
+      let { otp, newPassword } = req.body;
+
+      let user_id = req.session.user_id as number;
+
+      let email = req.session.email as string;
+      let response = await this.verifyOtp(email, otp);
+      if (response) {
+        let isReset = await this.authService.resetPassword(newPassword, user_id);
+        
+        req.session.isEmailVerified = false;
+
+        if (isReset) {
+
+          return generalResponse({ res, data: null, message: "password hasbeen changed Successfully!!", statusCode: 200 });
+        } else {
+
+          return generalResponse({ res, data: null, message: "password hasbeen changed Successfully!!", statusCode: 200 });
+        }
+      }
+      else {
+        req.session.isEmailVerified = false;
+
+
+        return generalResponse({ res, data: null, message: "Incorrect Otp", statusCode: 400 });
+
+      }
+    }
+    catch (e) {
+      console.log(e);
+      let error = e instanceof Error ? e.message : "error in registring user";
+      const status = e instanceof HttpException ? e.statusCode : 400;
+      return generalResponse({ res, data: status, message: "Failed to send otp", statusCode: 400 });
+
+    }
+  }
 }

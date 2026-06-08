@@ -1,6 +1,8 @@
+import { BadRequestException, NotFoundException } from "../../common/helpers/http-exception.js";
 import { UserRepository } from "./auth.repository.js";
 import { comparePassword, getHashedPassword } from "./utils/bcrypt.js";
 import { sign } from "./utils/jwt.js";
+import crypto from 'crypto'
 
 export class AuthService {
   // private userRepo=new UserRepository();
@@ -71,5 +73,67 @@ export class AuthService {
       accessToken,
       user,
     };
+  }
+
+  async getOtp(email: string) {
+    const user = await this.userRepo.findUserByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const canGetOtp = await this.userRepo.canGetOtp(email);
+
+    console.log(canGetOtp)
+    if (!canGetOtp) {
+      throw new BadRequestException("OTP already sent. Please wait.");
+    }
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+
+    await this.userRepo.deleteOldOtp(email);
+
+    await this.userRepo.saveOtp(otp, email);
+
+    return {
+      success: true,
+      data: {
+        otp,
+        user_id: user.user_id,
+      },
+      message: "OTP generated successfully",
+    };
+  }
+
+  async verifyOtp(email: string, otp: string) {
+    const otpRecord = await this.userRepo.findOtp(email, otp);
+
+    if (!otpRecord) {
+      throw new BadRequestException("Invalid or expired OTP");
+    }
+
+    return {
+      success: true,
+      message: "OTP verified successfully",
+    };
+  }
+
+  async resetPassword(password: string, user_id: number) {
+    if (!password) {
+      throw new NotFoundException("Password is required");
+    }
+
+    const hashedPassword = await getHashedPassword(password);
+
+    await this.userRepo.updatePassword(hashedPassword, user_id);
+await this.userRepo.deleteOtp(user_id);
+    return {
+      success: true,
+      message: "Password updated successfully",
+    };
+  }
+
+  async getLatestOtpService(email : string){
+    return await this.userRepo.getLatestOtp(email);
   }
 }

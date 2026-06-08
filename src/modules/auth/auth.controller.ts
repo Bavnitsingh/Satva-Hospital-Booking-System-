@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../common/helpers/catch-async.js";
 import { generalResponse } from "../../common/helpers/general-response.js";
 import { AuthService } from "./auth.service.js";
-import { request } from "http";
 
 export class AuthController {
   private authService = new AuthService();
@@ -19,15 +18,7 @@ export class AuthController {
 
   // })
 
-  register = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.register(req.body);
-    generalResponse({
-      res,
-      data: result,
-      message: "Registration Successfull",
-      statusCode: 201,
-    });
-  });
+
 
   login = catchAsync(async (req: Request, res: Response) => {
     const result = await this.authService.login(req.body);
@@ -39,8 +30,38 @@ export class AuthController {
     });
   });
 
+
+
+
+  registerDoctor = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.authService.registerDoctor(req.body);
+
+    generalResponse({
+      res,
+      data: result,
+      message: "Doctor Registration Successful",
+      statusCode: 201,
+    });
+  });
+
+  registerAdmin = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.authService.registerAdmin(req.body);
+
+    generalResponse({
+      res,
+      data: result,
+      message: "Admin Registration Successful",
+      statusCode: 201,
+    });
+  });
   
-  getDoctorLoginPage=catchAsync(async(req:Request,res:Response)=>{
-    res.render('auth/doctor/doctorLogin')
-  })
+  register = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.authService.register(req.body);
+    generalResponse({
+      res,
+      data: result,
+      message: "Registration Successfull",
+      statusCode: 201,
+    });
+  });
 }

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Password / X</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e0f7fa, #ffffff);
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      background-color: #ffffff;
+      padding: 30px 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .logo {
+      font-size: 36px;
+      font-weight: 700;
+      color: #00796b;
+      margin-bottom: 15px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+      color: #004d40;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #616161;
+      font-size: 14px;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 12px;
+      border-radius: 6px;
+      border: 1px solid #b0bec5;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s ease-in-out;
+    }
+
+    input:focus {
+      border-color: #00796b;
+      box-shadow: 0 0 5px rgba(0, 121, 107, 0.3);
+    }
+
+    input::placeholder {
+      color: #90a4ae;
+    }
+
+    /* Button Styled as Span */
+    .btn-submit {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      background-color: #00796b;
+      color: #ffffff;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.2s ease;
+      user-select: none;
+    }
+
+    .btn-submit:hover {
+      background-color: #004d40;
+    }
+
+    /* Timer and Resend Styling */
+    .timer-container {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    #timer-text {
+      color: #757575;
+    }
+
+    #resend-btn a {
+      color: #00796b;
+      text-decoration: none;
+      font-weight: 500;
+      margin-top: 5px;
+      display: inline-block;
+      transition: color 0.2s;
+    }
+
+    #resend-btn a:hover {
+      color: #004d40;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="logo">SATVA</div>
+    </div>
+
+    <h1>Reset Password</h1>
+    <p class="subtitle">Create a strong password with letters, numbers, and symbols for better security.</p>
+
+    <form action="/verify-otp" method="POST" id="resetForm">
+      <div class="form-group">
+        <input type="text" name="otp" placeholder="Enter 4-6 digit code" required maxlength="6">
+      </div>
+
+      <div class="form-group">
+        <input type="password" name="newPassword" placeholder="New password" required>
+      </div>
+
+      <div class="form-group">
+        <input type="password" name="confirm_password" placeholder="Confirm password" required>
+      </div>
+
+      <span class="btn-submit" id="changePassword">Change Password</span>
+    </form>
+
+    <div class="timer-container">
+      <p id="timer-text">Resend code in: <span id="seconds">120</span>s</p>
+      <span id="resend-btn" style="display: none;"><a href="/send-otp-page">Didn't receive a code? Resend</a></span>
+    </div>
+  </div>
+  <script src="/utils.js"></script>
+  <script>
+    console.log("hii")
+    document.getElementById("changePassword").addEventListener("click", async (e) => {
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      let formData = new FormData(document.getElementById("resetForm"));
+      let formEntries = Object.fromEntries(formData.entries());
+      formEntries['timezone'] = userTimezone;
+      console.log(formEntries);
+
+      let response = await fetch("/api/v1/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formEntries)
+      })
+
+
+      console.log(response)
+      let data = await response.json();
+      if (response.ok) {
+        showMessage(data.message, isError = false);
+        window.location.href = "/"
+      } else {
+        showMessage(data.message);
+      }
+    })
+
+    async function showtimer() {
+      try {
+        let response = await fetch('/getTimer');
+
+        if (!response.ok) {
+          document.getElementById('seconds').innerText = "OTP has been expired !!";
+          document.getElementById('resend-btn').style.display = 'inline-block';
+          console.log("unable to get timer")
+        }
+
+        let seconds = (await response.json()).data;
+
+
+
+        if (seconds > 0) { let counter = startTimer(seconds); }
+      }
+      catch (e) {
+        console.log(e)
+        throw e
+      }
+    }
+
+    showtimer();
+
+    function startTimer(seconds) {
+      const countdown = setInterval(() => {
+        seconds--;
+        document.getElementById('seconds').innerText = seconds;
+        if (seconds <= 0) {
+          clearInterval(countdown);
+          document.getElementById('seconds').innerText = "OTP has been expired !!";
+          // document.getElementById('timer-text').style.display = 'none';
+          document.getElementById('resend-btn').style.display = 'inline-block';
+        }
+      }, 1000);
+
+      return countdown;
+    }
+      function showMessage(message, isError = true) {
+            const alert = document.createElement('div');
+
+            const type = isError ? 'danger' : 'success';
+            alert.className = `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3 shadow`;
+            alert.style.zIndex = '9999';
+            alert.innerText = message;
+
+            document.body.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+
+  </script>
+
+</body>
+
+</html>

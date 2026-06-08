@@ -6,7 +6,7 @@ import passport from './utils/googleauth.js'
 export class AuthRoutes implements Routes {
   path: string = "/auth";
   router: Router = Router();
-  authContoller = new AuthController();
+  authController = new AuthController();
 
   constructor() {
     this.initializationRoutes();
@@ -15,9 +15,10 @@ export class AuthRoutes implements Routes {
   private initializationRoutes(): void {
     // use this way for
     // this.router.post('/register',middleware,this.contoller.register)
-
-    this.router.post("/register", this.authContoller.register);
-    this.router.post("/login", this.authContoller.login);
+    this.router.post("/register-doctor", this.authController.registerDoctor);
+    this.router.post("/register-admin", this.authController.registerAdmin);
+    this.router.post("/register", this.authController.register);
+    this.router.post("/login", this.authController.login);
     this.router.get('/google',passport.authenticate('google',{scope:[
         'profile',
         'email',

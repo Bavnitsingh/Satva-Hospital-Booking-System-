@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Satva Super Admin — Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#10A37F",
+              "primary-dark": "#0d8a6a",
+              "primary-light": "#e6f7f3",
+              "bg-page": "#f0faf6",
+              dark: "#0f1923",
+            },
+            fontFamily: {
+              sans: ["'DM Sans'", "system-ui", "sans-serif"],
+              display: ["'Playfair Display'", "Georgia", "serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-bg-page text-gray-800 min-h-screen flex flex-col">
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <div
+        class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-8">
+          <a href="dashboard.html" class="flex items-center gap-2.5">
+            <div class="bg-primary rounded-lg p-1.5">
+              <svg
+                class="w-5 h-5 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+            </div>
+            <span class="text-xl font-bold text-gray-900 font-display"
+              >Satva Admin</span
+            >
+          </a>
+          <div class="hidden md:flex gap-6">
+            <a
+              href="dashboard.html"
+              class="text-sm font-semibold text-primary border-b-2 border-primary pb-1"
+              >Overview</a
+            >
+            <a
+              href="hospitals.html"
+              class="text-sm font-medium text-gray-600 hover:text-primary transition pb-1"
+              >Hospitals</a
+            >
+            <a
+              href="admins.html"
+              class="text-sm font-medium text-gray-600 hover:text-primary transition pb-1"
+              >Admins</a
+            >
+            <a
+              href="users.html"
+              class="text-sm font-medium text-gray-600 hover:text-primary transition pb-1"
+              >Users</a
+            >
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center text-primary font-bold text-xs"
+            >
+              SA
+            </div>
+            <span class="text-sm font-semibold text-gray-700">Super Admin</span>
+          </div>
+          <button class="text-gray-400 hover:text-red-500 transition">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="flex-1 max-w-screen-2xl w-full mx-auto px-6 py-8">
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold font-display text-gray-900">
+          System Overview
+        </h1>
+        <p class="text-sm text-gray-500 mt-1">
+          Monitor your platform's overall metrics and activities.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div
+          class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4"
+        >
+          <div
+            class="w-12 h-12 bg-primary-light rounded-xl flex items-center justify-center text-primary text-xl"
+          >
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 font-medium">Total Users</p>
+            <p class="text-2xl font-bold text-gray-900" id="stat-users">
+              12,450
+            </p>
+          </div>
+        </div>
+        <div
+          class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4"
+        >
+          <div
+            class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 text-xl"
+          >
+            <i class="fa-solid fa-hospital"></i>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 font-medium">Hospitals</p>
+            <p class="text-2xl font-bold text-gray-900" id="stat-hospitals">
+              145
+            </p>
+          </div>
+        </div>
+        <div
+          class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4"
+        >
+          <div
+            class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 text-xl"
+          >
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 font-medium">Appointments</p>
+            <p class="text-2xl font-bold text-gray-900" id="stat-appointments">
+              85,210
+            </p>
+          </div>
+        </div>
+        <div
+          class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4"
+        >
+          <div
+            class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-500 text-xl"
+          >
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 font-medium">System Admins</p>
+            <p class="text-2xl font-bold text-gray-900" id="stat-admins">12</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
+<%- include("../error_flash") %>

@@ -110,39 +110,6 @@
           >
         </a>
       </div>
-
-      <div
-        id="mobileMenu"
-        class="hidden md:hidden bg-white border-t border-gray-100"
-      >
-        <div class="flex flex-col p-4 space-y-4">
-          <a
-            href="/"
-            class="text-gray-600 font-medium hover:text-primary transition"
-            >Home</a
-          >
-          <a href="/doctors" class="text-gray-600 hover:text-primary transition"
-            >Doctors</a
-          >
-          <a href="/about" class="text-gray-600 hover:text-primary transition"
-            >About</a
-          >
-          <a href="/contact" class="text-gray-600 hover:text-primary transition"
-            >Contact</a
-          >
-          <hr />
-          <a
-            href="/dashboard"
-            class="text-sm font-medium text-gray-700 hover:text-primary px-4 py-2"
-            >My Dashboard</a
-          >
-          <a
-            href="/logout"
-            class="bg-red-50 text-red-600 text-center py-2 rounded-xl hover:bg-red-100 transition"
-            >Logout</a
-          >
-        </div>
-      </div>
     </nav>
 
     <main class="flex-1 flex items-start justify-center pt-28 pb-16 px-4">
@@ -244,44 +211,6 @@
                   class="mt-1 text-xs text-red-500 hidden"
                 ></p>
               </div>
-
-              <!-- <div class="md:col-span-2">
-                <label
-                  for="email"
-                  class="block text-sm font-semibold text-gray-700 mb-1.5"
-                  >Email Address
-                  <span class="text-xs font-normal text-gray-400 ml-1"
-                    >(Cannot be changed)</span
-                  ></label
-                >
-                <div class="relative">
-                  <span
-                    class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-gray-400 pointer-events-none"
-                  >
-                    <svg
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </span>
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    value="john.doe@example.com"
-                    disabled
-                    class="w-full pl-10 pr-4 py-3 text-sm border border-gray-200 rounded-xl bg-gray-100 text-gray-500 cursor-not-allowed opacity-70"
-                  />
-                </div>
-              </div> -->
 
               <div>
                 <label
@@ -564,12 +493,6 @@
     </footer>
 
     <script>
-      // Mobile menu toggle
-      document.getElementById("menuBtn").addEventListener("click", () => {
-        document.getElementById("mobileMenu").classList.toggle("hidden");
-      });
-
-      // DOB max = today
       document.getElementById("dob").max = new Date()
         .toISOString()
         .split("T")[0];
@@ -674,6 +597,7 @@
 
         if (isValid) {
           console.log("Edit Profile Form Valid");
+
           // Proceed with fetch API to update profile route
         }
       });

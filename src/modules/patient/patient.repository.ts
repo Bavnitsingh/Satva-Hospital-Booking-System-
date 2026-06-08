@@ -254,6 +254,7 @@ export class PatientRepository {
        GROUP BY d.doctor_id`,
       [doctorId],
     );
+    console.log(rows);
     return rows[0] ?? null;
   }
 
@@ -275,9 +276,9 @@ export class PatientRepository {
   async getBookedSlots(doctorId: number, date: string): Promise<string[]> {
     const rows: any = await query(
       `SELECT TIME_FORMAT(start_time, '%H:%i') AS slot_time
-FROM appointments
-WHERE doctor_id = ? AND slot_date = ?
-AND appointment_status NOT IN ('CANCELLED')`,
+        FROM appointments
+        WHERE doctor_id = ? AND slot_date = ?
+        AND appointment_status NOT IN ('CANCELLED')`,
       [doctorId, date],
     );
     return rows.map((r: any) => r.slot_time);
@@ -292,11 +293,368 @@ WHERE doctor_id = ? AND ? BETWEEN from_date AND to_date LIMIT 1`,
     return rows.length > 0;
   }
 
-//   async getDoctorSchedule(doctorId: number) {
-//     return query(
-//       `SELECT * FROM doctor_schedules WHERE doctor_id = ?
-// ORDER BY FIELD(working_day,'MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY')`,
-//       [doctorId],
-//     );
-//   }
+  // Doctor schedule helpers
+  async getDoctorSchedule(doctorId: number) {
+    return query(
+      `SELECT * FROM doctor_schedules WHERE doctor_id = ?
+ORDER BY FIELD(working_day,'MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY')`,
+      [doctorId],
+    );
+  }
+
+  async createAppointment(data: {
+    doctorId: number;
+    patientId: number;
+    slotDate: string;
+    startTime: string;
+    endTime: string;
+    appointmentType: "IN_PERSON" | "TELEMEDICINE";
+    chiefComplaint?: string | undefined;
+    confirmationNo: string;
+  }) {
+    const result: any = await query(
+      `INSERT INTO appointments
+(doctor_id, patient_id, slot_date, start_time, end_time,
+appointment_type, appointment_status, chief_complaint, confirmation_no)
+VALUES (?, ?, ?, ?, ?, ?, 'PAYMENT_PENDING', ?, ?)`,
+      [
+        data.doctorId,
+        data.patientId,
+        data.slotDate,
+        data.startTime,
+        data.endTime,
+        data.appointmentType,
+        data.chiefComplaint ?? null,
+        data.confirmationNo,
+      ],
+    );
+    return result.insertId as number;
+  }
+
+  async createPayment(data: {
+    appointmentId: number;
+    amount: number;
+    paymentMethod: string;
+    status: "SUCCESS" | "PENDING" | "FAILED" | "REFUNDED";
+    transactionId: string;
+  }) {
+    const result: any = await query(
+      `
+      INSERT INTO payments (
+        appointment_id,
+        amount,
+        currency,
+        payment_method,
+        transaction_id,
+        status,
+        refund_status,
+        transaction_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+      [
+        data.appointmentId,
+        data.amount,
+        "INR",
+        data.paymentMethod,
+        data.transactionId,
+        data.status,
+        0,
+        new Date(),
+      ],
+    );
+
+    return result.insertId;
+  }
+
+  async updateAppointmentStatus(appointmentId: number, status: string) {
+    await query(
+      `
+      UPDATE appointments
+      SET appointment_status = ?
+      WHERE appointment_id = ?
+    `,
+      [status, appointmentId],
+    );
+  }
+
+  async logStatusHistory(data: {
+    appointmentId: number;
+    oldStatus: string | null;
+    newStatus: string;
+    changedByUserId: number;
+    remarks?: string;
+  }) {
+    return query(
+      `INSERT INTO appointment_status_history
+    (appointment_id, old_status, new_status, changed_by_user_id, remarks)
+    VALUES (?, ?, ?, ?, ?)`,
+      [
+        data.appointmentId,
+        data.oldStatus,
+        data.newStatus,
+        data.changedByUserId,
+        data.remarks ?? null,
+      ],
+    );
+  }
+  async updatePaymentStatus(paymentId: number, status: string) {
+    await query(
+      `
+        UPDATE payments
+        SET payment_status=?
+        WHERE payment_id=?
+        `,
+      [status, paymentId],
+    );
+  }
+  // Appointment documents
+  async addAppointmentDocument(
+    appointmentId: number,
+    documentName: string,
+    documentPath: string,
+  ) {
+    return query(
+      `INSERT INTO appointment_documents (appointment_id, document_name, document_path)
+VALUES (?, ?, ?)`,
+      [appointmentId, documentName, documentPath],
+    );
+  }
+
+  // View appointments
+  async getAppointmentsByPatient(patientId: number, status?: string) {
+    const params: any[] = [patientId];
+    let statusFilter = "";
+    if (status) {
+      statusFilter = "AND a.appointment_status = ?";
+      params.push(status.toUpperCase());
+    }
+    return query(
+      `SELECT
+        a.appointment_id, a.slot_date, a.start_time, a.end_time,
+        a.appointment_type, a.appointment_status, a.chief_complaint, a.confirmation_no,
+        d.first_name AS doctor_first_name, d.last_name AS doctor_last_name,
+        d.consultation_fee, d.currency_code, d.profile_path AS doctor_photo,
+        h.hospital_name,
+        GROUP_CONCAT(DISTINCT s.specialty_name SEPARATOR ', ') AS specialties,
+        p.status AS payment_status, p.amount AS payment_amount
+        FROM appointments a
+        JOIN doctors d ON a.doctor_id = d.doctor_id
+        JOIN hospitals h ON d.hospital_id = h.hospital_id
+        LEFT JOIN doctor_specialties ds ON d.doctor_id = ds.doctor_id
+        LEFT JOIN specialties s ON ds.specialty_id = s.specialty_id
+        LEFT JOIN payments p ON a.appointment_id = p.appointment_id
+        WHERE a.patient_id = ? ${statusFilter}
+        GROUP BY a.appointment_id
+        ORDER BY a.slot_date DESC, a.start_time DESC`,
+      params,
+    );
+  }
+
+  async getAppointmentById(appointmentId: number) {
+    const rows: any = await query(
+      `SELECT a.*,
+d.first_name AS doctor_first_name, d.last_name AS doctor_last_name,
+d.consultation_fee, d.currency_code
+FROM appointments a
+JOIN doctors d ON a.doctor_id = d.doctor_id
+WHERE a.appointment_id = ?`,
+      [appointmentId],
+    );
+    return rows[0] ?? null;
+  }
+
+  // Reschedule
+  async rescheduleAppointment(
+    appointmentId: number,
+    data: {
+      slotDate: string;
+      startTime: string;
+      endTime: string;
+    },
+  ) {
+    return query(
+      `UPDATE appointments
+SET slot_date = ?, start_time = ?, end_time = ?,
+appointment_status = 'CONFIRMED', updated_at = UTC_TIMESTAMP()
+WHERE appointment_id = ?`,
+      [data.slotDate, data.startTime, data.endTime, appointmentId],
+    );
+  }
+
+  // Cancel Booking
+  async cancelAppointment(appointmentId: number) {
+    return query(
+      `UPDATE appointments
+SET appointment_status = 'CANCELLED', updated_at = UTC_TIMESTAMP()
+WHERE appointment_id = ?`,
+      [appointmentId],
+    );
+  }
+
+  // Payments
+
+  async failPayment(paymentId: number) {
+    return query(
+      `UPDATE payments SET status = 'FAILED', updated_at = UTC_TIMESTAMP()
+WHERE payment_id = ?`,
+      [paymentId],
+    );
+  }
+
+  async initiateRefund(paymentId: number) {
+    return query(
+      `UPDATE payments
+SET status = 'REFUNDED', refund_status = TRUE, updated_at = UTC_TIMESTAMP()
+WHERE payment_id = ? AND status = 'SUCCESS'`,
+      [paymentId],
+    );
+  }
+
+  async getPaymentByAppointment(appointmentId: number) {
+    const result: any = await query(
+      `
+      SELECT *
+      FROM payments
+      WHERE appointment_id = ?
+      LIMIT 1
+    `,
+      [appointmentId],
+    );
+
+    return result[0] ?? null;
+  }
+
+  async markPaymentRefunded(paymentId: number) {
+    await query(
+      `
+      UPDATE payments
+      SET
+        status = 'REFUNDED',
+        refund_status = 1
+      WHERE payment_id = ?
+    `,
+      [paymentId],
+    );
+  }
+
+  async getPaymentHistory(patientId: number) {
+    return query(
+      `SELECT
+        p.payment_id, p.amount, p.currency, p.payment_method,
+        p.status, p.refund_status, p.transaction_id, p.transaction_at,
+        a.slot_date, a.confirmation_no, a.appointment_type,
+        d.first_name AS doctor_first_name, d.last_name AS doctor_last_name
+        FROM payments p
+        JOIN appointments a ON p.appointment_id = a.appointment_id
+        JOIN doctors d ON a.doctor_id = d.doctor_id
+        WHERE a.patient_id = ?
+        ORDER BY p.created_at DESC`,
+      [patientId],
+    );
+  }
+
+  //  Medical records
+  async getMedicalHistory(patientId: number) {
+    return query(
+      `SELECT
+            mr.record_id, mr.appointment_id, mr.diagnosis, mr.examination_notes,
+            mr.created_at AS record_date,
+            d.first_name AS doctor_first_name, d.last_name AS doctor_last_name,
+            a.slot_date, a.appointment_type,
+            pr.prescription_id, pr.notes AS prescription_notes,
+            GROUP_CONCAT(
+            DISTINCT CONCAT(pi.medicine_name,'|',pi.dosage,'|',pi.frequency,'|',pi.duration)
+            SEPARATOR ';;'
+            ) AS medicines
+            FROM medical_records mr
+            JOIN doctors d ON mr.doctor_id = d.doctor_id
+            JOIN appointments a ON mr.appointment_id = a.appointment_id
+            LEFT JOIN prescriptions pr ON mr.record_id = pr.record_id
+            LEFT JOIN prescription_items pi ON pr.prescription_id = pi.prescription_id
+            WHERE mr.patient_id = ?
+            GROUP BY mr.record_id
+            ORDER BY mr.created_at DESC`,
+      [patientId],
+    );
+  }
+
+  async getMedicalRecordById(recordId: number, patientId: number) {
+    const rows: any = await query(
+      `SELECT
+            mr.*,
+            d.first_name AS doctor_first_name, d.last_name AS doctor_last_name,
+            a.slot_date, a.start_time, a.appointment_type,
+            pr.prescription_id, pr.notes AS prescription_notes
+            FROM medical_records mr
+            JOIN doctors d ON mr.doctor_id = d.doctor_id
+            JOIN appointments a ON mr.appointment_id = a.appointment_id
+            LEFT JOIN prescriptions pr ON mr.record_id = pr.record_id
+            WHERE mr.record_id = ? AND mr.patient_id = ?`,
+      [recordId, patientId],
+    );
+    if (!rows[0]) return null;
+
+    const prescriptionItems = await query(
+      `SELECT pi.* FROM prescription_items pi
+        JOIN prescriptions pr ON pi.prescription_id = pr.prescription_id
+        WHERE pr.record_id = ?`,
+      [recordId],
+    );
+
+    const attachments = await query(
+      `SELECT * FROM medical_record_attachments WHERE record_id = ?`,
+      [recordId],
+    );
+
+    return { ...rows[0], prescriptionItems, attachments };
+  }
+
+  // Notifications
+  async getNotifications(patientId: number, unreadOnly: boolean) {
+    const filter = unreadOnly ? "AND is_read = FALSE" : "";
+    return query(
+      `SELECT * FROM notifications
+        WHERE user_id = ? ${filter}
+        ORDER BY created_at DESC
+        LIMIT 50`,
+      [patientId],
+    );
+  }
+
+  async markNotificationRead(notificationId: number, patientId: number) {
+    return query(
+      `UPDATE notifications SET is_read = TRUE, updated_at = UTC_TIMESTAMP()
+WHERE notification_id = ? AND patient_id = ?`,
+      [notificationId, patientId],
+    );
+  }
+
+  async markAllNotificationsRead(patientId: number) {
+    return query(
+      `UPDATE notifications SET is_read = TRUE, updated_at = UTC_TIMESTAMP()
+WHERE patient_id = ?`,
+      [patientId],
+    );
+  }
+  async createNotification(data: {
+    userId: number;
+    title: string;
+    message: string;
+  }) {
+    const result: any = await query(
+      `
+      INSERT INTO notifications (
+        user_id,
+        notification_type,
+        notification_message,
+        sent_at
+      )
+      VALUES (?, ?, ?, UTC_TIMESTAMP())
+    `,
+      [data.userId, data.title, data.message],
+    );
+
+    return result.insertId;
+  }
 }

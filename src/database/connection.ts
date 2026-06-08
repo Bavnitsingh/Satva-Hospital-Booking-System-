@@ -1,37 +1,36 @@
-import mysql, {Connection,QueryResult} from 'mysql2/promise'
-import { env } from '../config/index.js'
+import mysql from 'mysql2/promise';
 import logger from '../common/logger.js';
+import { env } from '../config/index.js';
 
+export const pool = mysql.createPool({
+  host: env.DB_HOST,
+  port: env.DB_PORT,
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
+  database: env.DB_NAME,
 
-const connection=await mysql.createConnection({
-    host:env.DB_HOST,
-    port:env.DB_PORT,
-    user:env.DB_USER,
-    password:env.DB_PASSWORD,
-    database:env.DB_NAME
-})
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-export async function dbConnection():Promise<void>{
-    try{
+export async function dbConnection(): Promise<void> {
+  try {
+    const connection = await pool.getConnection();
 
-    await connection.connect()
-    if(connection){
-        logger.info('Database connected successfully')
-    }
-    connection.end()
-    }
+    logger.info('Database connected successfully');
 
-    catch(err){
-        logger.error('error connecting database')
-      connection.end()
-    }
-  
+    connection.release();
+  } catch (error) {
+    logger.error(error);
+    throw error;
+  }
 }
 
-
-// use query function to run postgreSQL query
-// export const query = (text: string, params?: any[])=> {
-//   return connection.query(text, params);
-// };
-
-export default connection;
+export async function query(
+  sql: string,
+  params: any[] = []
+) {
+  const [rows] = await pool.execute(sql, params);
+  return rows;
+}

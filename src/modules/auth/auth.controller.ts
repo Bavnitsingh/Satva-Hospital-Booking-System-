@@ -48,30 +48,6 @@ export class AuthController {
     }
   }
 
-  // showMail = async (req: Request, res: Response) => {
-  //   try {
-
-  //     if (!req.session.isEmailVerified) {
-  //      return res.redirect("/send-otp-page")
-  //     }
-
-  //     let otp = await this.authService.getOtp(req.session.email as string);
-  //     if (otp) {
-  //       console.log(otp)
-  //       return res.render("auth/show-email", { otp });
-  //     }
-  //     else {
-  //       return res.redirect("api/send-otp-page");
-  //     }
-  //   }
-  //   catch (e) {
-  //     console.log(e);
-  //     let error = e instanceof Error ? e.message : "error in registring user";
-  //     const status = e instanceof HttpException ? e.statusCode : 400;
-  //     return generalResponse({ res, data: status, message: "Failed to send otp", statusCode: 200 });
-  //   }
-  // }
-
   showMail = async (req: Request, res: Response) => {
   try {
     if (!req.session.isEmailVerified || !req.session.email) {

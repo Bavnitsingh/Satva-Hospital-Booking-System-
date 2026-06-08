@@ -10,9 +10,8 @@ const router=Router()
 
 const routes:Routes[]=[
     // add all routes here
-    
     new AuthRoutes(),
-    new PatientRoutes()
+    new PatientRoutes(),
 ]
 
 

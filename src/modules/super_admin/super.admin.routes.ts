@@ -1,0 +1,23 @@
+import { Router } from "express";
+import { Routes } from "../../common/interfaces/routes.interfaces.js";
+import { SuperAdminController } from "./super.admin.controller.js";
+
+export class SuperAdminRoutes implements Routes {
+  path: string = "/super-admin";
+  router: Router = Router();
+  superAdminController = new SuperAdminController();
+
+  constructor() {
+    this.initializationRoutes();
+  }
+
+  private initializationRoutes(): void {
+    this.router.get("/login", this.superAdminController.getLogin);
+    this.router.post("/login", this.superAdminController.postLogin);
+    this.router.post(
+      "/seed-super-admin",
+      this.superAdminController.seedSuperAdmin,
+    );
+    this.router.get("/dashboard", this.superAdminController.dashboard);
+  }
+}

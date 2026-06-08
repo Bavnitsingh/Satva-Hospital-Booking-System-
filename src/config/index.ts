@@ -20,7 +20,7 @@ export const env = {
 
   DB_PASSWORD: process.env.DB_PASSWORD || '',
 
-  JWT_SECRET_KEY: process.env.JWT_SECRET_KEY || '',
+  JWT_SECRET_KEY: process.env.JWT_SECRET_KEY || 'satva',
 
 
 GOOGLE_CLIENT_ID:process.env.GOOGLE_CLIENT_ID || '',

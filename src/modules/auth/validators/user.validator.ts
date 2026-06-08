@@ -41,6 +41,37 @@ export const userRegisterSchema = z
     path: ["mobile"],
   });
 
+
+export const userProfileSchema=z.object({
+    first_name: z.string().trim().min(1, "Fitst name is required "),
+    last_name: z.string().trim().min(1, "Last name is required"),
+    country_code: z
+      .string()
+      .regex(
+        /^\+[1-9]\d{0,2}$/,
+        "Country code must start with + followed by digits",
+      ),
+    mobile: z.string().trim().min(1, "Phone number is required"),
+    address_line1: z
+      .string()
+      .trim()
+      .min(1, "First Line of address is required"),
+    address_line2: z.string().trim().optional(),
+    gender: z.enum(["MALE", "FEMALE", "OTHER"], {
+      message: "Please select a valid gender",
+    }),
+    dob: z.coerce
+      .date()
+      .min(new Date("1900-01-01"), {
+        message: "Date of birth must be after 1900",
+      })
+      .max(new Date(), { message: "Date of birth cannot be in the future" }),
+  })
+  .refine((data) => isValidPhoneNumber(`${data.country_code}${data.mobile}`), {
+    message: "Invalid phone number",
+    path: ["mobile"],
+  });
+
 //* This line will create a type for req.body for the user register
 export type UserRegisterSchema = z.infer<typeof userRegisterSchema>;
 

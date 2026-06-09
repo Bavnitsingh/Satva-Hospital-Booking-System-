@@ -32,6 +32,6 @@ export class AdminController{
     })
 
     addDoctor = catchAsync(async(req:Request,res:Response)=>{
-        
+         
     })
 }

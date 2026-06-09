@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Dashboard – HealthCare</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#10A37F',
+            'primary-dark': '#0d8a6a',
+            'primary-light': '#e6f7f3',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-white min-h-screen font-sans text-gray-800">
+
+  <!-- ===================== NAVBAR ===================== -->
+  <nav class="border-b border-gray-200 bg-white px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+    <!-- Logo -->
+    <div class="flex items-center gap-2">
+      <div class="bg-primary rounded-lg p-1.5">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      </div>
+      <span class="font-bold text-gray-900 text-base">Satva</span>
+    </div>
+
+    <!-- Right icons -->
+    <div class="flex items-center gap-4">
+      <!-- Bell -->
+      <button class="text-gray-500 hover:text-gray-700 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+        </svg>
+      </button>
+      <!-- User -->
+      <button class="text-gray-500 hover:text-gray-700 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+      </button>
+      <!-- Logout -->
+      <a href="/logout" class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+        </svg>
+        Logout
+      </a>
+    </div>
+  </nav>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="max-w-5xl mx-auto px-6 py-8">
+
+    <!-- Welcome -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">Welcome back, Sarah !</h1>
+      <p class="text-sm text-gray-400 mt-1">Manage your appointments and health records</p>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+
+      <!-- Book Appointment CTA -->
+      <div class="bg-primary rounded-xl p-5 flex items-center justify-between text-white">
+        <div>
+          <p class="text-xs font-medium text-green-200 mb-1">Quick Action</p>
+          <p class="font-bold text-base">Book Appointment</p>
+        </div>
+        <div class="bg-white bg-opacity-20 rounded-full p-2">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Upcoming -->
+      <div class="bg-primary-light rounded-xl p-5">
+        <div class="text-primary mb-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+        <p class="text-2xl font-bold text-gray-900">3</p>
+        <p class="text-sm text-gray-400">Upcoming</p>
+      </div>
+
+      <!-- Records -->
+      <div class="bg-primary-light rounded-xl p-5">
+        <div class="text-primary mb-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+        </div>
+        <p class="text-2xl font-bold text-gray-900">12</p>
+        <p class="text-sm text-gray-400">Records</p>
+      </div>
+
+      <!-- Last Visit -->
+      <div class="bg-primary-light rounded-xl p-5">
+        <div class="text-primary mb-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <p class="text-2xl font-bold text-gray-900">5 days ago</p>
+        <p class="text-sm text-gray-400">Last Visit</p>
+      </div>
+
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-6 border-b border-gray-200 mb-7">
+      <button class="text-sm font-semibold text-primary border-b-2 border-primary pb-3 transition">Overview</button>
+      <button class="text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 transition">Appointments</button>
+      <button class="text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 transition">Medical Records</button>
+      <button class="text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 transition">Profile</button>
+    </div>
+
+    <!-- Two-column grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+      <!-- Upcoming Appointments -->
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-gray-900">Upcoming Appointments</h2>
+          <a href="/patient/appointments" class="text-sm text-primary hover:text-primary-dark font-medium transition">View All</a>
+        </div>
+
+        <div class="space-y-3">
+
+          <!-- Appointment 1 -->
+          <div class="flex items-center justify-between bg-primary-light rounded-xl px-4 py-3">
+            <div class="flex items-center gap-3">
+              <div class="bg-primary rounded-full p-2 flex-shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-gray-900">Dr. Michael Chen</p>
+                <p class="text-xs text-gray-400">Cardiologist</p>
+                <p class="text-xs text-gray-400 mt-0.5">June 5, 2026 &nbsp;•&nbsp; 10:00 AM</p>
+              </div>
+            </div>
+            <div class="text-primary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Appointment 2 -->
+          <div class="flex items-center justify-between bg-primary-light rounded-xl px-4 py-3">
+            <div class="flex items-center gap-3">
+              <div class="bg-primary rounded-full p-2 flex-shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-gray-900">Dr. Emily Roberts</p>
+                <p class="text-xs text-gray-400">Dermatologist</p>
+                <p class="text-xs text-gray-400 mt-0.5">June 8, 2026 &nbsp;•&nbsp; 2:30 PM</p>
+              </div>
+            </div>
+            <div class="text-primary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Appointment 3 -->
+          <div class="flex items-center justify-between bg-primary-light rounded-xl px-4 py-3">
+            <div class="flex items-center gap-3">
+              <div class="bg-primary rounded-full p-2 flex-shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-gray-900">Dr. James Wilson</p>
+                <p class="text-xs text-gray-400">General Physician</p>
+                <p class="text-xs text-gray-400 mt-0.5">June 12, 2026 &nbsp;•&nbsp; 11:00 AM</p>
+              </div>
+            </div>
+            <div class="text-primary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Recent Medical Records -->
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-gray-900">Recent Medical Records</h2>
+          <a href="/patient/records" class="text-sm text-primary hover:text-primary-dark font-medium transition">View All</a>
+        </div>
+
+        <div class="space-y-3">
+
+          <!-- Record 1 -->
+          <div class="border border-gray-100 rounded-xl p-4 bg-gray-50">
+            <div class="flex items-start justify-between mb-1">
+              <p class="text-sm font-semibold text-gray-900">Annual Checkup</p>
+              <p class="text-xs text-gray-400">May 28, 2026</p>
+            </div>
+            <p class="text-xs text-gray-500 mb-0.5">Dr. Michael Chen</p>
+            <p class="text-xs text-gray-400 mb-2">Routine examination - All normal</p>
+            <a href="/patient/records/1" class="text-xs text-primary font-semibold hover:text-primary-dark transition">View Details</a>
+          </div>
+
+          <!-- Record 2 -->
+          <div class="border border-gray-100 rounded-xl p-4 bg-gray-50">
+            <div class="flex items-start justify-between mb-1">
+              <p class="text-sm font-semibold text-gray-900">Skin Consultation</p>
+              <p class="text-xs text-gray-400">May 15, 2026</p>
+            </div>
+            <p class="text-xs text-gray-500 mb-0.5">Dr. Emily Roberts</p>
+            <p class="text-xs text-gray-400 mb-2">Prescribed topical treatment</p>
+            <a href="/patient/records/2" class="text-xs text-primary font-semibold hover:text-primary-dark transition">View Details</a>
+          </div>
+
+          <!-- Record 3 -->
+          <div class="border border-gray-100 rounded-xl p-4 bg-gray-50">
+            <div class="flex items-start justify-between mb-1">
+              <p class="text-sm font-semibold text-gray-900">Follow-up Visit</p>
+              <p class="text-xs text-gray-400">April 20, 2026</p>
+            </div>
+            <p class="text-xs text-gray-500 mb-0.5">Dr. James Wilson</p>
+            <p class="text-xs text-gray-400 mb-2">Blood pressure monitoring</p>
+            <a href="/patient/records/3" class="text-xs text-primary font-semibold hover:text-primary-dark transition">View Details</a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Health Summary -->
+    <div class="bg-primary rounded-2xl p-6">
+      <h2 class="text-white font-bold text-base mb-5">Health Summary</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+          <p class="text-green-200 text-xs mb-2">Blood Type</p>
+          <p class="text-white text-xl font-bold">O+</p>
+        </div>
+
+        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+          <p class="text-green-200 text-xs mb-2">Height</p>
+          <p class="text-white text-xl font-bold">165 cm</p>
+        </div>
+
+        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+          <p class="text-green-200 text-xs mb-2">Weight</p>
+          <p class="text-white text-xl font-bold">58 kg</p>
+        </div>
+
+        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+          <p class="text-green-200 text-xs mb-2">Allergies</p>
+          <p class="text-white text-xl font-bold">Penicillin</p>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>

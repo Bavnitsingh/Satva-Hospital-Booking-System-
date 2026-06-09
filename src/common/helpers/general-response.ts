@@ -17,7 +17,8 @@ interface GeneralResponseOptions {
 //     filepath:string,
 // }
 
-export function generalResponse({ res,
+export function generalResponse({ 
+    res,
     data=null,
     message='Success',
     statusCode=200

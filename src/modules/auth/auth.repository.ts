@@ -109,6 +109,7 @@ async updateLastLogin(userId: number): Promise<void> {
 
 
   async createDoctor(data: any) {
+      console.log(data)
     const result = await query(
       `
         INSERT INTO doctors (

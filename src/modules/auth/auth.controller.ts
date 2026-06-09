@@ -35,7 +35,9 @@ export class AuthController {
 
 
   registerDoctor = catchAsync(async (req: Request, res: Response) => {
+  
     const result = await this.authService.registerDoctor(req.body);
+
 
     generalResponse({
       res,

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Patient Dashboard | Satva</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#10A37F",
+            "primary-dark": "#0d8a6a",
+            "primary-light": "#e6f7f3",
+            "bg-page": "#f0faf6",
+            dark: "#0f1923",
+          },
+          fontFamily: {
+            sans: ["DM Sans", "sans-serif"],
+            display: ["Playfair Display", "serif"],
+          },
+        },
+      },
+    };
+  </script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    .card-hover {
+      transition: all .25s ease;
+    }
+
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(16,163,127,.12);
+    }
+
+    .stat-card {
+      border-left: 4px solid #10A37F;
+    }
+
+    body {
+      font-family: "DM Sans", sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-bg-page min-h-screen">
+
+  <!-- HEADER -->
+  <!-- <%- include('../partials/patient-header') %> -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <div class="flex items-center justify-between h-20">
+
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+            S
+          </div>
+
+          <div>
+            <h1 class="font-display text-2xl text-dark">
+              Satva
+            </h1>
+            <p class="text-xs text-gray-500">
+              Hospital Appointment System
+            </p>
+          </div>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/patient/dashboard" class="text-primary font-semibold">
+            Dashboard
+          </a>
+
+          <a href="/patient/doctors" class="hover:text-primary">
+            Doctors
+          </a>
+
+          <a href="/patient/appointments" class="hover:text-primary">
+            Appointments
+          </a>
+
+          <a href="/patient/records" class="hover:text-primary">
+            Records
+          </a>
+
+          <a href="/patient/profile" class="hover:text-primary">
+            Profile
+          </a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <a
+            href="/patient/notifications"
+            class="relative p-2 rounded-lg hover:bg-primary-light"
+          >
+            🔔
+          </a>
+
+          <div class="flex items-center gap-2">
+            <img
+            id="user_img"
+              src="https://ui-avatars.com/api/?name=Patient"
+              class="w-10 h-10 rounded-full object-cover"
+            />
+
+            <div>
+              <p class="text-sm font-semibold" id="patientName">
+                Patient
+              </p>
+
+              <p class="text-xs text-gray-500">
+                Patient
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+
+  <main class="max-w-7xl mx-auto px-6 py-10">
+
+    <!-- Welcome -->
+    <section class="mb-10">
+
+      <h2 class="font-display text-4xl text-dark mb-2">
+        Welcome Back,
+        <span class="text-primary" id="patient_name">
+        </span>
+      </h2>
+
+      <p class="text-gray-600">
+        Manage your appointments, records and healthcare journey.
+      </p>
+
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="grid lg:grid-cols-4 md:grid-cols-2 gap-5 mb-10">
+
+      <a
+        href="/patient/appointments"
+        class="bg-primary text-white p-6 rounded-2xl card-hover"
+      >
+        <p class="text-sm opacity-90">
+          Quick Action
+        </p>
+
+        <h3 class="font-semibold text-lg mt-2">
+          Book Appointment
+        </h3>
+
+        <div class="text-3xl mt-4">
+          +
+        </div>
+      </a>
+
+      <div class="bg-white rounded-2xl p-6 stat-card">
+        <p class="text-gray-500">
+          Upcoming Appointments
+        </p>
+
+        <h3 id="upcomingCount" class="text-3xl font-bold mt-2">
+          0
+        </h3>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 stat-card">
+        <p class="text-gray-500">
+          Medical Records
+        </p>
+
+        <h3 id="recordCount" class="text-3xl font-bold mt-2">
+          0
+        </h3>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 stat-card">
+        <p class="text-gray-500">
+          Notifications
+        </p>
+
+        <h3 id="notificationCount" class="text-3xl font-bold mt-2">
+          0
+        </h3>
+      </div>
+
+    </section>
+
+    <!-- Dashboard Grid -->
+    <section class="grid lg:grid-cols-2 gap-6">
+
+      <!-- Upcoming Appointments -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+
+        <div class="flex justify-between items-center mb-5">
+
+          <h3 class="font-display text-2xl">
+            Upcoming Appointments
+          </h3>
+
+          <a
+            href="/patient/appointments"
+            class="text-primary font-medium"
+          >
+            View All
+          </a>
+
+        </div>
+
+        <div
+          id="appointmentsContainer"
+          class="space-y-4"
+        >
+          <div class="text-center py-10 text-gray-500">
+            Loading appointments...
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Medical Records -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+
+        <div class="flex justify-between items-center mb-5">
+
+          <h3 class="font-display text-2xl">
+            Recent Records
+          </h3>
+
+          <a
+            href="/patient/records"
+            class="text-primary font-medium"
+          >
+            View All
+          </a>
+
+        </div>
+
+        <div
+          id="recordsContainer"
+          class="space-y-4"
+        >
+          <div class="text-center py-10 text-gray-500">
+            No records found
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Health Summary -->
+    <section
+      class="mt-8 bg-gradient-to-r from-primary to-primary-dark rounded-2xl p-8 text-white"
+    >
+
+      <h3 class="font-display text-3xl mb-6">
+        Health Summary
+      </h3>
+
+      <div class="grid md:grid-cols-4 gap-4">
+
+        <div class="bg-white/10 rounded-xl p-5">
+          <p class="text-sm opacity-80">
+            Blood Group
+          </p>
+
+          <h4 id="bloodGroup" class="text-2xl font-bold mt-2">
+            --
+          </h4>
+        </div>
+
+        <div class="bg-white/10 rounded-xl p-5">
+          <p class="text-sm opacity-80">
+            Gender
+          </p>
+
+          <h4 id="gender" class="text-2xl font-bold mt-2">
+            --
+          </h4>
+        </div>
+
+        <div class="bg-white/10 rounded-xl p-5">
+          <p class="text-sm opacity-80">
+            Date of Birth
+          </p>
+
+          <h4 id="dob" class="text-xl font-bold mt-2">
+            --
+          </h4>
+        </div>
+
+        <div class="bg-white/10 rounded-xl p-5">
+          <p class="text-sm opacity-80">
+            Profile Status
+          </p>
+
+          <h4 class="text-xl font-bold mt-2">
+            Active
+          </h4>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <%- include('../partials/footer') %>
+
+<script>
+const token = localStorage.getItem("token");
+
+async function loadDashboard() {
+  try {
+
+    const profileRes = await fetch("/api/v1/patient/profile", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    const profile = await profileRes.json();
+    console.log(profile);
+
+    if (profile.data) {
+      document.getElementById("bloodGroup").textContent =
+        profile.data.blood_group || "--";
+
+      document.getElementById("gender").textContent=
+        profile.data.gender || "--";
+
+      document.getElementById("dob").textContent=
+        profile.data.dob?.split("T")[0] || "--";
+      const username = `${profile.data.first_name || ""} ${profile.data.last_name || ""}`;
+      document.getElementById("patient_name").textContent = username;
+      document.getElementById("patientName").textContent = username;
+      document.getElementById("user_img").src = profile.data.picture || `https://ui-avatars.com/api/?name=${username}`;
+    }
+
+    localStorage.setItem("username",profile.data.first_name)
+
+    const appointmentsRes = await fetch(
+      "/api/v1/patient/appointments",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const appointments = await appointmentsRes.json();
+    console.log(appointments)
+    document.getElementById("upcomingCount").textContent =
+      appointments.data?.length || 0;
+
+    const appointmentContainer =
+      document.getElementById("appointmentsContainer");
+
+    appointmentContainer.innerHTML = "";
+
+    appointments.data?.slice(0, 3).forEach((appt) => {
+      const app_date = appt.slot_date.split("T")[0];
+
+console.log(app_date);
+      appointmentContainer.innerHTML += `
+        <div class="bg-white rounded-xl border p-4">
+          <h4 class="font-semibold">
+            Dr. ${appt.doctor_first_name || "unknown"} ${appt.doctor_last_name}  
+          </h4>
+
+          <p class="text-sm text-gray-500">
+            ${app_date}
+          </p>
+
+          <p class="text-sm text-primary">
+            ${appt.start_time}
+          </p>
+
+          <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+            ${appt.appointment_status}
+          </span>
+        </div>
+      `;
+    });
+
+    const recordsRes = await fetch(
+      "/api/v1/patient/records",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const records = await recordsRes.json();
+
+    document.getElementById("recordCount").textContent =
+      records.data?.length || 0;
+
+    const notificationsRes = await fetch(
+      "/api/v1/patient/notifications",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const notifications = await notificationsRes.json();
+
+    document.getElementById("notificationCount").textContent =
+      notifications.data?.length || 0;
+
+  } catch (err) {
+    console.error("Dashboard Error:", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadDashboard);
+loadDashboard();
+
+</script>
+
+</body>
+</html>

@@ -46,6 +46,7 @@ export function isDoctor(req: Request, res: Response, next: NextFunction): void 
 
 export function isAdmin(req: Request, res: Response, next: NextFunction): void {
   const user = (req as AuthRequest).user;
+ 
   if (user?.role !== "ADMIN") {
     res.status(403).json({ statusCode: 403, message: "Access restricted to admins", data: null });
     return;

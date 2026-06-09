@@ -30,7 +30,7 @@ passport.use(
           const passwordHashed = await getHashedPassword(sub);
           user = await userRepo.createGoogleUser(email, passwordHashed, sub);
         }
-
+          
 
         
         return cb(null, user);

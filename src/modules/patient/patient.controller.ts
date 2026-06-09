@@ -182,11 +182,6 @@ export class PatientController {
 
 
 
-private patientService = new PatientService()
-
-profilePage=(req:Request,res:Response)=>{
-    res.render('profile/edit-profile')
-}
 
 
 // showProfile=catchAsync(async(req:Request,res:Response)=>{

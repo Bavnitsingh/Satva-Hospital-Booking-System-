@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Satva Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+</head>
+<body class="bg-white font-sans">
+
+  <!-- Navbar -->
+  <nav class="flex items-center justify-between px-6 py-3 border-b border-gray-200">
+    <div class="flex items-center gap-2">
+      <div class="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center">
+        <i class="ti ti-heart text-white text-lg"></i>
+      </div>
+      <span class="text-base font-medium text-gray-900">Satva</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <i class="ti ti-bell text-xl text-gray-500 cursor-pointer"></i>
+      <i class="ti ti-user text-xl text-gray-500 cursor-pointer"></i>
+      <button class="flex items-center gap-2 bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-700 transition">
+        <i class="ti ti-logout text-base"></i>
+        Logout
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="px-6 pt-7">
+
+    <!-- Page Header -->
+    <h1 class="text-2xl font-medium text-gray-900 mb-1">Admin Dashboard</h1>
+    <p class="text-sm text-gray-500 mb-6">System overview and management</p>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-4 gap-4 mb-7">
+
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-2">
+          <i class="ti ti-calendar text-green-600 text-2xl"></i>
+          <span class="text-sm text-green-600 font-medium">+12%</span>
+        </div>
+        <div class="text-3xl font-medium text-gray-900 mb-1">156</div>
+        <div class="text-sm text-gray-500">Today's Appointments</div>
+      </div>
+
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-2">
+          <i class="ti ti-users text-green-600 text-2xl"></i>
+          <span class="text-sm text-green-600 font-medium">+8%</span>
+        </div>
+        <div class="text-3xl font-medium text-gray-900 mb-1">2,847</div>
+        <div class="text-sm text-gray-500">Active Patients</div>
+      </div>
+
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-2">
+          <i class="ti ti-currency-dollar text-green-600 text-2xl"></i>
+          <span class="text-sm text-green-600 font-medium">+15%</span>
+        </div>
+        <div class="text-3xl font-medium text-gray-900 mb-1">$12,450</div>
+        <div class="text-sm text-gray-500">Revenue (Today)</div>
+      </div>
+
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-2">
+          <i class="ti ti-activity text-green-600 text-2xl"></i>
+          <span class="text-sm text-green-600 font-medium">+2</span>
+        </div>
+        <div class="text-3xl font-medium text-gray-900 mb-1">48</div>
+        <div class="text-sm text-gray-500">Active Doctors</div>
+      </div>
+
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-7 border-b border-gray-200 mb-5">
+      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Overview</span>
+      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Doctors</span>
+      <span class="text-sm text-green-600 font-medium pb-2.5 border-b-2 border-green-600 cursor-pointer">Patients</span>
+      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Appointments</span>
+      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Reports</span>
+      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Settings</span>
+      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Audit Log</span>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="flex items-center gap-3 mb-5">
+      <div class="flex-1 flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
+        <i class="ti ti-search text-gray-400 text-base"></i>
+        <input type="text" placeholder="Search patients..." class="flex-1 border-none outline-none text-sm text-gray-700 bg-transparent" />
+      </div>
+      <button class="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+        <i class="ti ti-filter text-base"></i>
+        Filter
+      </button>
+    </div>
+
+    <!-- Patient Table -->
+    <div class="border border-gray-200 rounded-xl overflow-hidden mb-8">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="text-left px-4 py-3 font-medium text-gray-900">Patient ID</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-900">Name</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-900">Age</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-900">Last Visit</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-900">Appointments</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-900">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3.5 text-gray-500">PT-2026-0001</td>
+            <td class="px-4 py-3.5 font-medium text-gray-900">Sarah Johnson</td>
+            <td class="px-4 py-3.5 text-gray-700">38</td>
+            <td class="px-4 py-3.5 text-gray-700">May 28, 2026</td>
+            <td class="px-4 py-3.5 text-gray-700">12</td>
+            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
+          </tr>
+          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3.5 text-gray-500">PT-2026-0002</td>
+            <td class="px-4 py-3.5 font-medium text-gray-900">Robert Brown</td>
+            <td class="px-4 py-3.5 text-gray-700">52</td>
+            <td class="px-4 py-3.5 text-gray-700">June 1, 2026</td>
+            <td class="px-4 py-3.5 text-gray-700">8</td>
+            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
+          </tr>
+          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3.5 text-gray-500">PT-2026-0003</td>
+            <td class="px-4 py-3.5 font-medium text-gray-900">Maria Garcia</td>
+            <td class="px-4 py-3.5 text-gray-700">45</td>
+            <td class="px-4 py-3.5 text-gray-700">May 30, 2026</td>
+            <td class="px-4 py-3.5 text-gray-700">15</td>
+            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
+          </tr>
+          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3.5 text-gray-500">PT-2026-0004</td>
+            <td class="px-4 py-3.5 font-medium text-gray-900">David Lee</td>
+            <td class="px-4 py-3.5 text-gray-700">61</td>
+            <td class="px-4 py-3.5 text-gray-700">June 2, 2026</td>
+            <td class="px-4 py-3.5 text-gray-700">20</td>
+            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
+          </tr>
+          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+            <td class="px-4 py-3.5 text-gray-500">PT-2026-0005</td>
+            <td class="px-4 py-3.5 font-medium text-gray-900">Jennifer White</td>
+            <td class="px-4 py-3.5 text-gray-700">29</td>
+            <td class="px-4 py-3.5 text-gray-700">May 25, 2026</td>
+            <td class="px-4 py-3.5 text-gray-700">5</td>
+            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -10,4 +10,9 @@ export class AdminRepository{
         );
          return rows.length > 0 ? rows : null;
     }
+
+    async fetchHospitalIdFromAdminId(user_id:number){
+        const rows : any = await query(`select hospital_id from admins where user_id= ?`,[user_id]);
+        return rows[0];
+    }
 }

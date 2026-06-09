@@ -12,15 +12,14 @@ const router=Router()
 const routes:Routes[]=[
     // add all routes here
     new AuthRoutes(),
-    new PatientRoutes(),,
+    new PatientRoutes(),
     new AdminRoutes()
 ]
 
-
+router.get("/",(req, res)=>{res.render("index")})
 
 routes.forEach((route)=>{
     router.use(route.path,route.router)
-    
 })
 
 

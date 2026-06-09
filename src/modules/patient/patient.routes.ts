@@ -19,6 +19,7 @@ export class PatientRoutes implements Routes {
     // patient routes require authentication + PATIENT role
     this.router.use(authenticate, isPatient);
 
+    this.router.get("/dashboard", this.patient.showDashboard)
     // Profile routes
     this.router.get("/profile", this.patient.getProfile);
     this.router.patch("/profile", this.patient.updateProfile);

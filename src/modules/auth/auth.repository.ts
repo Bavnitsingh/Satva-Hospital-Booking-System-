@@ -284,4 +284,35 @@ async updateLastLogin(userId: number): Promise<void> {
 
     return query(sql, [user_id]);
   }
+  
+  async createSession(
+    userId: number,
+    refreshToken: string,
+    expiresAt: Date,
+    deviceInfo: string,
+    ipAddress: string
+) {
+    const sql = `
+        INSERT INTO user_sessions
+        (
+            user_id,
+            refresh_token,
+            expires_at,
+            device_info,
+            ip_address
+        )
+        VALUES (?, ?, ?, ?, ?)
+    `;
+
+    await query(sql, [
+        userId,
+        refreshToken,
+        expiresAt,
+        deviceInfo,
+        ipAddress
+    ]);
+}
+
+
+
 }

@@ -145,8 +145,15 @@ export class AuthService {
       role: user.role,
     });
 
+    const refreshToken = sign({
+      id:user.user_id,
+      email:user.user_email,
+      role: user.role
+    })
+
     return {
       accessToken,
+      refreshToken,
       user,
     };
   }

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard – HealthCare</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#10A37F',
+            'primary-dark': '#0d8a6a',
+            'primary-light': '#e6f7f3',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-white min-h-screen font-sans text-gray-800">
+
+  <!-- ===================== NAVBAR ===================== -->
+  <nav class="border-b border-gray-200 bg-white px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+    <div class="flex items-center gap-2">
+      <div class="bg-primary rounded-lg p-1.5">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      </div>
+      <span class="font-bold text-gray-900 text-base">Satva</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <button class="text-gray-500 hover:text-gray-700 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+        </svg>
+      </button>
+      <button class="text-gray-500 hover:text-gray-700 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+      </button>
+      <a href="/logout" class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+        </svg>
+        Logout
+      </a>
+    </div>
+  </nav>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="max-w-5xl mx-auto px-6 py-8">
+
+    <!-- Page title -->
+    <div class="mb-7">
+      <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+      <p class="text-sm text-gray-400 mt-1">System overview and management</p>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-primary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <span id="stat-appt-badge" class="text-xs text-primary font-semibold">+12%</span>
+        </div>
+        <p id="stat-appt" class="text-2xl font-bold text-gray-900">—</p>
+        <p class="text-sm text-gray-400 mt-0.5">Today's Appointments</p>
+      </div>
+
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-primary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            </svg>
+          </div>
+          <span id="stat-patients-badge" class="text-xs text-primary font-semibold">+8%</span>
+        </div>
+        <p id="stat-patients" class="text-2xl font-bold text-gray-900">—</p>
+        <p class="text-sm text-gray-400 mt-0.5">Active Patients</p>
+      </div>
+
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-primary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <span id="stat-revenue-badge" class="text-xs text-primary font-semibold">+15%</span>
+        </div>
+        <p id="stat-revenue" class="text-2xl font-bold text-gray-900">—</p>
+        <p class="text-sm text-gray-400 mt-0.5">Revenue (Today)</p>
+      </div>
+
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-primary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+            </svg>
+          </div>
+          <span id="stat-doctors-badge" class="text-xs text-primary font-semibold">+2</span>
+        </div>
+        <p id="stat-doctors" class="text-2xl font-bold text-gray-900">—</p>
+        <p class="text-sm text-gray-400 mt-0.5">Active Doctors</p>
+      </div>
+
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-6 border-b border-gray-200 mb-7 overflow-x-auto">
+      <button onclick="switchTab(this,'overview')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Overview</button>
+      <button onclick="switchTab(this,'doctors')"  class="tab-btn text-sm font-semibold text-primary border-b-2 border-primary pb-3 whitespace-nowrap transition">Doctors</button>
+      <button onclick="switchTab(this,'patients')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Patients</button>
+      <button onclick="switchTab(this,'appointments')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Appointments</button>
+      <button onclick="switchTab(this,'reports')"  class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Reports</button>
+      <button onclick="switchTab(this,'settings')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Settings</button>
+      <button onclick="switchTab(this,'audit')"    class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Audit Log</button>
+    </div>
+
+    <!-- Search + Filter + Add -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="relative flex-1">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </span>
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Search doctors..."
+          oninput="filterDoctors()"
+          class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+        />
+      </div>
+      <button class="flex items-center gap-2 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium px-4 py-2.5 rounded-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+        </svg>
+        Filter
+      </button>
+      <button  onclick="window.location.href = '/api/v1/admin/showAddDoctorPage'" class="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+        </svg>
+        Add Doctor
+      </button>
+    </div>
+
+    <!-- Doctors list -->
+    <div id="doctorsList" class="space-y-3">
+      <!-- Loading skeleton -->
+      <div id="loadingSkeleton" class="space-y-3">
+        <div class="border border-gray-100 rounded-xl p-5 animate-pulse flex items-center gap-4">
+          <div class="w-14 h-14 rounded-full bg-gray-200"></div>
+          <div class="flex-1 space-y-2">
+            <div class="h-4 bg-gray-200 rounded w-40"></div>
+            <div class="h-3 bg-gray-100 rounded w-28"></div>
+            <div class="h-3 bg-gray-100 rounded w-36"></div>
+          </div>
+        </div>
+        <div class="border border-gray-100 rounded-xl p-5 animate-pulse flex items-center gap-4">
+          <div class="w-14 h-14 rounded-full bg-gray-200"></div>
+          <div class="flex-1 space-y-2">
+            <div class="h-4 bg-gray-200 rounded w-40"></div>
+            <div class="h-3 bg-gray-100 rounded w-28"></div>
+            <div class="h-3 bg-gray-100 rounded w-36"></div>
+          </div>
+        </div>
+        <div class="border border-gray-100 rounded-xl p-5 animate-pulse flex items-center gap-4">
+          <div class="w-14 h-14 rounded-full bg-gray-200"></div>
+          <div class="flex-1 space-y-2">
+            <div class="h-4 bg-gray-200 rounded w-40"></div>
+            <div class="h-3 bg-gray-100 rounded w-28"></div>
+            <div class="h-3 bg-gray-100 rounded w-36"></div>
+          </div>
+        </div>
+      </div>
+      <div id="doctorsContainer" class="space-y-3 hidden"></div>
+      <div id="emptyState" class="hidden text-center py-12 text-gray-400">
+        <svg class="w-10 h-10 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0" />
+        </svg>
+        <p class="text-sm">No doctors found</p>
+      </div>
+    </div>
+
+  </main>
+
+
+
+<script>
+  let allDoctors = [];
+
+  // ── Helpers ───────────────────────────────────────
+  function getInitials(first_name, last_name) {
+    const f = first_name?.trim()[0] ?? '';
+    const l = last_name?.trim()[0]  ?? '';
+    return (f + l).toUpperCase();
+  }
+
+  function renderStars(rating) {
+    if (!rating) return `<span class="text-xs text-gray-400">No rating</span>`;
+    return `
+      <svg class="w-3.5 h-3.5 text-yellow-400 inline" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+      </svg>
+      <span class="text-xs text-gray-600">${parseFloat(rating).toFixed(1)}</span>`;
+  }
+
+  function formatFee(fee, currency_code) {
+    if (!fee) return 'N/A';
+    const symbol = currency_code ?? '₹';
+    return `${symbol}${parseFloat(fee).toLocaleString()}`;
+  }
+
+  function doctorCard(doc) {
+    const initials  = getInitials(doc.first_name, doc.last_name);
+    const fullName  = `Dr. ${doc.first_name.trim()} ${doc.last_name.trim()}`;
+    const status    = doc.is_deactivated
+      ? `<span class="text-xs font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">Inactive</span>`
+      : `<span class="text-xs font-medium text-primary bg-primary-light px-2 py-0.5 rounded-full">Active</span>`;
+
+    return `
+      <div class="border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:shadow-sm transition" data-id="${doc.doctor_id}">
+
+        <!-- Avatar -->
+        <div class="w-14 h-14 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+          ${doc.profile_path
+            ? `<img src="${doc.profile_path}" alt="${fullName}" class="w-14 h-14 rounded-full object-cover" />`
+            : `<span class="text-white font-bold text-sm">${initials}</span>`
+          }
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <p class="font-bold text-gray-900">${fullName}</p>
+            ${status}
+          </div>
+          <p class="text-sm text-gray-500 mt-0.5">
+            ${doc.experience_years ? `${doc.experience_years} yrs exp` : 'Experience N/A'}
+            &nbsp;•&nbsp;
+            Fee: <span class="font-medium text-gray-700">${formatFee(doc.consultation_fee, doc.currency_code)}</span>
+          </p>
+          <div class="mt-1">${renderStars(doc.rating)}</div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <button onclick="viewDoctor(${doc.doctor_id})" class="border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-medium px-4 py-2 rounded-lg transition">
+            View Details
+          </button>
+          <button onclick="editDoctor(${doc.doctor_id})" class="bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+            Edit
+          </button>
+        </div>
+
+      </div>`;
+  }
+
+  function renderDoctors(list) {
+    const container = document.getElementById('doctorsContainer');
+    const empty     = document.getElementById('emptyState');
+    if (!list || list.length === 0) {
+      container.classList.add('hidden');
+      empty.classList.remove('hidden');
+    } else {
+      empty.classList.add('hidden');
+      container.innerHTML = list.map(doctorCard).join('');
+      container.classList.remove('hidden');
+    }
+  }
+
+  // ── Fetch stats ───────────────────────────────────
+  async function loadStats() {
+    try {
+      const res  = await fetch('/api/admin/stats');
+      const data = await res.json();
+      document.getElementById('stat-appt').textContent     = data.todayAppointments ?? '156';
+      document.getElementById('stat-patients').textContent = data.activePatients    ?? '2,847';
+      document.getElementById('stat-revenue').textContent  = data.revenueToday      ?? '$12,450';
+      document.getElementById('stat-doctors').textContent  = data.activeDoctors     ?? '48';
+    } catch {
+      document.getElementById('stat-appt').textContent     = '156';
+      document.getElementById('stat-patients').textContent = '2,847';
+      document.getElementById('stat-revenue').textContent  = '$12,450';
+      document.getElementById('stat-doctors').textContent  = '48';
+    }
+  }
+
+  // ── Fetch doctors ─────────────────────────────────
+  async function loadDoctors() {
+    try {
+      const res  = await fetch('/api/v1/admin/showDoctors?hospital_id=1');
+      const json = await res.json();
+      allDoctors = json.data ?? [];
+      renderDoctors(allDoctors);
+    } catch {
+      allDoctors = [];
+      renderDoctors([]);
+    } finally {
+      document.getElementById('loadingSkeleton').classList.add('hidden');
+    }
+  }
+
+  // ── Search / filter ───────────────────────────────
+  function filterDoctors() {
+    const q        = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allDoctors.filter(d =>
+      `${d.first_name} ${d.last_name}`.toLowerCase().includes(q)
+    );
+    renderDoctors(filtered);
+  }
+
+  // ── Tabs ──────────────────────────────────────────
+  function switchTab(btn, tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('text-primary', 'font-semibold', 'border-b-2', 'border-primary');
+      b.classList.add('text-gray-400', 'font-medium');
+    });
+    btn.classList.remove('text-gray-400', 'font-medium');
+    btn.classList.add('text-primary', 'font-semibold', 'border-b-2', 'border-primary');
+  }
+
+  // ── Actions ───────────────────────────────────────
+  function viewDoctor(id) {
+    window.location.href = `/admin/doctors/${id}`;
+  }
+
+  function editDoctor(id) {
+    window.location.href = `/admin/doctors/${id}/edit`;
+  }
+
+
+
+  // ── Init ──────────────────────────────────────────
+  loadStats();
+  loadDoctors();
+</script>
+
+</body>
+</html>

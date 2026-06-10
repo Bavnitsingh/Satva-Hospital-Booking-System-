@@ -13,7 +13,7 @@ async function buildServer():Promise<void>{
 
     try{
     
-        await dbConnection()
+         await dbConnection()
         const app =buildApp()
         const server:Server=createServer(app)
 

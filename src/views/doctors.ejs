@@ -175,113 +175,7 @@
 
   <body class="bg-[#f0faf6] text-gray-800 min-h-screen">
     <!-- ===== NAVBAR ===== -->
-    <nav
-      class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm"
-    >
-      <div
-        class="max-w-6xl mx-auto px-4 flex items-center justify-between h-16"
-      >
-        <!-- Logo -->
-        <a href="index.ejs" class="flex items-center gap-2">
-          <div
-            class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"
-          >
-            <svg
-              class="w-4 h-4 text-white"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4.5 12.75l6 6 9-13.5"
-              />
-            </svg>
-          </div>
-          <span class="font-display font-bold text-gray-900 text-lg"
-            >Satva</span
-          >
-        </a>
-
-        <!-- Desktop nav -->
-        <div
-          class="hidden md:flex items-center gap-7 text-sm font-medium text-gray-600"
-        >
-          <a href="index.ejs" class="nav-link hover:text-gray-900 transition"
-            >Home</a
-          >
-          <a href="doctors.ejs" class="nav-link text-primary font-semibold"
-            >Doctors</a
-          >
-          <a href="#" class="nav-link hover:text-gray-900 transition"
-            >Appointments</a
-          >
-          <a href="#" class="nav-link hover:text-gray-900 transition"
-            >Records</a
-          >
-        </div>
-
-        <!-- CTA -->
-        <div class="hidden md:flex items-center gap-3">
-          <a
-            href="#"
-            class="text-sm font-semibold text-gray-600 hover:text-primary transition"
-            >Login</a
-          >
-          <a
-            href="#"
-            class="bg-primary text-white text-sm font-semibold px-5 py-2 rounded-xl hover:bg-primary-dark transition"
-            >Register</a
-          >
-        </div>
-
-        <!-- Mobile menu btn -->
-        <button
-          id="menuBtn"
-          class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Mobile menu -->
-      <div
-        id="mobileMenu"
-        class="hidden md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-3 text-sm font-medium text-gray-700"
-      >
-        <a href="index.ejs" class="block py-1.5 hover:text-primary transition"
-          >Home</a
-        >
-        <a href="doctors.ejs" class="block py-1.5 text-primary">Doctors</a>
-        <a href="#" class="block py-1.5 hover:text-primary transition"
-          >Appointments</a
-        >
-        <a href="#" class="block py-1.5 hover:text-primary transition"
-          >Records</a
-        >
-        <hr class="border-gray-100" />
-        <a href="#" class="block py-1.5 hover:text-primary transition">Login</a>
-        <a
-          href="#"
-          class="block w-full text-center bg-primary text-white font-semibold py-2.5 rounded-xl hover:bg-primary-dark transition"
-          >Register</a
-        >
-      </div>
-    </nav>
+    <%- include('partials/header') %>
 
     <!-- ===== PAGE HEADER ===== -->
     <section class="pt-28 pb-10 px-4 relative overflow-hidden">
@@ -762,40 +656,7 @@
     </div>
 
     <!-- ===== FOOTER ===== -->
-    <footer class="bg-white border-t border-gray-100 mt-10 py-10 px-4">
-      <div
-        class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4"
-      >
-        <div class="flex items-center gap-2">
-          <div
-            class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center"
-          >
-            <svg
-              class="w-3.5 h-3.5 text-white"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4.5 12.75l6 6 9-13.5"
-              />
-            </svg>
-          </div>
-          <span class="font-display font-bold text-gray-800">Satva</span>
-        </div>
-        <p class="text-xs text-gray-400">
-          © 2025 Satva Health. All rights reserved.
-        </p>
-        <div class="flex gap-5 text-xs font-medium text-gray-500">
-          <a href="#" class="hover:text-primary transition">Privacy</a>
-          <a href="#" class="hover:text-primary transition">Terms</a>
-          <a href="#" class="hover:text-primary transition">Support</a>
-        </div>
-      </div>
-    </footer>
+    <%- include("partials/footer") %>
 
     <!-- ===== DOCTOR DETAIL MODAL ===== -->
     <div

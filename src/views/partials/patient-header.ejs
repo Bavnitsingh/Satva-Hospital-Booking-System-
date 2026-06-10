@@ -1,0 +1,71 @@
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <div class="flex items-center justify-between h-20">
+
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+            S
+          </div>
+
+          <div>
+            <h1 class="font-display text-2xl text-dark">
+              Satva
+            </h1>
+            <p class="text-xs text-gray-500">
+              Hospital Appointment System
+            </p>
+          </div>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/patient/dashboard" class="text-primary font-semibold">
+            Dashboard
+          </a>
+
+          <a href="/patient/doctors" class="hover:text-primary">
+            Doctors
+          </a>
+
+          <a href="/patient/appointments" class="hover:text-primary">
+            Appointments
+          </a>
+
+          <a href="/patient/records" class="hover:text-primary">
+            Records
+          </a>
+
+          <a href="/patient/profile" class="hover:text-primary">
+            Profile
+          </a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <a
+            href="/patient/notifications"
+            class="relative p-2 rounded-lg hover:bg-primary-light"
+          >
+            🔔
+          </a>
+
+          <div class="flex items-center gap-2">
+            <img
+              src="<%= user?.picture || 'https://ui-avatars.com/api/?name=Patient' %>"
+              class="w-10 h-10 rounded-full object-cover"
+            />
+
+            <div>
+              <p class="text-sm font-semibold">
+                <%= user?.name || 'Patient' %>
+              </p>
+
+              <p class="text-xs text-gray-500">
+                Patient
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>

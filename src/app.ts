@@ -8,6 +8,8 @@ import { env } from "./config/index.js";
 
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
+import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
+
 
 
 export function buildApp(): Application {
@@ -63,15 +65,21 @@ export function buildApp(): Application {
        
     })
 );
-
+console.log(path.join(__dirname, 'views'));
 
 
   //
   app.use(passport.initialize());
 app.use(passport.session());
+app.use("/patient", new PatientPageRoutes().router);
+
 
   //ROUTER 
   app.use("/api/v1",buildApiRouter())
+
+    app.get("/", (req, res) => {
+    res.render("index");
+  });
   
   return app;
 }

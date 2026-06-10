@@ -19,7 +19,7 @@ export const env = {
   DB_USER: process.env.DB_USER || '',
 
   DB_PASSWORD: process.env.DB_PASSWORD || '',
-
+  REFRESH_TOKEN_SECRET : process.env.REFRESH_TOKEN_SECRET || "",
   JWT_SECRET_KEY: process.env.JWT_SECRET_KEY || 'satva',
 
 

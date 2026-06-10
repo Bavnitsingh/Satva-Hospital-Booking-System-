@@ -9,7 +9,7 @@ export interface JwtPayload {
 
 export function sign(payload: JwtPayload): string {
   const token = jwt.sign(payload, env.JWT_SECRET_KEY as string, {
-    expiresIn: "2h",
+    expiresIn: "1m",
   });
   return token;
 }
@@ -17,4 +17,24 @@ export function sign(payload: JwtPayload): string {
 export function verifyToken(token: string): JwtPayload {
   const isValid = jwt.verify(token, env.JWT_SECRET_KEY as string);
   return isValid as JwtPayload;
+}
+
+export function verifyRefreshToken(token: string): any {
+  return jwt.verify(
+    token,
+    env.REFRESH_TOKEN_SECRET as string
+  );
+}
+
+export function signRefreshToken(payload: JwtPayload): string {
+
+  console.log(env.REFRESH_TOKEN_SECRET)
+  return jwt.sign(
+    payload,
+    env.REFRESH_TOKEN_SECRET as string,
+    {
+      expiresIn: "15d"
+    }
+  );
+
 }

@@ -21,11 +21,10 @@ const routes:Routes[]=[
 
 ]
 
-
+router.get("/",(req, res)=>{res.render("index")})
 
 routes.forEach((route)=>{
     router.use(route.path,route.router)
-    
 })
 
 

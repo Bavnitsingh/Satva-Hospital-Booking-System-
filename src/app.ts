@@ -7,7 +7,9 @@ import session from 'express-session'
 import { env } from "./config/index.js";
 
 import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
+
 
 
 export function buildApp(): Application {
@@ -30,7 +32,7 @@ export function buildApp(): Application {
     session({ secret: 'scret', resave: false, saveUninitialized: true, cookie: { secure: false } }),
   );
   app.use(express.urlencoded({ extended: true }));
-
+  app.use(cookieParser());
   app.use(express.static("public"))
 
 

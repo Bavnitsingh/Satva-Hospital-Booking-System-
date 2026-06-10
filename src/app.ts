@@ -7,6 +7,7 @@ import session from 'express-session'
 import { env } from "./config/index.js";
 
 import { fileURLToPath } from "url";
+import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 
 
 export function buildApp(): Application {
@@ -71,6 +72,10 @@ app.use(passport.session());
 
   //ROUTER 
   app.use("/api/v1",buildApiRouter())
+
+
+  // HANDLES GLOBAL ERROR
+  app.use(errorMiddleware)
   
   return app;
 }

@@ -67,9 +67,9 @@ export class UserRepository {
 
   async createPatient(
     userId: number,
-    firstName: string,
-    lastName: string,
-    countryCode: string,
+    first_name: string,
+    last_ame: string,
+    country_code: string,
     mobile: string,
     dob: string,
     gender: string,
@@ -89,7 +89,7 @@ export class UserRepository {
             ?, ?, ?, ?, ?, ?, ?
         )
         `,
-      [userId, firstName, lastName, countryCode, mobile, dob, gender],
+      [userId, first_name, last_ame, country_code, mobile, dob, gender],
     );
 
     return result;
@@ -143,7 +143,7 @@ async updateLastLogin(userId: number): Promise<void> {
   async createAdmin(data: any) {
     const result: any = await query(
       `
-        INSERT INTO admins (
+        insert into admins (
             user_id,
             hospital_id,
             first_name,
@@ -151,7 +151,7 @@ async updateLastLogin(userId: number): Promise<void> {
             created_at,
             updated_at
         )
-        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        values (?, ?, ?, ?, current_timestamp, current_timestamp)
         `,
       [data.user_id, data.hospital_id, data.first_name, data.last_name],
     );
@@ -165,9 +165,9 @@ async updateLastLogin(userId: number): Promise<void> {
 
   async updatePassword(password: string, user_id: number) {
     const sql = `
-        UPDATE users
-        SET password_hash = ?
-        WHERE user_id = ?
+        update users
+        set password_hash = ?
+        where user_id = ?
     `;
 
     return await query(sql, [password, user_id]);
@@ -179,8 +179,8 @@ async updateLastLogin(userId: number): Promise<void> {
 
     if (!user) return false;
     const sql = `
-            DELETE FROM otp_verifications
-            WHERE user_id = ?
+            delete from otp_verifications
+            where user_id = ?
         `;
 
     return await query(sql, [user.user_id]);
@@ -220,11 +220,11 @@ async updateLastLogin(userId: number): Promise<void> {
     if (!user) return null;
 
     const sql = `
-      SELECT *
-      FROM otp_verifications
-      WHERE user_id = ?
-      AND otp_code = ?
-      AND expires_at > NOW()
+      select *
+      from otp_verifications
+      where user_id = ?
+      and otp_code = ?
+      and expires_at > now()
   `;
 
     const rows: any = await query(sql, [
@@ -243,11 +243,11 @@ async updateLastLogin(userId: number): Promise<void> {
     console.log("hii this is user")
 
     const sql = `
-            SELECT *
-            FROM otp_verifications
-            WHERE
+            select *
+            from otp_verifications
+            where
                 user_id = ?
-                AND expires_at > NOW()
+                and expires_at > now()
         `;
 
     const rows: any = await query(sql, [user.user_id]);
@@ -261,13 +261,13 @@ async updateLastLogin(userId: number): Promise<void> {
     if (!user) throw new NotFoundException("User not found");
 
     const sql = `
-    SELECT otp_code
-    FROM otp_verifications
-    WHERE user_id = ?
-      AND expires_at > NOW()
-      AND purpose = 'PASSWORD_RESET'
-    ORDER BY created_at DESC
-    LIMIT 1
+    select otp_code
+    from otp_verifications
+    where user_id = ?
+      and expires_at > now()
+      and purpose = 'password_reset'
+    order by created_at desc
+    limit 1
   `;
 
     const rows: any = await query(sql, [user.user_id]);
@@ -278,8 +278,8 @@ async updateLastLogin(userId: number): Promise<void> {
 
   async deleteOtp(user_id: number) {
     const sql = `
-      DELETE FROM otp_verifications
-      WHERE user_id = ?
+      delete from otp_verifications
+      where user_id = ?
    `;
 
     return query(sql, [user_id]);

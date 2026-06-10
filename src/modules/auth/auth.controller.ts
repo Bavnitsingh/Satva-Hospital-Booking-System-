@@ -27,10 +27,19 @@ export class AuthController {
 
 
   login = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.login(req.body);
+    const { refreshToken, ...data } =
+      await this.authService.login(req.body);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+    });
+
     generalResponse({
       res,
-      data: result,
+      data: data,
       message: "Logged in Successfully",
       statusCode: 200,
     });
@@ -62,7 +71,7 @@ export class AuthController {
       statusCode: 201,
     });
   });
-  
+
   register = catchAsync(async (req: Request, res: Response) => {
     const result = await this.authService.register(req.body);
     generalResponse({

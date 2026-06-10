@@ -618,7 +618,7 @@
       const emailError = document.getElementById("emailError");
       const passwordError = document.getElementById("passwordError");
 
-      loginForm.addEventListener("submit", (e) => {
+      loginForm.addEventListener("submit",async (e) => {
         e.preventDefault();
         let isValid = true;
 
@@ -668,7 +668,35 @@
         if (!isValid) {
           e.preventDefault();
         } else {
-          // fetch api for login route
+           try {
+    const response = await fetch("login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        email: email.value.trim(),
+        password: password.value,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message);
+      return;
+    }
+
+
+  
+    localStorage.setItem("accessToken", data.data.accessToken);
+
+    window.location.href = "/api/v1/patient/dashboard";
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong");
+  }
         }
       });
     </script>

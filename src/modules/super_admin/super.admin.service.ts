@@ -1,3 +1,4 @@
+import { resolve } from "node:dns";
 import { UserRepository } from "../auth/auth.repository.js";
 import { comparePassword, getHashedPassword } from "../auth/utils/bcrypt.js";
 import { sign } from "../auth/utils/jwt.js";
@@ -20,18 +21,25 @@ export class SuperAdminService {
 
     const hashedPassword = await getHashedPassword(data.password);
 
+    // Create the base user account
     const user = await this.userRepo.createUser(
-      data.email,
-      hashedPassword,
-      "ADMIN",
+      data.email || "",
+      hashedPassword || "",
+      "ADMIN", // DB Schema only allows 'PATIENT','DOCTOR','ADMIN'
     );
 
-    await this.userRepo.createAdmin({
+    // Create the admin profile
+    const adminId = await this.userRepo.createAdmin({
       user_id: user.user_id,
-      hospital_id: data.hospitalId,
-      first_name: data.firstName,
-      last_name: data.lastName,
+      hospital_id: data.hospital_id || data.hospitalId || null,
+      first_name: data.first_name || data.firstName || null,
+      last_name: data.last_name || data.lastName || null,
     });
+
+    // If status is passed as Inactive, update the users table via the superAdminRepo
+    if (data.status === "Inactive") {
+      await this.superAdminRepo.updateAdmin(adminId, { status: "Inactive" });
+    }
 
     const accessToken = sign({
       id: user.user_id,
@@ -112,5 +120,47 @@ export class SuperAdminService {
       accessToken,
       user,
     };
+  }
+
+  async getAdminsList(page: number, limit: number, search?: string) {
+    const offset = (page - 1) * limit;
+    const data = await this.superAdminRepo.findAll(limit, offset, search);
+    const total = await this.superAdminRepo.countAll(search);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async getAdminById(id: number) {
+    const admin = await this.superAdminRepo.findAdminById(id);
+
+    if (!admin) {
+      throw new Error("Admin not found", {
+        cause: { status: 404 },
+      });
+    }
+
+    return admin;
+  }
+
+  async updateAdmin(id: number, adminData: any) {
+    await this.getAdminById(id); // Check existence
+
+    try {
+      await this.superAdminRepo.updateAdmin(id, adminData);
+    } catch (error) {
+      console.error("Database error during updateAdmin:", error);
+      throw new Error("Something unexpected happened", {
+        cause: { status: 400 },
+      });
+    }
+  }
+
+  async getAdminsByHospitalId(hospitalId: number) {
+    return await this.superAdminRepo.findAdminsByHospitalId(hospitalId);
   }
 }

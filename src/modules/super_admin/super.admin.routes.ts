@@ -19,5 +19,19 @@ export class SuperAdminRoutes implements Routes {
       this.superAdminController.seedSuperAdmin,
     );
     this.router.get("/dashboard", this.superAdminController.dashboard);
+
+    this.router.get("/list", this.superAdminController.getAdminsList);
+
+    // Admin CRUD routes
+    this.router.get("/create-admin", this.superAdminController.getCreateAdmin);
+    this.router.post(
+      "/create-admin",
+      this.superAdminController.postCreateAdmin,
+    );
+
+    this.router.get("/view-admin/:id", this.superAdminController.getViewAdmin);
+
+    this.router.get("/edit-admin/:id", this.superAdminController.getEditAdmin);
+    this.router.put("/edit-admin/:id", this.superAdminController.putEditAdmin);
   }
 }

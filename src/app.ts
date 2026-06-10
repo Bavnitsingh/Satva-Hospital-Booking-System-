@@ -70,13 +70,8 @@ export function buildApp(): Application {
 
   //ROUTER
   app.use("/api/v1", buildApiRouter());
-
   app.get("/", (req, res) => {
     res.render("index");
-  });
-
-  app.get("/doctors", (req, res) => {
-    return res.status(200).render("doctors");
   });
 
   return app;

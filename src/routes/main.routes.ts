@@ -17,20 +17,18 @@ export function buildApiRouter(): Router {
     new PatientRoutes(),
     new AdminRoutes(),
     new PatientPageRoutes(),
-    new DoctorRoutes()
-
-]
-
-router.get("/",(req, res)=>{res.render("index")})
-
-routes.forEach((route)=>{
-    router.use(route.path,route.router)
-})
-
     new DoctorRoutes(),
     new SuperAdminRoutes(),
     new HospitalRoutes(),
   ];
+
+  router.get("/", (req, res) => {
+    res.render("index");
+  });
+
+  routes.forEach((route) => {
+    router.use(route.path, route.router);
+  });
 
   routes.forEach((route) => {
     router.use(route.path, route.router);

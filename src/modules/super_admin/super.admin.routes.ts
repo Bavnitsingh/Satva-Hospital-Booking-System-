@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { Routes } from "../../common/interfaces/routes.interfaces.js";
 import { SuperAdminController } from "./super.admin.controller.js";
-import { validateRequestBody } from "./middlewares/validation.middleware.js";
+validateRequestBody;
 import {
   createAdminSchema,
   loginSchema,
   seedSuperAdminSchema,
   updateAdminSchema,
 } from "./validators/superadmin.crud.validations.js";
+import { validateRequestBody } from "../../common/middlewares/validation.middleware.js";
 
 export class SuperAdminRoutes implements Routes {
   path: string = "/super-admin";

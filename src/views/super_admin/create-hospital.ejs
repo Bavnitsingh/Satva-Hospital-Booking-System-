@@ -97,6 +97,7 @@
           action="/api/v1/hospital/create-hospital"
           method="POST"
           class="space-y-6"
+          novalidate
         >
           <!-- Hospital Name -->
           <div>
@@ -120,6 +121,10 @@
                 placeholder="e.g. City General Hospital"
               />
             </div>
+            <p
+              id="hospitalNameError"
+              class="mt-1 text-sm text-red-500 hidden"
+            ></p>
           </div>
 
           <!-- Contact Info (Email & Phone) -->
@@ -143,6 +148,7 @@
                   placeholder="contact@hospital.com"
                 />
               </div>
+              <p id="emailError" class="mt-1 text-sm text-red-500 hidden"></p>
             </div>
             <div>
               <label
@@ -165,6 +171,7 @@
                   placeholder="e.g. +1 234 567 8900"
                 />
               </div>
+              <p id="phoneError" class="mt-1 text-sm text-red-500 hidden"></p>
             </div>
           </div>
 
@@ -190,6 +197,10 @@
                 placeholder="e.g. 123 Healthcare Ave"
               />
             </div>
+            <p
+              id="addressLine1Error"
+              class="mt-1 text-sm text-red-500 hidden"
+            ></p>
           </div>
 
           <!-- Address Line 2 -->
@@ -248,45 +259,111 @@
             submitBtn.innerHTML =
               '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
 
-            try {
-              const formData = new FormData(form);
-              const data = Object.fromEntries(formData.entries());
-              const url = form.action;
-
-              const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-              });
-
-              const result = await response.json();
-
-              if (!response.ok || result.statusCode >= 400) {
-                throw new Error(result.message || "An error occurred");
-              }
-
-              if (typeof setFlash === "function") {
-                setFlash(
-                  result.message || "Hospital created successfully",
-                  "success",
-                );
-              }
-
-              setTimeout(() => {
-                window.location.href = "/api/v1/super-admin/dashboard";
-              }, 500);
-            } catch (error) {
-              if (typeof showFlash === "function") {
-                showFlash(
-                  error.message || "Failed to process request",
-                  "error",
-                );
-              } else {
-                alert(error.message || "Failed to process request");
-              }
-            } finally {
+            let isValid = true;
+            const hospitalName = document.getElementById("hospital_name");
+            const email = document.getElementById("email");
+            const contactNumber = document.getElementById("contact_number");
+            const addressLine1 = document.getElementById("address_line1");
+            const hospitalNameError =
+              document.getElementById("hospitalNameError");
+            const emailError = document.getElementById("emailError");
+            const contactError = document.getElementById("phoneError");
+            const addressLine1Error =
+              document.getElementById("addressLine1Error");
+            [hospitalName, email, contactNumber, addressLine1].forEach(
+              (ele) => {
+                ele.classList.remove("border-red-500");
+              },
+            );
+            const errorEle = [
+              hospitalNameError,
+              emailError,
+              contactError,
+              addressLine1Error,
+            ];
+            errorEle.forEach((ele) => {
+              ele.classList.add("hidden");
+              ele.textContent = "";
+            });
+            if (hospitalName.value.trim() == "") {
+              hospitalNameError.classList.remove("hidden");
+              hospitalNameError.textContent = "Enter hospital name";
+              hospitalName.classList.add("border-red-500");
+              isValid = false;
+            }
+            if (email.value.trim() == "") {
+              emailError.textContent = "Email is required";
+              emailError.classList.remove("hidden");
+              email.classList.add("border-red-500");
+              isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+              emailError.textContent = "Enter valid email";
+              emailError.classList.remove("hidden");
+              email.classList.add("border-red-500");
+              isValid = false;
+            }
+            if (contactNumber.value.trim() == "") {
+              contactError.classList.remove("hidden");
+              contactError.textContent = "Contact number is required";
+              contactNumber.classList.add("border-red-500");
+              isValid = false;
+            } else if (!/^\+?[1-9]\d{6,14}$/.test(contactNumber.value.trim())) {
+              contactError.classList.remove("hidden");
+              contactError.textContent = "Enter valid phone number";
+              contactNumber.classList.add("border-red-500");
+              isValid = false;
+            }
+            if (addressLine1.value.trim() == "") {
+              addressLine1Error.classList.remove("hidden");
+              addressLine1Error.textContent =
+                "First line of address is required";
+              isValid = false;
+            }
+            if (!isValid) {
+              e.preventDefault();
               submitBtn.disabled = false;
               submitBtn.innerHTML = originalBtnText;
+            } else {
+              try {
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                const url = form.action;
+
+                const response = await fetch(url, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || result.statusCode >= 400) {
+                  throw new Error(result.message || "An error occurred");
+                }
+
+                if (typeof setFlash === "function") {
+                  setFlash(
+                    result.message || "Hospital created successfully",
+                    "success",
+                  );
+                }
+
+                setTimeout(() => {
+                  window.location.href = "/api/v1/super-admin/dashboard";
+                }, 500);
+              } catch (error) {
+                if (typeof showFlash === "function") {
+                  showFlash(
+                    error.message || "Failed to process request",
+                    "error",
+                  );
+                } else {
+                  alert(error.message || "Failed to process request");
+                }
+              } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+              }
             }
           });
         }

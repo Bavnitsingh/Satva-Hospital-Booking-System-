@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Doctor Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+</head>
+<body class="bg-gray-50 font-sans">
+
+  <!-- Navbar -->
+  <nav class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
+    <div class="flex items-center gap-2">
+      <div class="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center">
+        <i class="ti ti-heart text-white text-lg"></i>
+      </div>
+      <span class="text-base font-medium text-gray-900">Satva</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <i class="ti ti-bell text-xl text-gray-500 cursor-pointer"></i>
+      <i class="ti ti-user text-xl text-gray-500 cursor-pointer"></i>
+      <button class="flex items-center gap-2 bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-700 transition">
+        <i class="ti ti-logout text-base"></i>
+        Logout
+      </button>
+    </div>
+  </nav>
+
+  <!-- Page Body -->
+  <div class="max-w-4xl mx-auto px-6 py-8">
+
+    <!-- Back + Header -->
+    <div class="flex items-center justify-between mb-6">
+      <button onclick="window.history.back()" class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition">
+        <i class="ti ti-arrow-left text-base"></i>
+        Back to Doctors
+      </button>
+      <button
+        id="edit-btn"
+        onclick="toggleEdit()"
+        class="flex items-center gap-2 border border-gray-200 bg-white text-sm text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition"
+      >
+        <i class="ti ti-edit text-base"></i>
+        Edit Details
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="flex flex-col items-center justify-center py-24 gap-3">
+      <i class="ti ti-loader-2 text-3xl text-green-600 animate-spin"></i>
+      <p class="text-sm text-gray-500">Loading doctor profile...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="hidden flex flex-col items-center justify-center py-24 gap-3">
+      <i class="ti ti-alert-circle text-3xl text-red-400"></i>
+      <p class="text-sm font-medium text-gray-700">Failed to load doctor</p>
+      <p id="error-msg" class="text-xs text-gray-400"></p>
+      <button onclick="loadDoctor()" class="mt-2 text-sm text-green-600 hover:underline">Try again</button>
+    </div>
+
+    <!-- Profile Card -->
+    <div id="profile-card" class="hidden space-y-5">
+
+      <!-- Top card: avatar + name + status -->
+      <div class="bg-white border border-gray-200 rounded-xl p-6 flex items-center gap-5">
+        <div id="avatar" class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xl font-medium shrink-0"></div>
+        <div class="flex-1 min-w-0">
+          <h1 id="doctor-name" class="text-xl font-medium text-gray-900"></h1>
+          <p id="doctor-specialty" class="text-sm text-gray-500 mt-0.5"></p>
+        </div>
+        <span id="status-badge" class="shrink-0 text-xs font-medium px-3 py-1 rounded-full"></span>
+      </div>
+
+      <!-- VIEW MODE -->
+      <div id="view-mode" class="grid grid-cols-2 gap-5">
+
+        <!-- Personal Info -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">Personal information</p>
+          <div class="space-y-3.5 text-sm">
+            <div class="flex items-center gap-3">
+              <i class="ti ti-id-badge text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Doctor ID</span>
+              <span id="v-id" class="text-gray-900 font-medium"></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="ti ti-mail text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Email</span>
+              <span id="v-email" class="text-gray-900 truncate"></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="ti ti-phone text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Phone</span>
+              <span id="v-phone" class="text-gray-900"></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="ti ti-gender-bigender text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Gender</span>
+              <span id="v-gender" class="text-gray-900 capitalize"></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="ti ti-cake text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Date of Birth</span>
+              <span id="v-dob" class="text-gray-900"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Professional Info -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">Professional information</p>
+          <div class="space-y-3.5 text-sm">
+            <div class="flex items-center gap-3">
+              <i class="ti ti-stethoscope text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Specialty</span>
+              <span id="v-specialty" class="text-gray-900"></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="ti ti-certificate text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Qualification</span>
+              <span id="v-qualification" class="text-gray-900"></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="ti ti-clock text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Experience</span>
+              <span id="v-experience" class="text-gray-900"></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="ti ti-building-hospital text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Department</span>
+              <span id="v-department" class="text-gray-900"></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="ti ti-calendar text-gray-400 text-base w-5 shrink-0"></i>
+              <span class="text-gray-500 w-24 shrink-0">Joined</span>
+              <span id="v-joined" class="text-gray-900"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- EDIT MODE (hidden by default) -->
+      <div id="edit-mode" class="hidden bg-white border border-gray-200 rounded-xl p-6">
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-5">Edit doctor details</p>
+
+        <div class="grid grid-cols-2 gap-4 text-sm">
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-gray-500">Full Name</label>
+            <input id="e-name" type="text" class="border border-gray-200 rounded-lg px-3 py-2 text-gray-900 outline-none focus:border-green-500 transition" />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-gray-500">Email</label>
+            <input id="e-email" type="email" class="border border-gray-200 rounded-lg px-3 py-2 text-gray-900 outline-none focus:border-green-500 transition" />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-gray-500">Phone</label>
+            <input id="e-phone" type="text" class="border border-gray-200 rounded-lg px-3 py-2 text-gray-900 outline-none focus:border-green-500 transition" />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-gray-500">Specialty</label>
+            <input id="e-specialty" type="text" class="border border-gray-200 rounded-lg px-3 py-2 text-gray-900 outline-none focus:border-green-500 transition" />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-gray-500">Qualification</label>
+            <input id="e-qualification" type="text" class="border border-gray-200 rounded-lg px-3 py-2 text-gray-900 outline-none focus:border-green-500 transition" />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-gray-500">Experience</label>
+            <input id="e-experience" type="text" placeholder="e.g. 8 years" class="border border-gray-200 rounded-lg px-3 py-2 text-gray-900 outline-none focus:border-green-500 transition" />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-gray-500">Department</label>
+            <input id="e-department" type="text" class="border border-gray-200 rounded-lg px-3 py-2 text-gray-900 outline-none focus:border-green-500 transition" />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-gray-500">Status</label>
+            <select id="e-status" class="border border-gray-200 rounded-lg px-3 py-2 text-gray-900 outline-none focus:border-green-500 transition bg-white">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="on_leave">On Leave</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Save / Cancel -->
+        <div class="flex items-center gap-3 mt-6 pt-5 border-t border-gray-100">
+          <button
+            onclick="saveDoctor()"
+            id="save-btn"
+            class="flex items-center gap-2 bg-green-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            <i class="ti ti-check text-base"></i>
+            Save Changes
+          </button>
+          <button
+            onclick="toggleEdit()"
+            class="text-sm text-gray-500 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+          <p id="save-error" class="text-xs text-red-500 ml-auto hidden"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/v1/admin';
+    // const TOKEN = localStorage.getItem('token'); // uncomment if using auth
+
+    let doctorData = null;
+
+    function getDoctorId() {
+      // Expects URL like /admin/doctors/123
+      const parts = window.location.pathname.split('/');
+      return parts[parts.length - 1];
+    }
+
+    function initials(name) {
+      if (!name) return '?';
+      return name.trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function statusStyle(status) {
+      return {
+        active:    'bg-green-100 text-green-700',
+        inactive:  'bg-gray-100 text-gray-600',
+        on_leave:  'bg-yellow-100 text-yellow-700',
+      }[status?.toLowerCase()] ?? 'bg-gray-100 text-gray-600';
+    }
+
+    function populateView(doc) {
+      document.getElementById('avatar').textContent        = initials(doc.name);
+      document.getElementById('doctor-name').textContent   = doc.name ?? '—';
+      document.getElementById('doctor-specialty').textContent = doc.specialty ?? '—';
+
+      const badge = document.getElementById('status-badge');
+      badge.textContent  = doc.status ?? 'Unknown';
+      badge.className    = `shrink-0 text-xs font-medium px-3 py-1 rounded-full ${statusStyle(doc.status)}`;
+
+      document.getElementById('v-id').textContent           = doc.id ?? '—';
+      document.getElementById('v-email').textContent        = doc.email ?? '—';
+      document.getElementById('v-phone').textContent        = doc.phone ?? '—';
+      document.getElementById('v-gender').textContent       = doc.gender ?? '—';
+      document.getElementById('v-dob').textContent          = formatDate(doc.date_of_birth);
+      document.getElementById('v-specialty').textContent    = doc.specialty ?? '—';
+      document.getElementById('v-qualification').textContent= doc.qualification ?? '—';
+      document.getElementById('v-experience').textContent   = doc.experience ? `${doc.experience} years` : '—';
+      document.getElementById('v-department').textContent   = doc.department ?? '—';
+      document.getElementById('v-joined').textContent       = formatDate(doc.created_at);
+    }
+
+    function populateEditForm(doc) {
+      document.getElementById('e-name').value         = doc.name ?? '';
+      document.getElementById('e-email').value        = doc.email ?? '';
+      document.getElementById('e-phone').value        = doc.phone ?? '';
+      document.getElementById('e-specialty').value    = doc.specialty ?? '';
+      document.getElementById('e-qualification').value= doc.qualification ?? '';
+      document.getElementById('e-experience').value   = doc.experience ?? '';
+      document.getElementById('e-department').value   = doc.department ?? '';
+      document.getElementById('e-status').value       = doc.status ?? 'active';
+    }
+
+    function toggleEdit() {
+      const isEditing = !document.getElementById('edit-mode').classList.contains('hidden');
+      document.getElementById('edit-mode').classList.toggle('hidden', isEditing);
+      document.getElementById('view-mode').classList.toggle('hidden', !isEditing);
+      const btn = document.getElementById('edit-btn');
+      if (!isEditing) {
+        populateEditForm(doctorData);
+        btn.innerHTML = '<i class="ti ti-x text-base"></i> Cancel Edit';
+      } else {
+        btn.innerHTML = '<i class="ti ti-edit text-base"></i> Edit Details';
+      }
+    }
+
+    async function loadDoctor() {
+      const doctorId = getDoctorId();
+      document.getElementById('loading-state').classList.remove('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+      document.getElementById('profile-card').classList.add('hidden');
+
+      try {
+        const res = await fetch(`${API_BASE}/doctors/${doctorId}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            // 'Authorization': `Bearer ${TOKEN}`
+          }
+        });
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const json = await res.json();
+
+        // Support { data: {...} } or plain object response
+        doctorData = json.data ?? json;
+
+        populateView(doctorData);
+        document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('profile-card').classList.remove('hidden');
+
+      } catch (err) {
+        document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('error-state').classList.remove('hidden');
+        document.getElementById('error-msg').textContent = err.message;
+        console.error(err);
+      }
+    }
+
+    async function saveDoctor() {
+      const doctorId = getDoctorId();
+      const saveBtn  = document.getElementById('save-btn');
+      const errEl    = document.getElementById('save-error');
+      errEl.classList.add('hidden');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="ti ti-loader-2 animate-spin text-base"></i> Saving...';
+
+      const payload = {
+        name:          document.getElementById('e-name').value.trim(),
+        email:         document.getElementById('e-email').value.trim(),
+        phone:         document.getElementById('e-phone').value.trim(),
+        specialty:     document.getElementById('e-specialty').value.trim(),
+        qualification: document.getElementById('e-qualification').value.trim(),
+        experience:    document.getElementById('e-experience').value.trim(),
+        department:    document.getElementById('e-department').value.trim(),
+        status:        document.getElementById('e-status').value,
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/doctors/${doctorId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            // 'Authorization': `Bearer ${TOKEN}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message ?? `${res.status} ${res.statusText}`);
+        }
+
+        const json = await res.json();
+        doctorData  = json.data ?? { ...doctorData, ...payload };
+
+        populateView(doctorData);
+        toggleEdit();
+
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.classList.remove('hidden');
+        console.error(err);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="ti ti-check text-base"></i> Save Changes';
+      }
+    }
+
+    loadDoctor();
+  </script>
+
+</body>
+</html>

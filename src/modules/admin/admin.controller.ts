@@ -8,7 +8,8 @@ export class AdminController{
     private adminService = new AdminService();
  
     fetchDoctors = catchAsync(async (req:Request,res:Response)=>{
-        const hospital_id = req.query.hospital_id;
+         const user_id = (req as AuthRequest).user.id;
+        const hospital_id = await this.adminService.getHospitalId(user_id);
            
         if(hospital_id===undefined){
             throw new Error("Hospital Id required!")
@@ -22,6 +23,14 @@ export class AdminController{
         })
         
     })
+
+
+    fetchPatients = catchAsync(async (req: Request, res: Response) => {
+        const user_id = (req as AuthRequest).user.id;
+        const hospitalId = await this.adminService.getHospitalId(user_id);
+        const patients = await this.adminService.fetchPatients(hospitalId);
+    generalResponse({ res, data: patients, message: "Patients fetched successfully", statusCode: 200 });
+  });
 
     showDoctorsPage = catchAsync(async(req:Request,res:Response)=>{
         res.render('admin/show_doctors');
@@ -52,4 +61,57 @@ export class AdminController{
         })
 
     })
+
+    viewDoctor = catchAsync (async(req:Request,res:Response)=>{
+        const doctor_id =  Number(req.params.doctorId);
+        const doctor = await this.adminService.fetchDoctorFromId(doctor_id);
+        generalResponse({
+            res,
+            data:doctor,
+            message:"Doctor Fetched from ID",
+            statusCode:201
+        })
+    })
+
+    editDoctor = catchAsync(async(req:Request,res:Response)=>{
+                const doctor_id =  Number(req.params.doctorId);
+                const data = req.body;
+                const doctor = await this.adminService.editDoctor(doctor_id,data);
+                generalResponse({
+                    res,
+                    data:doctor,
+                    message:"Doctor details edited successfully",
+                    statusCode:200
+                })
+
+    })
+
+    // Just call addAuditLog method and give payload in parameters
+    
+   fetchAppointments = catchAsync(async(req:Request,res:Response)=>{
+ const user_id = (req as AuthRequest).user.id;
+        const hospital_id = await this.adminService.getHospitalId(user_id);
+    const appointments = await this.adminService.fetchAppointmentsByHospitalId(hospital_id);
+
+    generalResponse({
+        res,
+        data:appointments,
+        message:"Appointments fetched properly",
+        statusCode:201
+    })
+    })
+
+    fetchAuditLogs = catchAsync(async(req:Request,res:Response)=>{
+        const user_id = (req as AuthRequest).user.id;
+        const hospital_id = await this.adminService.getHospitalId(user_id);
+        const logs = await this.adminService.fetchAuditLogs(hospital_id);
+        generalResponse({
+            res,
+            data:logs,
+            message:"Logs fetched successfully",
+            statusCode:201
+
+        })
+    })
+
 }

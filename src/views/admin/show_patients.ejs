@@ -36,7 +36,6 @@
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-4 gap-4 mb-7">
-
       <div class="border border-gray-200 rounded-xl p-5">
         <div class="flex items-center justify-between mb-2">
           <i class="ti ti-calendar text-green-600 text-2xl"></i>
@@ -45,16 +44,14 @@
         <div class="text-3xl font-medium text-gray-900 mb-1">156</div>
         <div class="text-sm text-gray-500">Today's Appointments</div>
       </div>
-
       <div class="border border-gray-200 rounded-xl p-5">
         <div class="flex items-center justify-between mb-2">
           <i class="ti ti-users text-green-600 text-2xl"></i>
           <span class="text-sm text-green-600 font-medium">+8%</span>
         </div>
-        <div class="text-3xl font-medium text-gray-900 mb-1">2,847</div>
+        <div id="stat-patients" class="text-3xl font-medium text-gray-900 mb-1">—</div>
         <div class="text-sm text-gray-500">Active Patients</div>
       </div>
-
       <div class="border border-gray-200 rounded-xl p-5">
         <div class="flex items-center justify-between mb-2">
           <i class="ti ti-currency-dollar text-green-600 text-2xl"></i>
@@ -63,7 +60,6 @@
         <div class="text-3xl font-medium text-gray-900 mb-1">$12,450</div>
         <div class="text-sm text-gray-500">Revenue (Today)</div>
       </div>
-
       <div class="border border-gray-200 rounded-xl p-5">
         <div class="flex items-center justify-between mb-2">
           <i class="ti ti-activity text-green-600 text-2xl"></i>
@@ -72,7 +68,6 @@
         <div class="text-3xl font-medium text-gray-900 mb-1">48</div>
         <div class="text-sm text-gray-500">Active Doctors</div>
       </div>
-
     </div>
 
     <!-- Tabs -->
@@ -90,11 +85,24 @@
     <div class="flex items-center gap-3 mb-5">
       <div class="flex-1 flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
         <i class="ti ti-search text-gray-400 text-base"></i>
-        <input type="text" placeholder="Search patients..." class="flex-1 border-none outline-none text-sm text-gray-700 bg-transparent" />
+        <input
+          id="search-input"
+          type="text"
+          placeholder="Search patients..."
+          class="flex-1 border-none outline-none text-sm text-gray-700 bg-transparent"
+        />
       </div>
       <button class="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
         <i class="ti ti-filter text-base"></i>
         Filter
+      </button>
+      <button
+        id="refresh-btn"
+        onclick="loadPatients()"
+        class="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+      >
+        <i class="ti ti-refresh text-base"></i>
+        Refresh
       </button>
     </div>
 
@@ -111,51 +119,162 @@
             <th class="text-left px-4 py-3 font-medium text-gray-900">Actions</th>
           </tr>
         </thead>
-        <tbody>
-          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
-            <td class="px-4 py-3.5 text-gray-500">PT-2026-0001</td>
-            <td class="px-4 py-3.5 font-medium text-gray-900">Sarah Johnson</td>
-            <td class="px-4 py-3.5 text-gray-700">38</td>
-            <td class="px-4 py-3.5 text-gray-700">May 28, 2026</td>
-            <td class="px-4 py-3.5 text-gray-700">12</td>
-            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
-          </tr>
-          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
-            <td class="px-4 py-3.5 text-gray-500">PT-2026-0002</td>
-            <td class="px-4 py-3.5 font-medium text-gray-900">Robert Brown</td>
-            <td class="px-4 py-3.5 text-gray-700">52</td>
-            <td class="px-4 py-3.5 text-gray-700">June 1, 2026</td>
-            <td class="px-4 py-3.5 text-gray-700">8</td>
-            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
-          </tr>
-          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
-            <td class="px-4 py-3.5 text-gray-500">PT-2026-0003</td>
-            <td class="px-4 py-3.5 font-medium text-gray-900">Maria Garcia</td>
-            <td class="px-4 py-3.5 text-gray-700">45</td>
-            <td class="px-4 py-3.5 text-gray-700">May 30, 2026</td>
-            <td class="px-4 py-3.5 text-gray-700">15</td>
-            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
-          </tr>
-          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
-            <td class="px-4 py-3.5 text-gray-500">PT-2026-0004</td>
-            <td class="px-4 py-3.5 font-medium text-gray-900">David Lee</td>
-            <td class="px-4 py-3.5 text-gray-700">61</td>
-            <td class="px-4 py-3.5 text-gray-700">June 2, 2026</td>
-            <td class="px-4 py-3.5 text-gray-700">20</td>
-            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
-          </tr>
-          <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
-            <td class="px-4 py-3.5 text-gray-500">PT-2026-0005</td>
-            <td class="px-4 py-3.5 font-medium text-gray-900">Jennifer White</td>
-            <td class="px-4 py-3.5 text-gray-700">29</td>
-            <td class="px-4 py-3.5 text-gray-700">May 25, 2026</td>
-            <td class="px-4 py-3.5 text-gray-700">5</td>
-            <td class="px-4 py-3.5"><a href="#" class="text-green-600 font-medium hover:underline">View Profile</a></td>
-          </tr>
+        <tbody id="patient-tbody">
+          <!-- Rows injected by JS -->
         </tbody>
       </table>
+
+      <!-- Loading state -->
+      <div id="loading-state" class="flex flex-col items-center justify-center py-16 gap-3">
+        <i class="ti ti-loader-2 text-3xl text-green-600 animate-spin"></i>
+        <p class="text-sm text-gray-500">Loading patients...</p>
+      </div>
+
+      <!-- Error state -->
+      <div id="error-state" class="hidden flex flex-col items-center justify-center py-16 gap-3">
+        <i class="ti ti-alert-circle text-3xl text-red-400"></i>
+        <p class="text-sm text-gray-700 font-medium">Failed to load patients</p>
+        <p id="error-message" class="text-xs text-gray-500"></p>
+        <button onclick="loadPatients()" class="mt-2 text-sm text-green-600 hover:underline">Try again</button>
+      </div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 gap-3">
+        <i class="ti ti-users-off text-3xl text-gray-300"></i>
+        <p class="text-sm text-gray-500">No patients found</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="hidden flex items-center justify-between mb-8">
+      <p id="pagination-info" class="text-sm text-gray-500"></p>
+      <div class="flex items-center gap-2">
+        <button id="prev-btn" onclick="changePage(-1)" class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          <i class="ti ti-chevron-left"></i> Prev
+        </button>
+        <button id="next-btn" onclick="changePage(1)" class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          Next <i class="ti ti-chevron-right"></i>
+        </button>
+      </div>
     </div>
 
   </div>
+
+  <script>
+    // ─── CONFIG ───────────────────────────────────────────────────────────────
+    // Replace this with your actual API base URL
+    const API_BASE_URL = '/api/v1/admin/patients';
+
+
+    const PAGE_SIZE = 10;
+    let currentPage = 1;
+    let totalRecords = 0;
+    let searchTimeout = null;
+    let allPatients = [];
+
+    // Format ISO date → "May 28, 2026"
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function showState(state) {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('patient-tbody').innerHTML = '';
+      if (state) document.getElementById(state).classList.remove('hidden');
+    }
+
+    function renderRows(patients) {
+      const tbody = document.getElementById('patient-tbody');
+      tbody.innerHTML = patients.map(p => `
+        <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+          <td class="px-4 py-3.5 text-gray-500">${p.id ?? '—'}</td>
+          <td class="px-4 py-3.5 font-medium text-gray-900">${p.name ?? '—'}</td>
+          <td class="px-4 py-3.5 text-gray-700">${p.age ?? '—'}</td>
+          <td class="px-4 py-3.5 text-gray-700">${formatDate(p.last_visit)}</td>
+          <td class="px-4 py-3.5 text-gray-700">${p.appointments ?? '—'}</td>
+          <td class="px-4 py-3.5">
+            <a href="/patients/${p.id}" class="text-green-600 font-medium hover:underline">View Profile</a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function updatePagination() {
+      const start = (currentPage - 1) * PAGE_SIZE + 1;
+      const end = Math.min(currentPage * PAGE_SIZE, totalRecords);
+      document.getElementById('pagination-info').textContent =
+        `Showing ${start}–${end} of ${totalRecords} patients`;
+      document.getElementById('prev-btn').disabled = currentPage === 1;
+      document.getElementById('next-btn').disabled = currentPage * PAGE_SIZE >= totalRecords;
+      document.getElementById('pagination').classList.remove('hidden');
+    }
+
+    async function loadPatients() {
+      const search = document.getElementById('search-input').value.trim();
+      showState('loading-state');
+      document.getElementById('pagination').classList.add('hidden');
+
+      try {
+        const url = new URL(`${API_BASE_URL}/patients`);
+        url.searchParams.set('page', currentPage);
+        url.searchParams.set('limit', PAGE_SIZE);
+        if (search) url.searchParams.set('search', search);
+
+        const res = await fetch(url.toString(), {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            // Uncomment and set your auth header if needed:
+            // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
+
+        const json = await res.json();
+
+        // Support both { data: [], total: N } and a plain array response
+        const patients = Array.isArray(json) ? json : (json.data ?? []);
+        totalRecords = json.total ?? patients.length;
+
+        // Update Active Patients stat card
+        document.getElementById('stat-patients').textContent = totalRecords.toLocaleString();
+
+        if (patients.length === 0) {
+          showState('empty-state');
+          return;
+        }
+
+        showState(null);
+        renderRows(patients);
+        updatePagination();
+
+      } catch (err) {
+        showState('error-state');
+        document.getElementById('error-message').textContent = err.message;
+        console.error('Failed to fetch patients:', err);
+      }
+    }
+
+    function changePage(delta) {
+      currentPage += delta;
+      loadPatients();
+    }
+
+    // Debounced search
+    document.getElementById('search-input').addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      currentPage = 1;
+      searchTimeout = setTimeout(loadPatients, 400);
+    });
+
+    // Initial load
+    loadPatients();
+  </script>
+
 </body>
 </html>

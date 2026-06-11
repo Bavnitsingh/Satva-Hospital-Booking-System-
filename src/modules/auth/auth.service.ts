@@ -107,7 +107,6 @@ export class AuthService {
     );
  
 
-    console.log(data)
     await this.userRepo.createPatient(
       user.user_id,
       data.first_name,
@@ -128,7 +127,6 @@ export class AuthService {
 
   async login(data: any, sessionInfo?: SessionInfo) {
     const user = await this.userRepo.findUserByEmail(data.email);
-
     if (!user) {
       throw new Error("Invalid email or password");
     }
@@ -154,6 +152,7 @@ export class AuthService {
       email: user.user_email,
       role: user.role
     })
+
 
 
     await this.userRepo.createSession(
@@ -232,5 +231,9 @@ export class AuthService {
 
   async getLatestOtpService(email: string) {
     return await this.userRepo.getLatestOtp(email);
+  }
+
+  async logout(userId: number) {
+    await this.userRepo.logout(userId);
   }
 }

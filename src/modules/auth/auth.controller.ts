@@ -3,27 +3,13 @@ import { catchAsync } from "../../common/helpers/catch-async.js";
 import { generalResponse } from "../../common/helpers/general-response.js";
 import { AuthService } from "./auth.service.js";
 import { HttpException } from "../../common/helpers/http-exception.js";
+import { AuthRequest } from "../../common/middlewares/auth.middleware.js";
 
 export class AuthController {
   private authService = new AuthService();
 
   //SERVING STATIC PAGES
 
-  showLoginPage = async (req: Request, res: Response) => {
-    try {
-      res.render("auth/user_login");
-    } catch (e) {
-      throw e;
-    }
-  };
-
-  showRegisterPage = async (req: Request, res: Response) => {
-    try {
-      res.render("auth/user_register");
-    } catch (e) {
-      throw e;
-    }
-  };
 
 
   login = catchAsync(async (req: Request, res: Response) => {
@@ -36,7 +22,6 @@ export class AuthController {
       sameSite: "strict",
       maxAge: 15 * 24 * 60 * 60 * 1000,
     });
-
     generalResponse({
       res,
       data: data,
@@ -115,6 +100,7 @@ export class AuthController {
       });
     }
   };
+  
   showEnterOtpPage = async (req: Request, res: Response) => {
     if (!req.session.email) {
       return res.redirect("/forgot-password-page.ejs");
@@ -185,4 +171,19 @@ export class AuthController {
 
     }
   }
+
+logout = catchAsync(async (req: Request, res: Response) => {
+
+  await this.authService.logout((req as AuthRequest).user.id);
+
+  req.session?.destroy(() => {});
+
+  generalResponse({
+    res,
+    message: "Logged out successfully"
+  });
+
+});
+
+
 }

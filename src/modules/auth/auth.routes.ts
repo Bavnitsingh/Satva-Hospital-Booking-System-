@@ -2,6 +2,7 @@ import { Router } from "express";
 import { Routes } from "../../common/interfaces/routes.interfaces.js";
 import { AuthController } from "./auth.controller.js";
 import passport from './utils/googleauth.js'
+import { authenticate } from "../../common/middlewares/auth.middleware.js";
 
 export class AuthRoutes implements Routes {
   path: string = "/auth";
@@ -16,22 +17,6 @@ export class AuthRoutes implements Routes {
 
     //SERVING STATIC PAGES
 
-    this.router.get(
-      "/register-page",
-      this.authController.showRegisterPage
-    );
-
-    this.router.get(
-      "/login-page",
-      this.authController.showLoginPage
-    );
-
-    this.router.get(
-      "/enter-otp-page",
-      this.authController.showEnterOtpPage
-    );
-
-
     this.router.post("/register-doctor", this.authController.registerDoctor);
     this.router.post("/register-admin", this.authController.registerAdmin);
     this.router.post("/register", this.authController.register);
@@ -41,7 +26,6 @@ export class AuthRoutes implements Routes {
     this.router.get("/enter-otp-page", this.authController.showEnterOtpPage);
     this.router.post("/sendOtp", this.authController.sendOtp);
     this.router.post("/reset-password", this.authController.resetPassword);
-    this.router.get("/forgot-password", (req, res) => { res.render("auth/forgot-password-page") })
     this.router.get('/google', passport.authenticate('google', {
       scope: [
         'profile',
@@ -62,6 +46,8 @@ export class AuthRoutes implements Routes {
     }
     ))
 
+
+    this.router.post("/logout", authenticate,this.authController.logout);
 
   }
 }

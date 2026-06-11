@@ -8,7 +8,7 @@ export const validateRequestBody = (schema: ZodSchema) => {
       return generalResponse({
         res,
         data: result.error.flatten().fieldErrors,
-        message: result.error.issues[1]?.message as string,
+        message: result.error.issues[0]?.message as string,
         statusCode: 400,
       });
     }

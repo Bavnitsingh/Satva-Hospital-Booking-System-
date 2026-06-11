@@ -3,6 +3,7 @@ import { catchAsync } from "../../common/helpers/catch-async.js";
 import { generalResponse } from "../../common/helpers/general-response.js";
 import { SuperAdminService } from "./super.admin.service.js";
 import { HospitalService } from "../hospital/hospital.service.js";
+import { LoginInput } from "./validators/superadmin.crud.validations.js";
 
 export class SuperAdminController {
   private superAdminService = new SuperAdminService();
@@ -137,7 +138,7 @@ export class SuperAdminController {
       const admin = await this.superAdminService.getAdminById(id);
       const hospitals = await this.hospitalService.getAllHospitals();
 
-      admin.id = admin.admin_id; // For frontend compatibility
+      admin.id = admin.admin_id;
       return res.render("super_admin/edit-admin", { admin, hospitals });
     } catch (error) {
       return res.redirect("/api/v1/super-admin/dashboard");

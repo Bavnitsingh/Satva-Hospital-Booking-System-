@@ -61,24 +61,33 @@ export class SuperAdminRepository {
       LEFT JOIN hospitals h ON a.hospital_id = h.hospital_id
       WHERE a.admin_id = ?
     `;
-    const rows = await query(sql, [admin_id]) as any[];
+    const rows = (await query(sql, [admin_id])) as any[];
     return rows.length > 0 ? rows[0] : null;
   }
 
   async updateAdmin(admin_id: number, adminData: any) {
     if (adminData.email || adminData.status) {
-       const admin = await this.findAdminById(admin_id);
-       if (admin) {
-           const userFields = [];
-           const userValues = [];
-           if (adminData.email) { userFields.push("email = ?"); userValues.push(adminData.email); }
-           if (adminData.status) { userFields.push("is_active = ?"); userValues.push(adminData.status === 'Active' ? 1 : 0); }
+      const admin = await this.findAdminById(admin_id);
+      if (admin) {
+        const userFields = [];
+        const userValues = [];
+        if (adminData.email) {
+          userFields.push("email = ?");
+          userValues.push(adminData.email);
+        }
+        if (adminData.status) {
+          userFields.push("is_active = ?");
+          userValues.push(adminData.status === "Active" ? 1 : 0);
+        }
 
-           if (userFields.length > 0) {
-               userValues.push(admin.user_id);
-               await query(`UPDATE users SET ${userFields.join(", ")} WHERE user_id = ?`, userValues); 
-           }
-       }
+        if (userFields.length > 0) {
+          userValues.push(admin.user_id);
+          await query(
+            `UPDATE users SET ${userFields.join(", ")} WHERE user_id = ?`,
+            userValues,
+          );
+        }
+      }
     }
 
     const fields = [];
@@ -99,7 +108,10 @@ export class SuperAdminRepository {
 
     if (fields.length > 0) {
       values.push(admin_id);
-      await query(`UPDATE admins SET ${fields.join(", ")} WHERE admin_id = ?`, values);
+      await query(
+        `UPDATE admins SET ${fields.join(", ")} WHERE admin_id = ?`,
+        values,
+      );
     }
   }
 
@@ -111,7 +123,7 @@ export class SuperAdminRepository {
       LEFT JOIN hospitals h ON a.hospital_id = h.hospital_id
     `;
     const params: any[] = [];
-    
+
     if (search) {
       sql += ` WHERE h.hospital_name LIKE ? OR u.email LIKE ? OR a.first_name LIKE ? OR a.last_name LIKE ?`;
       params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
@@ -120,7 +132,7 @@ export class SuperAdminRepository {
     sql += ` ORDER BY a.created_at DESC LIMIT ? OFFSET ?`;
     params.push(String(limit), String(offset));
 
-    const rows = await query(sql, params) as any[];
+    const rows = (await query(sql, params)) as any[];
     return rows;
   }
 
@@ -132,7 +144,7 @@ export class SuperAdminRepository {
       LEFT JOIN hospitals h ON a.hospital_id = h.hospital_id
     `;
     const params: any[] = [];
-    
+
     if (search) {
       sql += ` WHERE h.hospital_name LIKE ? OR u.email LIKE ? OR a.first_name LIKE ? OR a.last_name LIKE ?`;
       params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
@@ -150,7 +162,7 @@ export class SuperAdminRepository {
       WHERE a.hospital_id = ?
       ORDER BY a.created_at DESC
     `;
-    const rows = await query(sql, [hospitalId]) as any[];
+    const rows = (await query(sql, [hospitalId])) as any[];
     return rows;
   }
 }

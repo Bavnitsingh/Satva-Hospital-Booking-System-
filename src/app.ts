@@ -7,6 +7,8 @@ import session from "express-session";
 import { env } from "./config/index.js";
 
 import { fileURLToPath } from "url";
+import { errorMiddleware } from "./common/middlewares/error.middleware.js";
+import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
 
 export function buildApp(): Application {
@@ -34,6 +36,8 @@ export function buildApp(): Application {
   );
   app.use(express.urlencoded({ extended: true }));
 
+  app.use(express.static("public"));
+  app.use(cookieParser());
   app.use(express.static("public"));
 
   // CREATE FOLDER FOR FILE UPLOADING
@@ -70,9 +74,13 @@ export function buildApp(): Application {
 
   //ROUTER
   app.use("/api/v1", buildApiRouter());
+
   app.get("/", (req, res) => {
     res.render("index");
   });
+
+  // HANDLES GLOBAL ERROR
+  app.use(errorMiddleware);
 
   return app;
 }

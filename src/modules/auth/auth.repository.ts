@@ -1,5 +1,6 @@
 import { NotFoundException } from "../../common/helpers/http-exception.js";
 import { query } from "../../database/connection.js";
+import { UserSession } from "./interfaces/auth.interface.js";
 
 export class UserRepository {
   async findUserByEmail(email: string) {
@@ -12,9 +13,9 @@ export class UserRepository {
       [email],
     );
 
-  if (!rows.length) return null;
-  return rows[0];
-}
+    if (!rows.length) return null;
+    return rows[0];
+  }
 
   async createUser(email: string, passwordHash: string, role: string) {
     const result: any = await query(
@@ -47,19 +48,19 @@ export class UserRepository {
     return rows[0];
   }
 
-  async findUserById(user_id:number){
-    const result:any=await query('Select * from users where user_id=?',[user_id])
-    
+  async findUserById(user_id: number) {
+    const result: any = await query('Select * from users where user_id=?', [user_id])
+
     return result[0]
   }
 
 
-  async createGoogleUser(email:string,passwordHash:string,google_sub:string){
-    const result:any=await query(`Insert into users(email,password_hash,role,google_sub) values(?,?,'PATIENT',?)`,[email,passwordHash,google_sub])
+  async createGoogleUser(email: string, passwordHash: string, google_sub: string) {
+    const result: any = await query(`Insert into users(email,password_hash,role,google_sub) values(?,?,'PATIENT',?)`, [email, passwordHash, google_sub])
 
-    const userId=result.insertId;
+    const userId = result.insertId;
 
-    const rows:any=await query(`SELECT * FROM users where user_id=?`,[userId])
+    const rows: any = await query(`SELECT * FROM users where user_id=?`, [userId])
 
     return rows[0]
   }
@@ -67,13 +68,15 @@ export class UserRepository {
 
   async createPatient(
     userId: number,
-    firstName: string,
-    lastName: string,
-    countryCode: string,
+    first_name: string,
+    last_ame: string,
+    country_code: string,
     mobile: string,
     dob: string,
     gender: string,
   ) {
+
+    console.log(userId, firstName, lastName, countryCode, mobile, dob, gender)
     const result: any = await query(
       `
         insert into patients(
@@ -89,27 +92,27 @@ export class UserRepository {
             ?, ?, ?, ?, ?, ?, ?
         )
         `,
-      [userId, firstName, lastName, countryCode, mobile, dob, gender],
+      [userId, first_name, last_ame, country_code, mobile, dob, gender],
     );
 
     return result;
   }
 
-async updateLastLogin(userId: number): Promise<void> {
+  async updateLastLogin(userId: number): Promise<void> {
     await query(
-        `
+      `
         update users
         set last_login_at = UTC_TIMESTAMP(),
         updated_at = UTC_TIMESTAMP()
         where user_id = ?
         `,
-        [userId]
+      [userId]
     );
-}
+  }
 
 
   async createDoctor(data: any) {
-      console.log(data)
+    console.log(data)
     const result = await query(
       `
         INSERT INTO doctors (
@@ -143,7 +146,7 @@ async updateLastLogin(userId: number): Promise<void> {
   async createAdmin(data: any) {
     const result: any = await query(
       `
-        INSERT INTO admins (
+        insert into admins (
             user_id,
             hospital_id,
             first_name,
@@ -151,7 +154,7 @@ async updateLastLogin(userId: number): Promise<void> {
             created_at,
             updated_at
         )
-        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        values (?, ?, ?, ?, current_timestamp, current_timestamp)
         `,
       [data.user_id, data.hospital_id, data.first_name, data.last_name],
     );
@@ -165,13 +168,13 @@ async updateLastLogin(userId: number): Promise<void> {
 
   async updatePassword(password: string, user_id: number) {
     const sql = `
-        UPDATE users
-        SET password_hash = ?
-        WHERE user_id = ?
+        update users
+        set password_hash = ?
+        where user_id = ?
     `;
 
     return await query(sql, [password, user_id]);
-}
+  }
 
   async deleteOldOtp(email: string) {
 
@@ -179,8 +182,8 @@ async updateLastLogin(userId: number): Promise<void> {
 
     if (!user) return false;
     const sql = `
-            DELETE FROM otp_verifications
-            WHERE user_id = ?
+            delete from otp_verifications
+            where user_id = ?
         `;
 
     return await query(sql, [user.user_id]);
@@ -220,11 +223,11 @@ async updateLastLogin(userId: number): Promise<void> {
     if (!user) return null;
 
     const sql = `
-      SELECT *
-      FROM otp_verifications
-      WHERE user_id = ?
-      AND otp_code = ?
-      AND expires_at > NOW()
+      select *
+      from otp_verifications
+      where user_id = ?
+      and otp_code = ?
+      and expires_at > now()
   `;
 
     const rows: any = await query(sql, [
@@ -243,11 +246,11 @@ async updateLastLogin(userId: number): Promise<void> {
     console.log("hii this is user")
 
     const sql = `
-            SELECT *
-            FROM otp_verifications
-            WHERE
+            select *
+            from otp_verifications
+            where
                 user_id = ?
-                AND expires_at > NOW()
+                and expires_at > now()
         `;
 
     const rows: any = await query(sql, [user.user_id]);
@@ -261,13 +264,13 @@ async updateLastLogin(userId: number): Promise<void> {
     if (!user) throw new NotFoundException("User not found");
 
     const sql = `
-    SELECT otp_code
-    FROM otp_verifications
-    WHERE user_id = ?
-      AND expires_at > NOW()
-      AND purpose = 'PASSWORD_RESET'
-    ORDER BY created_at DESC
-    LIMIT 1
+    select otp_code
+    from otp_verifications
+    where user_id = ?
+      and expires_at > now()
+      and purpose = 'password_reset'
+    order by created_at desc
+    limit 1
   `;
 
     const rows: any = await query(sql, [user.user_id]);
@@ -278,10 +281,63 @@ async updateLastLogin(userId: number): Promise<void> {
 
   async deleteOtp(user_id: number) {
     const sql = `
-      DELETE FROM otp_verifications
-      WHERE user_id = ?
+      delete from otp_verifications
+      where user_id = ?
    `;
 
     return query(sql, [user_id]);
   }
+
+  async createSession(
+    userId: number,
+    refreshToken: string,
+    deviceInfo: string,
+    ipAddress: string,
+    auth_provider: string
+  ) {
+    const sql = `
+  INSERT INTO user_sessions
+  (
+    user_id,
+    refresh_token,
+    expires_at,
+    device_info,
+    ip_address,
+    auth_provider
+  )
+  VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 15 DAY), ?, ?, ?)
+`;
+
+    await query(sql, [
+      userId,
+      refreshToken,
+      deviceInfo,
+      ipAddress,
+      auth_provider
+    ]);
+  }
+
+
+  async findSessionByRefreshToken(
+    refreshToken: string
+  ): Promise<UserSession | null> {
+
+    const sql = `
+    SELECT *
+    FROM user_sessions
+    WHERE refresh_token = ?
+      AND expires_at > UTC_TIMESTAMP()
+    LIMIT 1
+  `;
+
+    const sessions: any = await query(
+      sql,
+      [refreshToken]
+    );
+
+    return sessions.length > 0
+      ? sessions[0]
+      : null;
+  }
+
 }

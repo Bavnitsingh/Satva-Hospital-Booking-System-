@@ -18,8 +18,13 @@ constructor(){
 
 private init():void{
 
-
+    // use doctorAuth
     this.router.get('/getDoctor',doctorAuth,this.doctorController.getDoctor)
+    this.router.get('/getAppointment',doctorAuth,this.doctorController.getTodaysAppointment)
+    this.router.get('/getDashboardData',doctorAuth,this.doctorController.getDoctorDashboard)
+    this.router.get('/getWeeklySchedule',doctorAuth,this.doctorController.getWeeklySchedule)
+
+    this.router.post('/postWeeklySchedule',doctorAuth,this.doctorController.postWeeklySchedule)
 }
 
 

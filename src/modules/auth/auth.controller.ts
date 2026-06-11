@@ -7,25 +7,39 @@ import { HttpException } from "../../common/helpers/http-exception.js";
 export class AuthController {
   private authService = new AuthService();
 
-  // this is default way to use module
-  // register=catchAsync(async(req:Request,res:Response)=>{
-  //     try{
-  //     const result=await this.authService.register(req.body);
-  //     generalResponse({res,data:result,message:'Registration Successful'})
-  //     }
-  //     catch(err){
-  //         generalResponse({res,data:null,message:'Error in Registration',statusCode:500})
-  //     }
+  //SERVING STATIC PAGES
 
-  // })
+  showLoginPage = async (req: Request, res: Response) => {
+    try {
+      res.render("auth/user_login");
+    } catch (e) {
+      throw e;
+    }
+  };
 
+  showRegisterPage = async (req: Request, res: Response) => {
+    try {
+      res.render("auth/user_register");
+    } catch (e) {
+      throw e;
+    }
+  };
 
 
   login = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.login(req.body);
+    const { refreshToken, ...data } =
+      await this.authService.login(req.body);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+    });
+
     generalResponse({
       res,
-      data: result,
+      data: data,
       message: "Logged in Successfully",
       statusCode: 200,
     });
@@ -35,7 +49,7 @@ export class AuthController {
 
 
   registerDoctor = catchAsync(async (req: Request, res: Response) => {
-  
+
     const result = await this.authService.registerDoctor(req.body);
 
 
@@ -57,7 +71,7 @@ export class AuthController {
       statusCode: 201,
     });
   });
-  
+
   register = catchAsync(async (req: Request, res: Response) => {
     const result = await this.authService.register(req.body);
     generalResponse({
@@ -77,49 +91,49 @@ export class AuthController {
   }
 
   showMail = async (req: Request, res: Response) => {
-  try {
-    if (!req.session.isEmailVerified || !req.session.email) {
-      return res.redirect("/forgot-password-page");
+    try {
+      if (!req.session.isEmailVerified || !req.session.email) {
+        return res.redirect("/forgot-password-page");
+      }
+
+      const otp = await this.authService.getLatestOtpService(req.session.email);
+
+      console.log("hdasfds", otp)
+      if (!otp) {
+        return res.redirect("/forgot-password-page");
+      }
+
+      console.log("OTP to show:", otp);
+      return res.render("auth/show-email", { otp_code: otp });
+    } catch (e) {
+      console.log(e);
+      return generalResponse({
+        res,
+        data: null,
+        message: "Failed to load OTP page",
+        statusCode: 500,
+      });
     }
-
-    const otp = await this.authService.getLatestOtpService(req.session.email);
-
-    console.log("hdasfds",otp)
-    if (!otp) {
-      return res.redirect("/forgot-password-page");
-    }
-
-    console.log("OTP to show:", otp);
-    return res.render("auth/show-email", { otp_code : otp });
-  } catch (e) {
-    console.log(e);
-    return generalResponse({
-      res,
-      data: null,
-      message: "Failed to load OTP page",
-      statusCode: 500,
-    });
-  }
-};
+  };
   showEnterOtpPage = async (req: Request, res: Response) => {
-    if (!req.session.isEmailVerified) {
+    if (!req.session.email) {
       return res.redirect("/forgot-password-page.ejs");
     }
     return res.render("auth/enter-otp-page");
   }
 
   sendOtp = async (req: Request, res: Response) => {
-  const email = req.body.email;
-  if (!email) return generalResponse({ res, message: "Email required", statusCode: 400 });
+    const email = req.body.email;
+    if (!email) return generalResponse({ res, message: "Email required", statusCode: 400 });
 
-  const response = await this.authService.getOtp(email);
+    const response = await this.authService.getOtp(email);
 
-  req.session.isEmailVerified = true;
-  req.session.email = email;
-  req.session.user_id = response.data.user_id;
+    req.session.isEmailVerified = true;
+    req.session.email = email;
+    req.session.user_id = response.data.user_id;
 
-  return generalResponse({ res, message: "OTP sent successfully", statusCode: 200 });
-};
+    return generalResponse({ res, message: "OTP sent successfully", statusCode: 200 });
+  };
 
   verifyOtp = async (email: string, otp: string) => {
 
@@ -144,7 +158,7 @@ export class AuthController {
       let response = await this.verifyOtp(email, otp);
       if (response) {
         let isReset = await this.authService.resetPassword(newPassword, user_id);
-        
+
         req.session.isEmailVerified = false;
 
         if (isReset) {

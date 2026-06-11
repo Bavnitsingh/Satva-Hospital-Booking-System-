@@ -4,7 +4,7 @@ import { IDoctorLeave, IDoctorNotification, IDoctorSchedule, IMedicalAttachments
 import { DoctorRepo } from "./doctor.repository.js";
 import { HttpException, NotFoundException, UnauthorizedException } from "../../common/helpers/http-exception.js";
 import { getNextWeekStartingDay } from "./utils/doctor.utilts.js";
-import { start } from "node:repl";
+
 
 
 export class DoctorService{
@@ -50,9 +50,9 @@ export class DoctorService{
     async getWeeklySchedule(user_id:number){
         const doctor_id =await this.getDoctorId(user_id)
         const start_date=getNextWeekStartingDay();
-
+      
         const weekScheduleList=await this.doctorRepo.findDoctorScheduleByDoctorID(doctor_id,start_date)
-        console.log(weekScheduleList)
+
         return {weekScheduleList}
         
 
@@ -64,7 +64,7 @@ export class DoctorService{
             throw new NotFoundException('Data is empty')
         }
 
-    const result=await this.doctorRepo.insertDoctorSchedule(data)       
+    const result=await this.doctorRepo.insertORUpdateDoctorSchedule(data)       
     return {result}      
 
     }
@@ -112,7 +112,32 @@ export class DoctorService{
 
     }
 
+    async getPatientList(user_id:number){
+        const doctor_id=await this.getDoctorId(user_id)
+        const result=await this.doctorRepo.fetchPatientList(doctor_id) 
+        return {result}
+    }
+
+    async getPatientAllMedicalRecords(user_id:number,patient_id:number){
+        const doctor_id=await this.getDoctorId(user_id)
     
+        const result=await this.doctorRepo.fetchPatientAllMedicalRecords(patient_id,doctor_id)
+        return {result}
+    }
+
+    async getPatientAllMedicalAttachments(record_id:number){
+        const result =await this.doctorRepo.fetchPatientMedicalAttachments(record_id)
+
+        return {result}
+    }
+
+    async getPatientMedicalRecordAllPrescription(record_id:number){
+        const prescription = await this.doctorRepo.fetchPatientPrescriptions(record_id)
+        const prescription_items=await this.doctorRepo.fetchPatientPrescriptionsItems(prescription.prescription_id)
+
+        return {prescription,prescription_items}
+    }
+
 
 
 }

@@ -32,13 +32,13 @@ export class DoctorRepo {
     return rows;
   }
 
-  async findDoctorScheduleByDoctorID(doctor_id: number,start_date:string) {
+  async findDoctorScheduleByDoctorID(doctor_id: number, start_date: string) {
     const rows: any = await query(
       `     
             SELECT working_from,working_to,Date_format(working_date,'%Y-%m-%d') as working_date,slot_duration
             FROM doctor_schedules 
             where doctor_id=? and working_date >=?`,
-      [doctor_id,start_date],
+      [doctor_id, start_date],
     );
 
     return rows;
@@ -64,10 +64,17 @@ export class DoctorRepo {
     return rows;
   }
 
-  async insertDoctorSchedule(data: IDoctorSchedule) {
+  async insertORUpdateDoctorSchedule(data: IDoctorSchedule) {
     const result: any = await query(
       `insert into doctor_schedules(doctor_id,working_date,working_from,working_to,slot_duration)
-         values (?,?,?,?,?)`,
+         values (?,?,?,?,?) as new_row
+         on duplicate key update
+         doctor_id=new_row.doctor_id,
+         working_date=new_row.working_date,
+         working_from=new_row.working_from,
+         working_to=new_row.working_to,
+         slot_duration=new_row.slot_duration
+         `,
       [
         data.doctor_id,
         data.working_date,
@@ -119,17 +126,16 @@ select
     return rows[0];
   }
 
-async insertDoctorNotification(data:IDoctorNotification){
-  const rows:any =await query(`
+  async insertDoctorNotification(data: IDoctorNotification) {
+    const rows: any = await query(
+      `
     
     insert into notifications(doctor_id,notification_type,notification_message)
     values(?,?,?)
-    `,[data.doctor_id,
-       data.notification_type,
-       data.notification_message
-    ])
-}
-
+    `,
+      [data.doctor_id, data.notification_type, data.notification_message],
+    );
+  }
 
   async insertMedicalRecords(data: IMedicalRecords) {
     const result: any = await query(
@@ -263,13 +269,68 @@ async insertDoctorNotification(data:IDoctorNotification){
   }
 
   async fetchDoctorStatus(doctor_id: number) {
-    const rows: any = await query(`
+    const rows: any = await query(
+      `
       select from, to ,status_date,reason,status from doctor_status where doctor_id=?
-      `,[doctor_id])
+      `,
+      [doctor_id],
+    );
 
-      return rows[0]
-
+    return rows[0];
   }
 
-  
+  async fetchPatientList(doctor_id: number) {
+    const rows: any = await query(
+      `
+    select p.patient_id,p.first_name,p.last_name,p.blood_group,TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) AS age ,p.gender  from patients p where exists(
+    select 1 from appointments a where a.patient_id=p.patient_id AND a.doctor_id=?)`,
+      [doctor_id],
+    );
+
+    return rows;
+  }
+
+  async fetchPatientAllMedicalRecords(patient_id: number, doctor_id: number) {
+    // this fetches all medical records
+    const rows: any = await query(
+      `
+     select m.record_id,m.diagnosis,m.examination_notes,
+     date_format(m.created_at,'%Y-%m-%d') from medical_records m where m.patient_id=? and m.doctor_id=?
+      `,
+      [patient_id, doctor_id],
+    );
+
+    return rows;
+  }
+
+  async fetchPatientMedicalAttachments(record_id: number) {
+    // this fethces all medical records data like attachments
+
+    const rows: any = await query(
+      `select file_name,file_path from medical_record_attachments where record_id=?`,
+      [record_id],
+    );
+
+    return rows;
+  }
+
+  async fetchPatientPrescriptions(record_id: number) {
+    // this fetches all prescription from record_id
+
+    const rows: any = await query(
+      `select notes from prescriptions where record_id=?`,
+      [record_id],
+    );
+    return rows;
+  }
+
+  async fetchPatientPrescriptionsItems(prescription_id:number){
+
+      const rows:any=await query(`
+        select medicine_name,dosage,frequency,duration,instructions 
+        from prescription_items where prescription_id=?
+        `,[prescription_id])
+
+        return rows
+  }
 }

@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
+import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
 
 
 
@@ -73,7 +74,7 @@ console.log(path.join(__dirname, 'views'));
   app.use(passport.initialize());
 app.use(passport.session());
 app.use("/patient", new PatientPageRoutes().router);
-
+app.use('/doctor',new DoctorPageRoutes().router);
 
   //ROUTER 
   app.use("/api/v1",buildApiRouter())
@@ -86,7 +87,7 @@ app.use("/patient", new PatientPageRoutes().router);
   
 // HANDLES GLOBAL ERROR
   app.use(errorMiddleware)
-
+  
 
   return app;
 }

@@ -19,12 +19,17 @@ constructor(){
 private init():void{
 
     // use doctorAuth
-    this.router.get('/getDoctor',doctorAuth,this.doctorController.getDoctor)
-    this.router.get('/getAppointment',doctorAuth,this.doctorController.getTodaysAppointment)
-    this.router.get('/getDashboardData',doctorAuth,this.doctorController.getDoctorDashboard)
-    this.router.get('/getWeeklySchedule',doctorAuth,this.doctorController.getWeeklySchedule)
+    this.router.get('/get-doctor',doctorAuth,this.doctorController.getDoctor)
+    this.router.get('/get-appointment',doctorAuth,this.doctorController.getTodaysAppointment)
+    this.router.get('/get-dashboard-data',doctorAuth,this.doctorController.getDoctorDashboard)
+    this.router.get('/get-weekly-schedule',doctorAuth,this.doctorController.getWeeklySchedule)
+    this.router.get("/get-patient-list",doctorAuth,this.doctorController.getPatientList)
+    this.router.get('/get-patient-all-medical-records/:patient_id',doctorAuth,this.doctorController.getPatientAllMedicalRecords)
+    this.router.get('/get-patient-all-medical-record-data/:record_id',doctorAuth,this.doctorController.getPatientMedicalData)
 
-    this.router.post('/postWeeklySchedule',doctorAuth,this.doctorController.postWeeklySchedule)
+    this.router.post('/post-weekly-schedule',doctorAuth,this.doctorController.postWeeklySchedule)
+    // this.router.post('/post-medical-records',doctorAuth,this.doctorController.postPatientMedicalRecords)
+    
 }
 
 

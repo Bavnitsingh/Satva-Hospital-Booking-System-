@@ -18,9 +18,18 @@ export class AuthPageController {
 
   showEnterOtpPage = async (req: Request, res: Response) => {
     try {
-      res.render("auth/forgot-password-page");
+      res.render("auth/enter-otp-page");
     } catch (e) {
       throw e;
     }
   };
+
+  SendOtpPage = async (req: Request, res: Response) => {
+    try {
+      res.render("auth/forgot-password-page")
+    }
+    catch (e) {
+      throw e
+    }
+  }
 }

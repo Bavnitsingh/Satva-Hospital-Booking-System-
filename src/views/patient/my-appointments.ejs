@@ -332,7 +332,7 @@
     <%- include('../partials/footer') %>
 
     <script>
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const username = localStorage.getItem("username");
 
       document.getElementById("patientName").textContent = username;

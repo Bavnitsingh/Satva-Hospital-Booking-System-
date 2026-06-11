@@ -6,6 +6,11 @@
     <title>Satva - Patient Dashboard</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import { checkJwt } from "/js/check-jwt.js";
+
+  checkJwt();
+</script>
     <script>
       tailwind.config = {
         theme: {
@@ -209,7 +214,7 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Welcome -->
-      <section class="mb-10 animate-fadeUp">
+      <section class="mb-10 mt-6 animate-fadeUp">
         <h2 class="font-display text-4xl text-dark mb-2">
           Welcome Back,
           <span class="text-primary" id="patient_name"></span>
@@ -372,7 +377,7 @@
     <%- include('../partials/footer') %>
 
     <script>
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       function statusPill(status) {
         const map = {
           CONFIRMED: "bg-green-100 text-green-700",

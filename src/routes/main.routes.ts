@@ -5,6 +5,7 @@ import { PatientRoutes } from "../modules/patient/patient.routes.js";
 import { AdminRoutes } from "../modules/admin/admin.routes.js";
 import { PatientPageRoutes } from "../modules/patient/patient.page.routes.js";
 import { DoctorRoutes } from "../modules/doctor/doctor.routes.js";
+import { AuthPageRoutes } from "../modules/auth/auth.page.routes.js";
 
 
 export function buildApiRouter():Router{
@@ -16,12 +17,9 @@ const routes:Routes[]=[
     new AuthRoutes(),
     new PatientRoutes(),
     new AdminRoutes(),
-    new PatientPageRoutes(),
-    new DoctorRoutes()
+    new DoctorRoutes(),
 
 ]
-
-router.get("/",(req, res)=>{res.render("index")})
 
 routes.forEach((route)=>{
     router.use(route.path,route.router)

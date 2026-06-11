@@ -66,14 +66,7 @@ export class AuthController {
       statusCode: 201,
     });
   });
-  listSendOtpPage = async (req: Request, res: Response) => {
-    try {
-      res.render("auth/forgot-password-page")
-    }
-    catch (e) {
-      throw e
-    }
-  }
+
 
   showMail = async (req: Request, res: Response) => {
     try {
@@ -100,13 +93,7 @@ export class AuthController {
       });
     }
   };
-  
-  showEnterOtpPage = async (req: Request, res: Response) => {
-    if (!req.session.email) {
-      return res.redirect("/forgot-password-page.ejs");
-    }
-    return res.render("auth/enter-otp-page");
-  }
+
 
   sendOtp = async (req: Request, res: Response) => {
     const email = req.body.email;

@@ -1,7 +1,0 @@
-2026-06-03T09:45:21.341Z [32minfo[39m: [32mserver started running[39m
-2026-06-03T11:56:24.283Z [31merror[39m: [31merror connecting database[39m
-2026-06-03T11:56:24.287Z [31merror[39m: [31mserver stopped[39m
-2026-06-03T11:59:16.133Z [31merror[39m: [31merror connecting database[39m
-2026-06-03T11:59:16.137Z [31merror[39m: [31mserver stopped[39m
-2026-06-03T12:00:06.177Z [32minfo[39m: [32mDatabase connected successfully[39m
-2026-06-03T12:00:06.196Z [32minfo[39m: [32mserver started running[39m

@@ -16,6 +16,7 @@ export class PatientPageRoutes implements Routes {
 
     this.router.get("/dashboard", this.page.renderDashboard);
     this.router.get("/profile", this.page.renderProfile);
+    this.router.get("/doctors/:doctorId", this.page.renderDoctorProfile);
     this.router.get("/doctors", this.page.renderDoctors);
     this.router.get("/book-appointment", this.page.renderBookAppointment);
     this.router.get("/notifications", this.page.renderNotifications);

@@ -18,9 +18,7 @@
 
     <!-- Desktop Menu -->
     <div class="hidden md:flex items-center gap-8">
-      <a href="index.html" class="text-sm nav-link font-medium text-primary"
-        >Home</a
-      >
+      <a href="/" class="text-sm nav-link font-medium text-primary">Home</a>
       <a
         href="doctors.html"
         class="text-sm font-medium text-gray-600 nav-link hover:text-primary"
@@ -44,13 +42,13 @@
     <!-- Desktop Buttons -->
     <div class="hidden md:flex items-center gap-3">
       <a
-        href="login.html"
+        href="api/v1/auth/login-page"
         class="text-sm font-medium text-gray-700 hover:text-primary px-4 py-2"
       >
         Login
       </a>
       <a
-        href="register.html"
+        href="/api/v1/auth/register-page"
         class="text-sm font-semibold bg-primary text-white px-5 py-2.5 rounded-xl"
       >
         Register
@@ -82,16 +80,18 @@
     class="hidden md:hidden bg-white border-t border-gray-100"
   >
     <div class="flex flex-col p-4 space-y-4">
-      <a href="index.html" class="text-primary font-medium">Home</a>
+      <a href="/" class="text-primary font-medium">Home</a>
       <a href="doctors.html" class="text-gray-600">Doctors</a>
       <a href="about.html" class="text-gray-600">About</a>
       <a href="contact.html" class="text-gray-600">Contact</a>
 
       <hr />
 
-      <a href="login.html" class="text-gray-700 font-medium">Login</a>
+      <a href="/api/v1/auth/login-page" class="text-gray-700 font-medium"
+        >Login</a
+      >
       <a
-        href="register.html"
+        href="/api/v1/auth/register-page"
         class="bg-primary text-white text-center py-2 rounded-xl"
       >
         Register

@@ -9,32 +9,44 @@ export class TelemedicineRepository {
 
   async createTelemedicineSession(
     data: CreateTelemedicineSession
-  ): Promise<void> {
+  ): Promise<{
+    telemedicine_session_id: number;
+    appointment_id: number;
+    meeting_link: string | null;
+  }> {
 
     const sql = `
-      INSERT INTO telemedicine_sessions
-      (
-        appointment_id,
-        meeting_link
-      )
-      VALUES (?, ?)
-    `;
+  insert into telemedicine_sessions
+  (
+    appointment_id,
+    meeting_link
+  )
+  values (?, ?)
+`;
 
-    await query(sql, [
+    const result: any = await query(sql, [
       data.appointment_id,
       data.meeting_link ?? null
     ]);
+
+    return {
+      telemedicine_session_id: result.insertId,
+      appointment_id: data.appointment_id,
+      meeting_link: data.meeting_link ?? null
+    };
   }
+
+
 
   async getTelemedicineSessionById(
     sessionId: number
   ): Promise<TelemedicineSession | null> {
 
     const sql = `
-      SELECT *
-      FROM telemedicine_sessions
-      WHERE session_id = ?
-    `;
+  select *
+  from telemedicine_sessions
+  where session_id = ?
+`;
 
     const rows = await query(
       sql,
@@ -42,7 +54,7 @@ export class TelemedicineRepository {
     ) as TelemedicineSession[];
 
     return rows.length > 0
-      ? rows[0]  as TelemedicineSession
+      ? rows[0] as TelemedicineSession
       : null;
   }
 
@@ -51,11 +63,10 @@ export class TelemedicineRepository {
   ): Promise<TelemedicineSession | null> {
 
     const sql = `
-      SELECT *
-      FROM telemedicine_sessions
-      WHERE appointment_id = ?
-    `;
-
+  select *
+  from telemedicine_sessions
+  where appointment_id = ?
+`;
     const rows = await query(
       sql,
       [appointmentId]
@@ -71,13 +82,13 @@ export class TelemedicineRepository {
   ): Promise<TelemedicineSession[]> {
 
     const sql = `
-      SELECT ts.*
-      FROM telemedicine_sessions ts
-      INNER JOIN appointments a
-        ON ts.appointment_id = a.appointment_id
-      WHERE a.patient_id = ?
-      ORDER BY ts.created_at DESC
-    `;
+  select ts.*
+  from telemedicine_sessions ts
+  inner join appointments a
+    on ts.appointment_id = a.appointment_id
+  where a.patient_id = ?
+  order by ts.created_at desc
+`;
 
     return await query(
       sql,
@@ -90,13 +101,13 @@ export class TelemedicineRepository {
   ): Promise<TelemedicineSession[]> {
 
     const sql = `
-      SELECT ts.*
-      FROM telemedicine_sessions ts
-      INNER JOIN appointments a
-        ON ts.appointment_id = a.appointment_id
-      WHERE a.doctor_id = ?
-      ORDER BY ts.created_at DESC
-    `;
+  select ts.*
+  from telemedicine_sessions ts
+  inner join appointments a
+    on ts.appointment_id = a.appointment_id
+  where a.patient_id = ?
+  order by ts.created_at desc
+`;
 
     return await query(
       sql,
@@ -109,11 +120,11 @@ export class TelemedicineRepository {
   ): Promise<void> {
 
     const sql = `
-      UPDATE telemedicine_sessions
-      SET
-        status = 'ACTIVE',
+      update telemedicine_sessions
+      set
+        status = 'STARTED',
         started_at = UTC_TIMESTAMP()
-      WHERE session_id = ?
+      where session_id = ?
     `;
 
     await query(sql, [sessionId]);
@@ -124,11 +135,11 @@ export class TelemedicineRepository {
   ): Promise<void> {
 
     const sql = `
-      UPDATE telemedicine_sessions
-      SET
+      update telemedicine_sessions
+      set
         status = 'COMPLETED',
         ended_at = UTC_TIMESTAMP()
-      WHERE session_id = ?
+      where session_id = ?
     `;
 
     await query(sql, [sessionId]);
@@ -140,9 +151,9 @@ export class TelemedicineRepository {
   ): Promise<void> {
 
     const sql = `
-      UPDATE telemedicine_sessions
-      SET status = ?
-      WHERE session_id = ?
+      update telemedicine_sessions
+      set status = ?
+      where session_id = ?
     `;
 
     await query(sql, [
@@ -157,9 +168,9 @@ export class TelemedicineRepository {
   ): Promise<void> {
 
     const sql = `
-      UPDATE telemedicine_sessions
-      SET meeting_link = ?
-      WHERE session_id = ?
+      update telemedicine_sessions
+      set meeting_link = ?
+      where session_id = ?
     `;
 
     await query(sql, [

@@ -13,7 +13,7 @@ export class TelemedicineController {
 
       generalResponse({
         res,
-        data: [],
+        data: result.data,
         message: result.message,
         statusCode: 201,
       });
@@ -143,22 +143,20 @@ export class TelemedicineController {
   );
 
   updateTelemedicineMeetingLink = catchAsync(
-    async (req: Request, res: Response) => {
-      const sessionId = Number(req.params.sessionId);
-      const { meetingLink } = req.body;
+  async (req: Request, res: Response) => {
+    const sessionId = Number(req.params.sessionId);
 
-      const result =
-        await this.telemedicineService.updateTelemedicineMeetingLink(
-          sessionId,
-          meetingLink
-        );
+    const result =
+      await this.telemedicineService.updateTelemedicineMeetingLink(
+        sessionId
+      );
 
-      generalResponse({
-        res,
-        data: [],
-        message: result.message,
-        statusCode: 200,
-      });
-    }
-  );
+    generalResponse({
+      res,
+      data: result,
+      message: "Meeting link updated successfully",
+      statusCode: 200,
+    });
+  }
+);
 }

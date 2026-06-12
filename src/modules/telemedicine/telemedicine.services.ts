@@ -1,5 +1,7 @@
 import { TelemedicineRepository } from "./telemedicine.repositories.js";
-import { CreateTelemedicineSession } from "./telemedicine.interface.js";
+import { CreateTelemedicineSession, ZoomResponse } from "./telemedicine.interface.js";
+import { createZoomMeeting } from "./utils/zoom.service.js";
+import strict from "node:assert/strict";
 
 export class TelemedicineService {
   private telemedicineRepo = new TelemedicineRepository();
@@ -18,9 +20,15 @@ export class TelemedicineService {
       );
     }
 
-    await this.telemedicineRepo.createTelemedicineSession(data);
+
+    let meeting : ZoomResponse = await createZoomMeeting();
+
+    data.meeting_link = meeting.join_url as string;
+
+    const result = await this.telemedicineRepo.createTelemedicineSession(data);
 
     return {
+      data : result,
       message: "Telemedicine session created successfully",
     };
   }
@@ -110,7 +118,7 @@ export class TelemedicineService {
       throw new Error("Telemedicine session not found");
     }
 
-    if (session.status !== "ACTIVE") {
+    if (session.status !== "STARTED") {
       throw new Error(
         "Only active sessions can be ended"
       );
@@ -149,25 +157,24 @@ export class TelemedicineService {
   }
 
   async updateTelemedicineMeetingLink(
-    sessionId: number,
-    meetingLink: string
-  ) {
-    const session =
-      await this.telemedicineRepo.getTelemedicineSessionById(
-        sessionId
-      );
+  sessionId: number
+) {
 
-    if (!session) {
-      throw new Error("Telemedicine session not found");
-    }
 
-    await this.telemedicineRepo.updateTelemedicineMeetingLink(
+  const meeting =
+    await createZoomMeeting();
+
+  await this.telemedicineRepo
+    .updateTelemedicineMeetingLink(
       sessionId,
-      meetingLink
+      meeting.join_url as string
     );
 
-    return {
-      message: "Meeting link updated successfully",
-    };
-  }
+  return {
+    sessionId,
+    meetingLink: meeting.join_url,
+    hostLink: meeting.start_url,
+    zoomMeetingId: meeting.id
+  };
+}
 }

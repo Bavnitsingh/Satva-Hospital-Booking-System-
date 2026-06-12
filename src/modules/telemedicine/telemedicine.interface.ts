@@ -4,7 +4,7 @@ export interface TelemedicineSession {
   meeting_link: string | null;
   status:
     | "SCHEDULED"
-    | "ACTIVE"
+    | "STARTED"
     | "COMPLETED"
     | "CANCELLED";
   started_at: Date | null;
@@ -23,7 +23,7 @@ export interface CreateTelemedicineSession {
 export interface UpdateTelemedicineSessionStatus {
   status:
     | "SCHEDULED"
-    | "ACTIVE"
+    | "STARTED"
     | "COMPLETED"
     | "CANCELLED";
 }
@@ -39,4 +39,10 @@ export interface EndTelemedicineSession {
 
 export interface UpdateTelemedicineMeetingLink {
   meeting_link: string;
+}
+
+export interface ZoomResponse{
+  id : number,
+  join_url? : string,
+  start_url? : string,
 }

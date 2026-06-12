@@ -655,21 +655,15 @@
       makeToggle("toggleNew", "newPassword", "eyeNew");
       makeToggle("toggleConfirm", "confirm_password", "eyeConfirm");
       // Frontend validations
-      function showErr(elId, msg) {
-        const el = document.getElementById(elId);
-        el.textContent = msg;
-        el.classList.remove("hidden");
-      }
-      function clearErr(elId) {
-        const el = document.getElementById(elId);
-        el.textContent = "";
-        el.classList.add("hidden");
-      }
+      function showError(input, errorId, message) {
+        document.getElementById(errorId).textContent = message;
+        document.getElementById(errorId).classList.remove("hidden");
 
-      function setInputBorder(id, hasError) {
-        document
-          .getElementById(id)
-          .classList.toggle("border-red-500", hasError);
+        if (input) {
+          input.classList.add("border-red-500");
+        }
+
+        isValid = false;
       }
 
       // Change password handler — original fetch logic preserved
@@ -700,30 +694,28 @@
             // otpError.classList.remove("hidden");
             // otpError.textContent = "OTP is required";
             // otp.classList.add("border-red-500");
-            showErr("otpError", "OTP is required");
-            setInputBorder("otp", true);
+            showError(otp, "otpError", "OTP is required");
             isValid = false;
           } else if (/^\d{6}$/.test(otp.value.trim())) {
             // otpError.classList.remove("hidden");
             // otpError.textContent = "Enter valid OTP";
             // otp.classList.add("border-red-500");
-            showErr("otpError", "Enter valid OTP");
-            setInputBorder("otp", true);
+            showError(otp, "otpError", "Enter valid OTP");
             isValid = false;
           }
 
           if (!password.value) {
             // passwordError.classList.remove("hidden");
             // passwordError.textContent = "";
-            showErr("passwordError", "New password is required");
-            setInputBorder("newPassword", true);
+            showError(password, "passwordError", "New password is required");
+
             isValid = false;
           } else if (
             !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#?!@$%^&*-]).{8,}$/.test(
               password.value,
             )
           ) {
-            showErr("");
+            showError(password, "passwordError", "");
           }
 
           let response = await fetch("/api/v1/auth/reset-password", {

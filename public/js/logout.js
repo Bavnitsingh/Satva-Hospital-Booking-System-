@@ -17,6 +17,6 @@ export async function logout() {
         console.error("Logout Error:", err);
     } finally {
         localStorage.removeItem("accessToken");
-        window.location.href = "/";
+        window.location.href = "/login";
     }
 }

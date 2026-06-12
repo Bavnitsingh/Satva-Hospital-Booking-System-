@@ -669,7 +669,7 @@
           e.preventDefault();
         } else {
           try {
-            const response = await fetch("login", {
+            const response = await fetch("/api/v1/auth/login", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -681,17 +681,25 @@
               }),
             });
 
-            const data = await response.json();
-            console.log(data);
+            const resp = await response.json();
             if (!response.ok) {
               alert(data.message);
               return;
             }
-
-            console.log(data);
-            localStorage.setItem("accessToken", data.data.accessToken);
-
-            window.location.href = "/patient/dashboard";
+            console.log(resp)
+            const data = resp.data;
+            const user = data.user;
+            const role = user.role;
+            const token = data.accessToken;
+          //   // const user = resp.data.user;
+          //   console.log(data);
+            localStorage.setItem("accessToken", token);
+            if(role === 'PATIENT'){
+              window.location.href = "/patient/dashboard";
+            }else if(role === 'DOCTOR'){{
+              window.location.href = "/doctor/dashboard";
+            }
+          }
           } catch (error) {
             console.error(error);
             alert("Something went wrong");

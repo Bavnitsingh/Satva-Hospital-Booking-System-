@@ -1,9 +1,12 @@
 import { SessionData } from "express-session";
-import { BadRequestException, NotFoundException } from "../../common/helpers/http-exception.js";
+import {
+  BadRequestException,
+  NotFoundException,
+} from "../../common/helpers/http-exception.js";
 import { UserRepository } from "./auth.repository.js";
 import { comparePassword, getHashedPassword } from "./utils/bcrypt.js";
 import { sign, signRefreshToken } from "./utils/jwt.js";
-import crypto from 'crypto'
+import crypto from "crypto";
 import { SessionInfo } from "./interfaces/auth.interface.js";
 
 export class AuthService {
@@ -105,7 +108,6 @@ export class AuthService {
       hashedPassword,
       "PATIENT",
     );
- 
 
     await this.userRepo.createPatient(
       user.user_id,
@@ -150,19 +152,16 @@ export class AuthService {
     const refreshToken = signRefreshToken({
       id: user.user_id,
       email: user.user_email,
-      role: user.role
-    })
-
-
+      role: user.role,
+    });
 
     await this.userRepo.createSession(
       user.user_id,
       refreshToken,
       sessionInfo?.deviceInfo ?? "",
       sessionInfo?.ipAddress ?? "",
-      "LOCAL"
+      "LOCAL",
     );
-
 
     return {
       accessToken,
@@ -179,8 +178,6 @@ export class AuthService {
     }
 
     const canGetOtp = await this.userRepo.canGetOtp(email);
-
-    console.log(canGetOtp)
     if (!canGetOtp) {
       throw new BadRequestException("OTP already sent. Please wait.");
     }
@@ -188,7 +185,6 @@ export class AuthService {
     const otp = crypto.randomInt(100000, 999999).toString();
 
     await this.userRepo.deleteOldOtp(email);
-
     await this.userRepo.saveOtp(otp, email);
 
     return {

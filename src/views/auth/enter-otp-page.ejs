@@ -692,43 +692,6 @@
             showFlash(data.message, "error");
           }
         });
-
-      // Timer — original logic preserved
-      async function showtimer() {
-        try {
-          let response = await fetch("/getTimer");
-          if (!response.ok) {
-            document.getElementById("seconds").innerText =
-              "OTP has been expired !!";
-            document.getElementById("resendBtn").style.display = "inline-block";
-            document.getElementById("timerText").style.display = "none";
-            console.log("unable to get timer");
-            return;
-          }
-          let seconds = (await response.json()).data;
-          if (seconds > 0) {
-            startTimer(seconds);
-          }
-        } catch (e) {
-          console.log(e);
-        }
-      }
-
-      showtimer();
-
-      function startTimer(seconds) {
-        const countdown = setInterval(() => {
-          seconds--;
-          document.getElementById("seconds").innerText = seconds;
-          if (seconds <= 0) {
-            clearInterval(countdown);
-            document.getElementById("seconds").innerText =
-              "OTP has been expired !!";
-            document.getElementById("resendBtn").style.display = "inline-block";
-          }
-        }, 1000);
-        return countdown;
-      }
     </script>
   </body>
 </html>

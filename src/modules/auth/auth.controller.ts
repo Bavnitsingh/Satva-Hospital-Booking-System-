@@ -81,14 +81,6 @@ export class AuthController {
       statusCode: 201,
     });
   });
-  listSendOtpPage = async (req: Request, res: Response) => {
-    try {
-      res.render("auth/forgot-password-page")
-    }
-    catch (e) {
-      throw e
-    }
-  }
 
   showMail = async (req: Request, res: Response) => {
     try {

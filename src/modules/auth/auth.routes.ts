@@ -36,7 +36,6 @@ export class AuthRoutes implements Routes {
     this.router.post("/register-admin", this.authController.registerAdmin);
     this.router.post("/register", this.authController.register);
     this.router.post("/login", this.authController.login);
-    this.router.get("/send-otp-page", this.authController.listSendOtpPage);
     this.router.get("/show-email", this.authController.showMail);
     this.router.get("/enter-otp-page", this.authController.showEnterOtpPage);
     this.router.post("/sendOtp", this.authController.sendOtp);

@@ -21,14 +21,14 @@ export class TelemedicineService {
     }
 
 
-    let meeting : ZoomResponse = await createZoomMeeting();
+    let meeting: ZoomResponse = await createZoomMeeting();
 
     data.meeting_link = meeting.join_url as string;
 
     const result = await this.telemedicineRepo.createTelemedicineSession(data);
 
     return {
-      data : result,
+      data: result,
       message: "Telemedicine session created successfully",
     };
   }
@@ -157,24 +157,24 @@ export class TelemedicineService {
   }
 
   async updateTelemedicineMeetingLink(
-  sessionId: number
-) {
+    sessionId: number
+  ) {
 
 
-  const meeting =
-    await createZoomMeeting();
+    const meeting =
+      await createZoomMeeting();
 
-  await this.telemedicineRepo
-    .updateTelemedicineMeetingLink(
+    await this.telemedicineRepo
+      .updateTelemedicineMeetingLink(
+        sessionId,
+        meeting.join_url as string
+      );
+
+    return {
       sessionId,
-      meeting.join_url as string
-    );
-
-  return {
-    sessionId,
-    meetingLink: meeting.join_url,
-    hostLink: meeting.start_url,
-    zoomMeetingId: meeting.id
-  };
-}
+      meetingLink: meeting.join_url,
+      hostLink: meeting.start_url,
+      zoomMeetingId: meeting.id
+    };
+  }
 }

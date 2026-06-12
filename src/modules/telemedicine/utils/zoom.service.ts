@@ -28,7 +28,7 @@ export async function getZoomAccessToken() {
   return data.access_token;
 }
 
-// this is for creating zoom m
+// this is for creating zoom
 export async function createZoomMeeting() : Promise<ZoomResponse> {
   const accessToken = await getZoomAccessToken();
 

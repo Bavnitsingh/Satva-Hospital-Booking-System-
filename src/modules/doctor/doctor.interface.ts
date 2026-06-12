@@ -1,25 +1,29 @@
 import e from "express"
 
 
-export enum WorkingDay {
-  MONDAY = 'MONDAY',
-  TUESDAY = 'TUESDAY',
-  WEDNESDAY = 'WEDNESDAY',
-  THURSDAY = 'THURSDAY',
-  FRIDAY = 'FRIDAY',
-  SATURDAY = 'SATURDAY',
-  SUNDAY = 'SUNDAY'
-}
+// export enum WorkingDay {
+//   MONDAY = 'MONDAY',
+//   TUESDAY = 'TUESDAY',
+//   WEDNESDAY = 'WEDNESDAY',
+//   THURSDAY = 'THURSDAY',
+//   FRIDAY = 'FRIDAY',
+//   SATURDAY = 'SATURDAY',
+//   SUNDAY = 'SUNDAY'
+// }
 
 
 export interface IDoctorSchedule{
     doctor_id:number,
-    working_day:WorkingDay,
+    working_date:Date,
     working_from:string,
     working_to:string,
-    date_from:Date
-    date_to:Date
     slot_duration:number
+}
+
+export interface IDoctorNotification{
+    doctor_id:number,
+    notification_type:string, 
+    notification_message:string
 }
 
 
@@ -73,4 +77,13 @@ export interface IPrescriptionItems{
     instructions:string,
 }
 
-e
+export interface IDoctorDetails{
+    doctor_id:number, 
+    first_name:string,
+    last_name:string,
+    experience_years:number,
+    consultation_fee:number,   
+    bio:string,
+    profile_path?:string
+
+}

@@ -5,6 +5,7 @@ import {
   authenticate,
   isPatient,
 } from "../../common/middlewares/auth.middleware.js";
+import { patientProfileAndInsuranceUpload } from "./utils/patientProfileandMulterUpload.js";
 
 export class PatientRoutes implements Routes {
   path = "/patient";
@@ -17,13 +18,12 @@ export class PatientRoutes implements Routes {
 
   private init(): void {
 
-    this.router.get("/dashboard", this.patient.showDashboard)
     // patient routes require authentication + PATIENT role
     this.router.use(authenticate, isPatient);
 
     // Profile routes
     this.router.get("/profile", this.patient.getProfile);
-    this.router.patch("/profile", this.patient.updateProfile);
+    this.router.patch("/profile",  patientProfileAndInsuranceUpload, this.patient.updateProfile);
 
     // Family members routes
     this.router.get("/family", this.patient.getFamilyMembers);

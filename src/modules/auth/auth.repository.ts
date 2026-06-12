@@ -49,34 +49,43 @@ export class UserRepository {
   }
 
   async findUserById(user_id: number) {
-    const result: any = await query('Select * from users where user_id=?', [user_id])
+    const result: any = await query("Select * from users where user_id=?", [
+      user_id,
+    ]);
 
-    return result[0]
+    return result[0];
   }
 
-
-  async createGoogleUser(email: string, passwordHash: string, google_sub: string) {
-    const result: any = await query(`Insert into users(email,password_hash,role,google_sub) values(?,?,'PATIENT',?)`, [email, passwordHash, google_sub])
+  async createGoogleUser(
+    email: string,
+    passwordHash: string,
+    google_sub: string,
+  ) {
+    const result: any = await query(
+      `Insert into users(email,password_hash,role,google_sub) values(?,?,'PATIENT',?)`,
+      [email, passwordHash, google_sub],
+    );
 
     const userId = result.insertId;
 
-    const rows: any = await query(`SELECT * FROM users where user_id=?`, [userId])
+    const rows: any = await query(`SELECT * FROM users where user_id=?`, [
+      userId,
+    ]);
 
-    return rows[0]
+    return rows[0];
   }
-
 
   async createPatient(
     userId: number,
-    firstName: string,
-    lastName: string,
-    countryCode: string,
+    first_name: string,
+    last_name: string,
+    country_code: string,
     mobile: string,
     dob: string,
     gender: string,
   ) {
 
-    console.log(userId, firstName, lastName, countryCode, mobile, dob, gender)
+   
     const result: any = await query(
       `
         insert into patients(
@@ -92,7 +101,7 @@ export class UserRepository {
             ?, ?, ?, ?, ?, ?, ?
         )
         `,
-      [userId, firstName, lastName, countryCode, mobile, dob, gender],
+      [userId, first_name, last_name, country_code, mobile, dob, gender],
     );
 
     return result;
@@ -106,13 +115,11 @@ export class UserRepository {
         updated_at = UTC_TIMESTAMP()
         where user_id = ?
         `,
-      [userId]
+      [userId],
     );
   }
 
-
   async createDoctor(data: any) {
-    console.log(data)
     const result = await query(
       `
         INSERT INTO doctors (
@@ -146,7 +153,7 @@ export class UserRepository {
   async createAdmin(data: any) {
     const result: any = await query(
       `
-        INSERT INTO admins (
+        insert into admins (
             user_id,
             hospital_id,
             first_name,
@@ -154,7 +161,7 @@ export class UserRepository {
             created_at,
             updated_at
         )
-        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        values (?, ?, ?, ?, current_timestamp, current_timestamp)
         `,
       [data.user_id, data.hospital_id, data.first_name, data.last_name],
     );
@@ -162,38 +169,32 @@ export class UserRepository {
     return result;
   }
 
-
-
-
-
   async updatePassword(password: string, user_id: number) {
     const sql = `
-        UPDATE users
-        SET password_hash = ?
-        WHERE user_id = ?
+        update users
+        set password_hash = ?
+        where user_id = ?
     `;
 
     return await query(sql, [password, user_id]);
   }
 
   async deleteOldOtp(email: string) {
-
     let user: any = await this.findUserByEmail(email);
 
     if (!user) return false;
     const sql = `
-            DELETE FROM otp_verifications
-            WHERE user_id = ?
+            delete from otp_verifications
+            where user_id = ?
         `;
 
     return await query(sql, [user.user_id]);
   }
 
   async saveOtp(otp: string, email: string) {
-
     let user: any = await this.findUserByEmail(email);
 
-    if (!user) return false
+    if (!user) return false;
     const sql = `
             INSERT INTO otp_verifications
             (
@@ -223,39 +224,32 @@ export class UserRepository {
     if (!user) return null;
 
     const sql = `
-      SELECT *
-      FROM otp_verifications
-      WHERE user_id = ?
-      AND otp_code = ?
-      AND expires_at > NOW()
+      select *
+      from otp_verifications
+      where user_id = ?
+      and otp_code = ?
+      and expires_at > now()
   `;
 
-    const rows: any = await query(sql, [
-      user.user_id,
-      otp
-    ]);
+    const rows: any = await query(sql, [user.user_id, otp]);
 
     return rows[0] || null;
   }
 
   async canGetOtp(email: string) {
-
     let user: any = await this.findUserByEmail(email);
 
 
-    console.log("hii this is user")
-
     const sql = `
-            SELECT *
-            FROM otp_verifications
-            WHERE
+            select *
+            from otp_verifications
+            where
                 user_id = ?
-                AND expires_at > NOW()
+                and expires_at > now()
         `;
 
     const rows: any = await query(sql, [user.user_id]);
 
-    console.log(rows)
     return rows.length === 0;
   }
 
@@ -264,13 +258,13 @@ export class UserRepository {
     if (!user) throw new NotFoundException("User not found");
 
     const sql = `
-    SELECT otp_code
-    FROM otp_verifications
-    WHERE user_id = ?
-      AND expires_at > NOW()
-      AND purpose = 'PASSWORD_RESET'
-    ORDER BY created_at DESC
-    LIMIT 1
+    select otp_code
+    from otp_verifications
+    where user_id = ?
+      and expires_at > now()
+      and purpose = 'password_reset'
+    order by created_at desc
+    limit 1
   `;
 
     const rows: any = await query(sql, [user.user_id]);
@@ -281,8 +275,8 @@ export class UserRepository {
 
   async deleteOtp(user_id: number) {
     const sql = `
-      DELETE FROM otp_verifications
-      WHERE user_id = ?
+      delete from otp_verifications
+      where user_id = ?
    `;
 
     return query(sql, [user_id]);
@@ -293,7 +287,7 @@ export class UserRepository {
     refreshToken: string,
     deviceInfo: string,
     ipAddress: string,
-    auth_provider: string
+    auth_provider: string,
   ) {
     // Delete existing sessions for the user
     await query(
@@ -320,14 +314,13 @@ export class UserRepository {
       refreshToken,
       deviceInfo,
       ipAddress,
-      auth_provider
+      auth_provider,
     ]);
   }
 
   async findSessionByRefreshToken(
-    refreshToken: string
+    refreshToken: string,
   ): Promise<UserSession | null> {
-
     const sql = `
     SELECT *
     FROM user_sessions
@@ -336,14 +329,12 @@ export class UserRepository {
     LIMIT 1
   `;
 
-    const sessions: any = await query(
-      sql,
-      [refreshToken]
-    );
+    const sessions: any = await query(sql, [refreshToken]);
 
-    return sessions.length > 0
-      ? sessions[0]
-      : null;
+    return sessions.length > 0 ? sessions[0] : null;
   }
 
+  async logout(userId: number) {
+    return query(`delete from user_sessions where user_id = ?`, [userId]);
+  }
 }

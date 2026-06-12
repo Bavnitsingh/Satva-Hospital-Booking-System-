@@ -430,7 +430,7 @@
               <!-- Google -->
               <button
                 type="button"
-                onclick="window.location.href='google'"
+                onclick="window.location.href = 'google'"
                 class="w-full flex items-center justify-center gap-2.5 py-3 px-4 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition shadow-sm"
               >
                 <svg
@@ -618,7 +618,7 @@
       const emailError = document.getElementById("emailError");
       const passwordError = document.getElementById("passwordError");
 
-      loginForm.addEventListener("submit",async (e) => {
+      loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         let isValid = true;
 
@@ -668,19 +668,20 @@
         if (!isValid) {
           e.preventDefault();
         } else {
-           try {
-    const response = await fetch("login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        email: email.value.trim(),
-        password: password.value,
-      }),
-    });
+          try {
+            const response = await fetch("/api/v1/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                email: email.value.trim(),
+                password: password.value,
+              }),
+            });
 
+<<<<<<< HEAD
     const data = await response.json();
 
     if (!response.ok) {
@@ -698,6 +699,31 @@
     console.error(error);
     alert("Something went wrong");
   }
+=======
+            const resp = await response.json();
+            if (!response.ok) {
+              alert(data.message);
+              return;
+            }
+            console.log(resp)
+            const data = resp.data;
+            const user = data.user;
+            const role = user.role;
+            const token = data.accessToken;
+          //   // const user = resp.data.user;
+          //   console.log(data);
+            localStorage.setItem("accessToken", token);
+            if(role === 'PATIENT'){
+              window.location.href = "/patient/dashboard";
+            }else if(role === 'DOCTOR'){{
+              window.location.href = "/doctor/dashboard";
+            }
+          }
+          } catch (error) {
+            console.error(error);
+            alert("Something went wrong");
+          }
+>>>>>>> doctor
         }
       });
     </script>

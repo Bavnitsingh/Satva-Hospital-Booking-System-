@@ -10,10 +10,14 @@ export class PatientPageController {
   };
 
   renderDoctors = (req: Request, res: Response) => {
-    res.render("patient/doctors", { user: (req as any).user });
+    res.render("patient/doctor-list", { user: (req as any).user });
   };
 
-  renderAppointments = (req: Request, res: Response) => {
+  renderDoctorProfile = (req: Request, res: Response) => {
+    res.render("patient/doctor-profile", { user: (req as any).user });
+  };
+
+  renderBookAppointment = (req: Request, res: Response) => {
     res.render("patient/book-appointment", { user: (req as any).user });
   };
 
@@ -26,6 +30,15 @@ export class PatientPageController {
   };
 
   renderRecords = (req: Request, res: Response) => {
-    res.render("patient/records", { user: (req as any).user });
+    res.render("patient/my-records", { user: (req as any).user });
+  };
+  renderRecordDetails = (req: Request, res: Response) => {
+    res.render("patient/record-details", {
+      user: (req as any).user,
+      recordId: req.params.recordId,
+    });
+  };
+  renderPatientAppointments = (req: Request, res: Response) => {
+    res.render("patient/my-appointments", { user: (req as any).user });
   };
 }

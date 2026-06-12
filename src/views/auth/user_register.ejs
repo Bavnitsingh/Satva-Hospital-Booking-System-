@@ -481,35 +481,64 @@
       .toISOString()
       .split("T")[0];
 
-    // Country code dropdown
-    fetch("https://restcountries.com/v3.1/all?fields=name,idd")
-      .then((res) => res.json())
-      .then((data) => {
-        const select = document.getElementById("country_code");
-        data
-          .sort((a, b) => a.name.common.localeCompare(b.name.common))
-          .forEach((country) => {
-            const root = country.idd?.root || "";
-            const suffix = country.idd?.suffixes?.[0] || "";
-            const dial = root + suffix;
-            if (!dial) return;
-            const opt = document.createElement("option");
-            opt.value = dial;
-            opt.textContent = `${country.name.common} (${dial})`;
-            // Pre-select India
-            if (country.name.common === "India") opt.selected = true;
-            select.appendChild(opt);
-          });
-      })
-      .catch(() => {
-        // Fallback if API fails
-        const select = document.getElementById("country_code");
-        const opt = document.createElement("option");
-        opt.value = "+91";
-        opt.textContent = "India (+91)";
-        opt.selected = true;
-        select.appendChild(opt);
+
+      async function loadCountries() {
+  try {
+    const res = await fetch(
+      "https://restcountries.com/v3.1/all?fields=name,idd"
+    );
+
+    const data = await res.json();
+
+    const select = document.getElementById("country_code");
+
+    data
+      .sort((a, b) =>
+        a.name.common.localeCompare(b.name.common)
+      )
+      .forEach((country) => {
+
+        const root = country.idd?.root || "";
+        const suffix = country.idd?.suffixes?.[0] || "";
+        const dial = root + suffix;
+
+        if (!dial) return;
+
+        const option = document.createElement("option");
+
+        option.value = dial;
+        option.textContent =
+          `${country.name.common} (${dial})`;
+
+        if (country.name.common === "India") {
+          option.selected = true;
+        }
+
+        select.appendChild(option);
       });
+
+  } catch (err) {
+
+    const select =
+      document.getElementById("country_code");
+
+    const option =
+      document.createElement("option");
+
+    option.value = "+91";
+    option.textContent = "India (+91)";
+    option.selected = true;
+
+    select.appendChild(option);
+
+    console.error(err);
+  }
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  loadCountries
+);
   </script>
 </body>
 <!-- Script for validations -->

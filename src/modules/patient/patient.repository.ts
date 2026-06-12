@@ -86,49 +86,17 @@ export class PatientRepository {
 
     return query(
       `
-        UPDATE patients
-        SET ${fields},
-            updated_at = UTC_TIMESTAMP()
-        WHERE patient_id = ?
+        update patients
+        set ${fields},
+            updated_at = utc_timestamp()
+        where patient_id = ?
         `,
       [...values, patientId],
     );
   }
 
-  async getFamilyMembers(patientId: number) {
-    return query(
-      "select * from family_members where patient_id = ? order by created_at asc",
-      [patientId],
-    );
-  }
 
-  async addFamilyMember(
-    patientId: number,
-    data: {
-      relation: string;
-      firstName: string;
-      lastName: string;
-      dob?: string;
-      mobile?: string;
-      email?: string;
-    },
-  ) {
-    const result: any = await query(
-      `insert into  family_members (patient_id, relation, first_name, last_name, dob, mobile, email)
-       values (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        patientId,
-        data.relation,
-        data.firstName,
-        data.lastName,
-        data.dob ?? null,
-        data.mobile ?? null,
-        data.email ?? null,
-      ],
-    );
-    console.log(result);
-    return result;
-  }
+
 
   async updateFamilyMember(
     memberId: number,
@@ -158,6 +126,141 @@ export class PatientRepository {
       `delete from family_members where member_id = ? and patient_id = ?`,
       [memberId, patientId],
     );
+  }
+
+  async getInsuranceByPatientId(patientId: number | string) {
+    const rows: any = await query(
+      `
+    SELECT *
+    FROM patient_insurance_details
+    WHERE patient_id = ?
+    LIMIT 1
+    `,
+      [patientId],
+    );
+
+    return rows[0] ?? null;
+  }
+
+  async upsertInsuranceDetails(
+    patientId: number | string,
+    data: {
+      policyNumber: string;
+      policyCompany: string;
+      policyDocumentPath?: string | null;
+    },
+  ) {
+    const existing = await this.getInsuranceByPatientId(patientId);
+
+    if (existing) {
+      await query(
+        `
+      UPDATE patient_insurance_details
+      SET
+        policy_number = ?,
+        policy_company = ?,
+        policy_document_path = ?,
+        updated_at = UTC_TIMESTAMP()
+      WHERE patient_id = ?
+      `,
+        [
+          data.policyNumber,
+          data.policyCompany,
+          data.policyDocumentPath ?? null,
+          patientId,
+        ],
+      );
+
+      return this.getInsuranceByPatientId(patientId);
+    }
+
+    const result: any = await query(
+      `
+    INSERT INTO patient_insurance_details (
+      patient_id,
+      policy_number,
+      policy_company,
+      policy_document_path
+    )
+    VALUES (?, ?, ?, ?)
+    `,
+      [
+        patientId,
+        data.policyNumber,
+        data.policyCompany,
+        data.policyDocumentPath ?? null,
+      ],
+    );
+
+    return result;
+  }
+
+  async deleteInsuranceDetails(patientId: number | string) {
+    return query(
+      `
+    DELETE FROM patient_insurance_details
+    WHERE patient_id = ?
+    `,
+      [patientId],
+    );
+  }
+
+  async countFamilyMembers(patientId: number | string) {
+    const rows: any = await query(
+      `
+    SELECT COUNT(*) AS total
+    FROM family_members
+    WHERE patient_id = ?
+    `,
+      [patientId],
+    );
+
+    return Number(rows[0]?.total || 0);
+  }
+
+  async getFamilyMembers(patientId: number) {
+    return query(
+      "select * from family_members where patient_id = ? order by created_at asc",
+      [patientId],
+    );
+  }
+
+
+  async addFamilyMember(
+    patientId: number | string,
+    data: {
+      relation: string;
+      firstName: string;
+      lastName: string;
+      dob?: string;
+      mobile?: string;
+      email?: string;
+    },
+  ) {
+    const total = await this.countFamilyMembers(patientId);
+    if (total >= 3) {
+      throw new Error("Maximum 3 family members are allowed");
+    }
+
+    const result: any = await query(
+      `
+    insert into family_members
+      (patient_id, relation, first_name, last_name, dob, mobile, email)
+    values
+      (?, ?, ?, ?, ?, ?, ?)
+    `,
+      [
+        patientId,
+        data.relation,
+        data.firstName,
+        data.lastName,
+        data.dob ?? null,
+        data.mobile ?? null,
+        data.email ?? null,
+      ],
+    );
+
+    return result;
   }
 
   async searchDoctors(filters: SearchDoctorsFilters) {
@@ -205,7 +308,7 @@ export class PatientRepository {
 
     return query(
       `
-    SELECT DISTINCT
+    select distinct
       d.doctor_id,
       d.first_name,
       d.last_name,
@@ -217,22 +320,22 @@ export class PatientRepository {
       d.bio,
       d.profile_path,
       h.hospital_name,
-      GROUP_CONCAT(
-        DISTINCT s.specialty_name
-        ORDER BY s.specialty_name
-        SEPARATOR ', '
-      ) AS specialties
-    FROM doctors d
-    JOIN hospitals h
-      ON d.hospital_id = h.hospital_id
-    LEFT JOIN doctor_specialties ds
-      ON d.doctor_id = ds.doctor_id
-    LEFT JOIN specialties s
-      ON ds.specialty_id = s.specialty_id
-    WHERE ${whereClause}
-    GROUP BY d.doctor_id
-    ORDER BY COALESCE(d.rating, 0) DESC
-    LIMIT ${limit} OFFSET ${offset}
+      group_concat(
+        distinct s.specialty_name
+        order by s.specialty_name
+        separator ', '
+      ) as specialties
+    from doctors d
+    join hospitals h
+      on d.hospital_id = h.hospital_id
+    left join doctor_specialties ds
+      on d.doctor_id = ds.doctor_id
+    left join specialties s
+      on ds.specialty_id = s.specialty_id
+    where ${whereClause}
+    group by d.doctor_id
+    order by coalesce(d.rating, 0) desc
+    limit ${limit} offset ${offset}
     `,
       params,
     );
@@ -240,18 +343,18 @@ export class PatientRepository {
 
   async getDoctorById(doctorId: number) {
     const rows: any = await query(
-      `SELECT
+      `select
          d.*,
-         h.hospital_name, h.address_line1 AS hospital_address,
-         GROUP_CONCAT(DISTINCT s.specialty_name ORDER BY s.specialty_name SEPARATOR ', ') AS specialties,
-         GROUP_CONCAT(DISTINCT CONCAT(dq.degree, ' (', IFNULL(dq.graduation_year,''), ')') SEPARATOR ' | ') AS qualifications
-       FROM doctors d
-       JOIN hospitals h ON d.hospital_id = h.hospital_id
-       LEFT JOIN doctor_specialties ds ON d.doctor_id = ds.doctor_id
-       LEFT JOIN specialties s ON ds.specialty_id = s.specialty_id
-       LEFT JOIN doctor_qualifications dq ON d.doctor_id = dq.doctor_id
-       WHERE d.doctor_id = ? AND d.is_deactivated = FALSE
-       GROUP BY d.doctor_id`,
+         h.hospital_name, h.address_line1 as hospital_address,
+         group_concat(distinct s.specialty_name order by s.specialty_name separator ', ') as specialties,
+         group_concat(distinct concat(dq.degree, ' (', ifnull(dq.graduation_year,''), ')') separator ' | ') as qualifications
+       from doctors d
+       join hospitals h on d.hospital_id = h.hospital_id
+       left join doctor_specialties ds on d.doctor_id = ds.doctor_id
+       left join specialties s on ds.specialty_id = s.specialty_id
+       left join doctor_qualifications dq on d.doctor_id = dq.doctor_id
+       where d.doctor_id = ? and d.is_deactivated = false
+       group by d.doctor_id`,
       [doctorId],
     );
     console.log(rows);
@@ -264,10 +367,10 @@ export class PatientRepository {
     startTime: string,
   ): Promise<boolean> {
     const rows: any = await query(
-      `SELECT 1 FROM appointments
-       WHERE doctor_id = ? AND slot_date = ? AND start_time = ?
-         AND appointment_status NOT IN ('CANCELLED')
-       LIMIT 1`,
+      `select 1 from appointments
+       where doctor_id = ? and slot_date = ? and start_time = ?
+         and appointment_status not in ('cancelled')
+       limit 1`,
       [doctorId, slotDate, startTime],
     );
     return rows.length > 0;
@@ -275,10 +378,10 @@ export class PatientRepository {
 
   async getBookedSlots(doctorId: number, date: string): Promise<string[]> {
     const rows: any = await query(
-      `SELECT TIME_FORMAT(start_time, '%H:%i') AS slot_time
-        FROM appointments
-        WHERE doctor_id = ? AND slot_date = ?
-        AND appointment_status NOT IN ('CANCELLED')`,
+      `select time_format(start_time, '%h:%i') as slot_time
+        from appointments
+        where doctor_id = ? and slot_date = ?
+        and appointment_status not in ('cancelled')`,
       [doctorId, date],
     );
     return rows.map((r: any) => r.slot_time);
@@ -286,8 +389,8 @@ export class PatientRepository {
 
   async isDoctorOnLeave(doctorId: number, date: string): Promise<boolean> {
     const rows: any = await query(
-      `SELECT 1 FROM doctor_leaves
-WHERE doctor_id = ? AND ? BETWEEN from_date AND to_date LIMIT 1`,
+      `select 1 from doctor_leaves
+where doctor_id = ? and ? between from_date and to_date limit 1`,
       [doctorId, date],
     );
     return rows.length > 0;
@@ -340,7 +443,7 @@ VALUES (?, ?, ?, ?, ?, ?, 'PAYMENT_PENDING', ?, ?)`,
   }) {
     const result: any = await query(
       `
-      INSERT INTO payments (
+      insert into payments (
         appointment_id,
         amount,
         currency,
@@ -350,7 +453,7 @@ VALUES (?, ?, ?, ?, ?, ?, 'PAYMENT_PENDING', ?, ?)`,
         refund_status,
         transaction_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      values (?, ?, ?, ?, ?, ?, ?, ?)
     `,
       [
         data.appointmentId,
@@ -370,9 +473,9 @@ VALUES (?, ?, ?, ?, ?, ?, 'PAYMENT_PENDING', ?, ?)`,
   async updateAppointmentStatus(appointmentId: number, status: string) {
     await query(
       `
-      UPDATE appointments
-      SET appointment_status = ?
-      WHERE appointment_id = ?
+      update appointments
+      set appointment_status = ?
+      where appointment_id = ?
     `,
       [status, appointmentId],
     );
@@ -386,9 +489,9 @@ VALUES (?, ?, ?, ?, ?, ?, 'PAYMENT_PENDING', ?, ?)`,
     remarks?: string;
   }) {
     return query(
-      `INSERT INTO appointment_status_history
+      `insert into appointment_status_history
     (appointment_id, old_status, new_status, changed_by_user_id, remarks)
-    VALUES (?, ?, ?, ?, ?)`,
+    values (?, ?, ?, ?, ?)`,
       [
         data.appointmentId,
         data.oldStatus,
@@ -514,10 +617,10 @@ WHERE payment_id = ? AND status = 'SUCCESS'`,
   async getPaymentByAppointment(appointmentId: number) {
     const result: any = await query(
       `
-      SELECT *
-      FROM payments
-      WHERE appointment_id = ?
-      LIMIT 1
+      select *
+      from payments
+      where appointment_id = ?
+      limit 1
     `,
       [appointmentId],
     );
@@ -596,14 +699,14 @@ WHERE payment_id = ? AND status = 'SUCCESS'`,
     if (!rows[0]) return null;
 
     const prescriptionItems = await query(
-      `SELECT pi.* FROM prescription_items pi
-        JOIN prescriptions pr ON pi.prescription_id = pr.prescription_id
-        WHERE pr.record_id = ?`,
+      `select pi.* from prescription_items pi
+        join prescriptions pr on pi.prescription_id = pr.prescription_id
+        where pr.record_id = ?`,
       [recordId],
     );
 
     const attachments = await query(
-      `SELECT * FROM medical_record_attachments WHERE record_id = ?`,
+      `select * from medical_record_attachments where record_id = ?`,
       [recordId],
     );
 
@@ -614,10 +717,10 @@ WHERE payment_id = ? AND status = 'SUCCESS'`,
   async getNotifications(patientId: number, unreadOnly: boolean) {
     const filter = unreadOnly ? "AND is_read = FALSE" : "";
     return query(
-      `SELECT * FROM notifications
-        WHERE user_id = ? ${filter}
-        ORDER BY created_at DESC
-        LIMIT 50`,
+      `select * from notifications
+        where user_id = ? ${filter}
+        order by created_at desc
+        limit 5`,
       [patientId],
     );
   }

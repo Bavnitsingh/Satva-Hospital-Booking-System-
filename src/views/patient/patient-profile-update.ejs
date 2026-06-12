@@ -208,9 +208,32 @@
         </div>
       </div>
     </header>
+    
 
-    <main class="flex-1 flex items-start justify-center pt-12 pb-16 px-4">
-      <div class="w-full max-w-4xl animate-fadeUp">
+    <main class="flex-1 flex flex-col items-center justify-center pt-12 pb-16 px-4">
+      <div class="w-full max-w-4xl">
+      <a
+        href="/patient/dashboard"
+        id="backToSearchBtn"
+        class="inline-flex items-center gap-2 text-gray-500 hover:text-dark mb-6"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15 19l-7-7 7-7"
+          ></path>
+        </svg>
+        Back to dashboard
+      </a>
+    </div>
+      <div class="w-full  max-w-4xl animate-fadeUp">
         <div
           class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden p-8 sm:p-12"
         >
@@ -753,7 +776,7 @@
         const gender = document.getElementById("gender");
         const address1 = document.getElementById("address_1");
         const address2 = document.getElementById("address_2");
-
+        
         function showError(input, errorId, message) {
           document.getElementById(errorId).textContent = message;
           document.getElementById(errorId).classList.remove("hidden");
@@ -917,8 +940,10 @@
         }
 
         const p = json.data;
-
+        const username = `${p.first_name} ${p.last_name}`;
+        document.getElementById("patientName").textContent = username;
         document.getElementById("first_name").value = p.first_name || "";
+        document.getElementById("user_img").src = `https://ui-avatars.com/api/?name=${username}&background=10A37F&color=fff`
         document.getElementById("last_name").value = p.last_name || "";
         document.getElementById("email").value = p.email || "";
         document.getElementById("country_code").value = p.country_code || "";

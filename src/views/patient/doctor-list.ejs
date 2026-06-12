@@ -1,5 +1,4 @@
-      
-      <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -99,7 +98,7 @@
     </style>
   </head>
 
-<body class="bg-bg-page text-gray-800 min-h-screen">
+  <body class="bg-bg-page text-gray-800 min-h-screen">
     <header
       class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50"
     >
@@ -197,7 +196,7 @@
             </div>
 
             <button
-            id="logoutBtn"
+              id="logoutBtn"
               href="/logout"
               class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition"
             >
@@ -222,9 +221,7 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="mb-8">
-
-      </div>
+      <div class="mb-8"></div>
 
       <div
         id="statusMsg"
@@ -393,129 +390,114 @@
         </div>
       </section>
 
+      <script type="module">
+        import { checkJwt } from "/js/check-jwt.js";
+        import { logout } from "/js/logout.js";
 
-<script type="module">
-import { checkJwt } from "/js/check-jwt.js";
-import {logout} from "/js/logout.js";
+        checkJwt();
+        const logout_btn = document.getElementById("logoutBtn");
+        logout_btn.addEventListener("click", async function (e) {
+          e.preventDefault();
+          await logout();
+        });
 
-      checkJwt();
-      const logout_btn = document.getElementById("logoutBtn");
-      logout_btn.addEventListener("click", async function (e) {
-        e.preventDefault();
-        await logout();
-      });
+        const token = localStorage.getItem("accessToken");
+        const username = localStorage.getItem("username");
 
-const token = localStorage.getItem("accessToken");
-const username = localStorage.getItem("username");
+        document.getElementById("patientName").textContent = username;
+        document.getElementById("user_img").src =
+          `https://ui-avatars.com/api/?name=${username}&background=10A37F&color=fff`;
 
-document.getElementById("patientName").textContent = username;
-document.getElementById("user_img").src = `https://ui-avatars.com/api/?name=${username}&background=10A37F&color=fff`;
+        const searchBtn = document.getElementById("searchBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const doctorsContainer = document.getElementById("doctorsContainer");
 
-const searchBtn = document.getElementById("searchBtn");
-const clearBtn = document.getElementById("clearBtn");
-const doctorsContainer = document.getElementById("doctorsContainer");
+        searchBtn.addEventListener("click", searchDoctors);
 
-searchBtn.addEventListener("click", searchDoctors);
+        clearBtn.addEventListener("click", () => {
+          document.getElementById("searchName").value = "";
+          document.getElementById("searchSpecialty").value = "";
+          document.getElementById("searchGender").value = "";
+          document.getElementById("searchHospitalId").value = "";
+          document.getElementById("minFee").value = "";
+          document.getElementById("maxFee").value = "";
 
-clearBtn.addEventListener("click", () => {
-  document.getElementById("searchName").value = "";
-  document.getElementById("searchSpecialty").value = "";
-  document.getElementById("searchGender").value = "";
-  document.getElementById("searchHospitalId").value = "";
-  document.getElementById("minFee").value = "";
-  document.getElementById("maxFee").value = "";
+          searchDoctors();
+        });
 
-  searchDoctors();
-});
-
-async function searchDoctors() {
-
-  doctorsContainer.innerHTML = `
+        async function searchDoctors() {
+          doctorsContainer.innerHTML = `
     <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 text-center">
       Loading doctors...
     </div>
   `;
 
-  try {
+          try {
+            const params = new URLSearchParams();
 
-    const params = new URLSearchParams();
+            const name = document.getElementById("searchName").value.trim();
 
-    const name =
-      document.getElementById("searchName").value.trim();
+            const specialty = document.getElementById("searchSpecialty").value;
 
-    const specialty =
-      document.getElementById("searchSpecialty").value;
+            const gender = document.getElementById("searchGender").value;
 
-    const gender =
-      document.getElementById("searchGender").value;
+            const hospitalId =
+              document.getElementById("searchHospitalId").value;
 
-    const hospitalId =
-      document.getElementById("searchHospitalId").value;
+            const minFee = document.getElementById("minFee").value;
 
-    const minFee =
-      document.getElementById("minFee").value;
+            const maxFee = document.getElementById("maxFee").value;
 
-    const maxFee =
-      document.getElementById("maxFee").value;
+            if (name) params.append("name", name);
 
-    if (name)
-      params.append("name", name);
+            if (specialty) params.append("specialty", specialty);
 
-    if (specialty)
-      params.append("specialty", specialty);
+            if (gender) params.append("gender", gender);
 
-    if (gender)
-      params.append("gender", gender);
+            if (hospitalId) params.append("hospitalId", hospitalId);
 
-    if (hospitalId)
-      params.append("hospitalId", hospitalId);
+            const response = await fetch(
+              `/api/v1/patient/doctors?${params.toString()}`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            );
 
-    const response = await fetch(
-      `/api/v1/patient/doctors?${params.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+            const result = await response.json();
 
-    const result = await response.json();
+            console.log(result);
 
-    console.log(result);
+            let doctors = result.data || [];
 
-    let doctors = result.data || [];
+            if (minFee) {
+              doctors = doctors.filter(
+                (doctor) => Number(doctor.consultation_fee) >= Number(minFee),
+              );
+            }
 
-    if (minFee) {
-      doctors = doctors.filter(
-        doctor =>
-          Number(doctor.consultation_fee) >= Number(minFee)
-      );
-    }
+            if (maxFee) {
+              doctors = doctors.filter(
+                (doctor) => Number(doctor.consultation_fee) <= Number(maxFee),
+              );
+            }
 
-    if (maxFee) {
-      doctors = doctors.filter(
-        doctor =>
-          Number(doctor.consultation_fee) <= Number(maxFee)
-      );
-    }
-
-    if (!doctors.length) {
-
-      doctorsContainer.innerHTML = `
+            if (!doctors.length) {
+              doctorsContainer.innerHTML = `
         <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 text-center text-gray-500">
           No doctors found
         </div>
       `;
 
-      return;
-    }
+              return;
+            }
 
-    doctorsContainer.innerHTML = "";
+            doctorsContainer.innerHTML = "";
 
-    doctors.forEach((doctor) => {
-
-      doctorsContainer.innerHTML += `
+            doctors.forEach((doctor) => {
+              doctorsContainer.innerHTML += `
         <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 hover:shadow-lg transition">
 
           <div class="flex flex-col lg:flex-row justify-between gap-6">
@@ -572,45 +554,37 @@ async function searchDoctors() {
 
         </div>
       `;
-    });
+            });
 
-    document.querySelectorAll(".bookBtn")
-      .forEach(button => {
+            document.querySelectorAll(".bookBtn").forEach((button) => {
+              button.addEventListener("click", () => {
+                const doctorId = button.dataset.id;
 
-        button.addEventListener("click", () => {
+                localStorage.setItem("selectedDoctorId", doctorId);
 
-          const doctorId =
-            button.dataset.id;
+                // next section
+                document
+                  .getElementById("searchSection")
+                  .classList.add("hidden");
 
-          localStorage.setItem(
-            "selectedDoctorId",
-            doctorId
-          );
+                document
+                  .getElementById("appointmentSection")
+                  .classList.remove("hidden");
+              });
+            });
+          } catch (error) {
+            console.error(error);
 
-          // next section
-          document
-            .getElementById("searchSection")
-            .classList.add("hidden");
-
-          document
-            .getElementById("appointmentSection")
-            .classList.remove("hidden");
-
-        });
-
-      });
-
-  } catch (error) {
-
-    console.error(error);
-
-    doctorsContainer.innerHTML = `
+            doctorsContainer.innerHTML = `
       <div class="bg-white rounded-3xl border border-red-200 shadow-sm p-8 text-center text-red-600">
         Failed to load doctors
       </div>
     `;
-  }
-}
+          }
+        }
 
-searchDoctors();
-</script>
+        searchDoctors();
+      </script>
+    </main>
+  </body>
+</html>

@@ -77,27 +77,62 @@
             <a href="/patient/profile" class="hover:text-primary"> Profile </a>
           </nav>
 
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 sm:gap-4">
             <a
               href="/patient/notifications"
-              class="relative p-2 rounded-lg hover:bg-primary-light"
+              class="relative p-2 rounded-xl hover:bg-primary-light text-gray-700 hover:text-primary transition"
+              aria-label="Notifications"
             >
-              🔔
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 17h5l-1.4-1.4A2 2 0 0118 14.17V11a6 6 0 10-12 0v3.17a2 2 0 01-.6 1.43L4 17h5m6 0a3 3 0 11-6 0m6 0H9"
+                />
+              </svg>
             </a>
 
             <div class="flex items-center gap-2">
               <img
                 id="user_img"
-                src="https://ui-avatars.com/api/?name=Patient"
-                class="w-10 h-10 rounded-full object-cover"
+                src="https://ui-avatars.com/api/?name=Patient&background=10A37F&color=fff"
+                class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-light"
+                alt="Patient"
               />
 
-              <div>
-                <p class="text-sm font-semibold" id="patientName">Patient</p>
-
+              <div class="hidden sm:block">
+                <p class="text-sm font-semibold text-dark" id="patientName">
+                  Patient
+                </p>
                 <p class="text-xs text-gray-500">Patient</p>
               </div>
             </div>
+
+            <button
+              id="logoutBtn"
+              class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+                />
+              </svg>
+              Logout
+            </button>
           </div>
         </div>
       </div>
@@ -140,7 +175,10 @@
 
     <script>
       const token = localStorage.getItem("accessToken");
+      const username = localStorage.getItem("username");
 
+      document.getElementById("patientName").textContent = username;
+      document.getElementById("user_img").src = `https://ui-avatars.com/api/?name=${username}&background=10A37F&color=fff`
       async function loadRecords() {
         try {
           const response = await fetch("/api/v1/patient/records", {
@@ -266,6 +304,12 @@
 
     <script type="module">
       import { downloadMedicalRecord } from "/js/download-record.js";
+      import { logout } from "/js/logout.js";
+      const logout_btn = document.getElementById("logoutBtn");
+      logout_btn.addEventListener("click", async function (e) {
+        e.preventDefault();
+        await logout();
+      });
 
       window.downloadRecord = async function (recordId) {
         const token = localStorage.getItem("accessToken");

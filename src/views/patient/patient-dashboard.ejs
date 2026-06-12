@@ -188,8 +188,8 @@
               </div>
             </div>
 
-            <a
-              href="/logout"
+            <button
+              id="logoutBtn"
               class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition"
             >
               <svg
@@ -206,7 +206,7 @@
                 />
               </svg>
               Logout
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -375,7 +375,15 @@
     </main>
 
     <%- include('../partials/footer') %>
-
+    <script type="module">
+      import { logout } from "/js/logout.js";
+      const logout_btn = document.getElementById("logoutBtn");
+      logout_btn.addEventListener("click", async function (e) {
+        e.preventDefault();
+        await logout();
+        
+      });
+    </script>
     <script>
       const token = localStorage.getItem("accessToken");
       function statusPill(status) {
@@ -399,6 +407,10 @@
               "Content-Type": "application/json",
             },
           });
+
+          if(profileRes.status === 401){
+            throw new Error("Unauthorized");
+          }
 
           const profile = await profileRes.json();
           console.log(profile);
@@ -425,7 +437,7 @@
 
           localStorage.setItem(
             "username",
-            profile.data?.first_name || "Patient",
+            `${profile.data?.first_name} ${profile.data?.last_name}` || "Patient",
           );
 
           const appointmentsRes = await fetch("/api/v1/patient/appointments", {
@@ -549,6 +561,10 @@
             notifications.data?.length || 0;
         } catch (err) {
           console.error("Dashboard Error:", err);
+          if(err.message == "Unauthorized"){
+            localStorage.removeItem("accessToken");
+            window.location.replace("/login");
+          }
         }
       }
 

@@ -7,6 +7,11 @@ import session from 'express-session'
 import { env } from "./config/index.js";
 
 import { fileURLToPath } from "url";
+import { errorMiddleware } from "./common/middlewares/error.middleware.js";
+import cookieParser from "cookie-parser";
+import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
+import { AdminPageRoutes } from "./modules/admin/admin.page.routes.js";
+
 
 
 export function buildApp(): Application {
@@ -29,7 +34,7 @@ export function buildApp(): Application {
     session({ secret: 'scret', resave: false, saveUninitialized: true, cookie: { secure: false } }),
   );
   app.use(express.urlencoded({ extended: true }));
-
+  app.use(cookieParser());
   app.use(express.static("public"))
 
 
@@ -62,15 +67,29 @@ export function buildApp(): Application {
        
     })
 );
-
+console.log(path.join(__dirname, 'views'));
 
 
   //
   app.use(passport.initialize());
 app.use(passport.session());
+app.use("/patient", new PatientPageRoutes().router);
+
+app.use('/admin', new AdminPageRoutes().router);
+
 
   //ROUTER 
   app.use("/api/v1",buildApiRouter())
+
+
   
+    app.get("/", (req, res) => {
+    res.render("index");
+  });
+  
+// HANDLES GLOBAL ERROR
+  app.use(errorMiddleware)
+
+
   return app;
 }

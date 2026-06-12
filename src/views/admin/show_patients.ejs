@@ -28,7 +28,7 @@
   </nav>
 
   <!-- Main Content -->
-  <div class="px-6 pt-7">
+  <div class="max-w-7xl mx-auto px-6 pt-7">
 
     <!-- Page Header -->
     <h1 class="text-2xl font-medium text-gray-900 mb-1">Admin Dashboard</h1>
@@ -71,14 +71,14 @@
     </div>
 
     <!-- Tabs -->
-    <div class="flex gap-7 border-b border-gray-200 mb-5">
-      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Overview</span>
-      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Doctors</span>
-      <span class="text-sm text-green-600 font-medium pb-2.5 border-b-2 border-green-600 cursor-pointer">Patients</span>
-      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Appointments</span>
-      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Reports</span>
-      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Settings</span>
-      <span class="text-sm text-gray-500 pb-2.5 cursor-pointer hover:text-gray-700">Audit Log</span>
+   <div class="flex gap-6 border-b border-gray-200 mb-7 overflow-x-auto">
+      <button onclick="switchTab(this,'overview')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Overview</button>
+      <button onclick="switchTab(this,'doctors')"  class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Doctors</button>
+      <button onclick="switchTab(this,'patients')" class="tab-btn text-sm font-semibold text-green-600 border-b-2 border-primary pb-3 whitespace-nowrap transition">Patients</button>
+      <button onclick="switchTab(this,'appointments')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Appointments</button>
+      <button onclick="switchTab(this,'reports')"  class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Reports</button>
+      <button onclick="switchTab(this,'settings')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Settings</button>
+      <button onclick="switchTab(this,'audit-logs')"    class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Audit Log</button>
     </div>
 
     <!-- Search & Filter -->
@@ -163,7 +163,7 @@
   <script>
     // ─── CONFIG ───────────────────────────────────────────────────────────────
     // Replace this with your actual API base URL
-    const API_BASE_URL = '/api/v1/admin/patients';
+    const API_BASE_URL = 'http://localhost:3333/api/v1/admin';
 
 
     const PAGE_SIZE = 10;
@@ -187,22 +187,35 @@
       if (state) document.getElementById(state).classList.remove('hidden');
     }
 
-    function renderRows(patients) {
-      const tbody = document.getElementById('patient-tbody');
-      tbody.innerHTML = patients.map(p => `
-        <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
-          <td class="px-4 py-3.5 text-gray-500">${p.id ?? '—'}</td>
-          <td class="px-4 py-3.5 font-medium text-gray-900">${p.name ?? '—'}</td>
-          <td class="px-4 py-3.5 text-gray-700">${p.age ?? '—'}</td>
-          <td class="px-4 py-3.5 text-gray-700">${formatDate(p.last_visit)}</td>
-          <td class="px-4 py-3.5 text-gray-700">${p.appointments ?? '—'}</td>
-          <td class="px-4 py-3.5">
-            <a href="/patients/${p.id}" class="text-green-600 font-medium hover:underline">View Profile</a>
-          </td>
-        </tr>
-      `).join('');
-    }
+   function renderRows(patients) {
+  const tbody = document.getElementById('patient-tbody');
+  tbody.innerHTML = patients.map(p => `
+    <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+      <td class="px-4 py-3.5 text-gray-500">PT-${String(p.patient_id).padStart(4, '0')}</td>
+      <td class="px-4 py-3.5 font-medium text-gray-900">${p.first_name ?? ''} ${p.last_name ?? ''}</td>
+      <td class="px-4 py-3.5 text-gray-700">${calculateAge(p.dob)}</td>
+      <td class="px-4 py-3.5 text-gray-700">${formatDate(p.updated_at)}</td>
+      <td class="px-4 py-3.5">
+        <span class="text-xs px-2 py-1 rounded-full ${p.is_insured ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">
+          ${p.is_insured ? 'Insured' : 'Uninsured'}
+        </span>
+      </td>
+      <td class="px-4 py-3.5">
+        <a href="/admin/patients/${p.patient_id}" class="text-green-600 font-medium hover:underline">View Profile</a>
+      </td>
+    </tr>
+  `).join('');
+}
 
+  function switchTab(btn, tab) {
+  window.location.href = `/admin/${tab}`;
+}
+// Calculate age from dob
+function calculateAge(dob) {
+  if (!dob) return '—';
+  const diff = Date.now() - new Date(dob).getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+}
     function updatePagination() {
       const start = (currentPage - 1) * PAGE_SIZE + 1;
       const end = Math.min(currentPage * PAGE_SIZE, totalRecords);
@@ -219,20 +232,21 @@
       document.getElementById('pagination').classList.add('hidden');
 
       try {
-        const url = new URL(`${API_BASE_URL}/patients`);
+        const url = new URL(`${API_BASE_URL}/fetchpatients`);
         url.searchParams.set('page', currentPage);
         url.searchParams.set('limit', PAGE_SIZE);
         if (search) url.searchParams.set('search', search);
 
+        const accessToken = localStorage.getItem('accessToken')
         const res = await fetch(url.toString(), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             // Uncomment and set your auth header if needed:
-            // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${accessToken}`,
           }
         });
-
+console.log(url)
         if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
 
         const json = await res.json();

@@ -8,6 +8,13 @@ import logger from "../../common/logger.js";
 export class PatientController {
   private service = new PatientService();
 
+
+// for static file serving
+  showDashboard = catchAsync(async (req: Request, res: Response) => {
+ res.render("patient_dashboard")
+});
+
+
   // Profile
   getProfile = catchAsync(async (req: Request, res: Response) => {
     const result = await this.service.getProfile((req as AuthRequest).user.id);
@@ -182,11 +189,6 @@ export class PatientController {
 
 
 
-private patientService = new PatientService()
-
-profilePage=(req:Request,res:Response)=>{
-    res.render('profile/edit-profile')
-}
 
 
 // showProfile=catchAsync(async(req:Request,res:Response)=>{

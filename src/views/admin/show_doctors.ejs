@@ -25,7 +25,6 @@
 </head>
 <body class="bg-white min-h-screen font-sans text-gray-800">
 
-  <!-- ===================== NAVBAR ===================== -->
   <nav class="border-b border-gray-200 bg-white px-6 py-3 flex items-center justify-between sticky top-0 z-10">
     <div class="flex items-center gap-2">
       <div class="bg-primary rounded-lg p-1.5">
@@ -55,16 +54,13 @@
     </div>
   </nav>
 
-  <!-- ===================== MAIN ===================== -->
   <main class="max-w-5xl mx-auto px-6 py-8">
 
-    <!-- Page title -->
     <div class="mb-7">
       <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
       <p class="text-sm text-gray-400 mt-1">System overview and management</p>
     </div>
 
-    <!-- Stats row -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
       <div class="border border-gray-200 rounded-xl p-5">
@@ -121,7 +117,6 @@
 
     </div>
 
-    <!-- Tabs -->
     <div class="flex gap-6 border-b border-gray-200 mb-7 overflow-x-auto">
       <button onclick="switchTab(this,'overview')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Overview</button>
       <button onclick="switchTab(this,'doctors')"  class="tab-btn text-sm font-semibold text-primary border-b-2 border-primary pb-3 whitespace-nowrap transition">Doctors</button>
@@ -132,7 +127,6 @@
       <button onclick="switchTab(this,'audit')"    class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Audit Log</button>
     </div>
 
-    <!-- Search + Filter + Add -->
     <div class="flex items-center gap-3 mb-6">
       <div class="relative flex-1">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -154,7 +148,7 @@
         </svg>
         Filter
       </button>
-      <button  onclick="window.location.href = '/api/v1/admin/showAddDoctorPage'" class="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition">
+      <button  onclick="window.location.href = 'http://localhost:3333/admin/add-doctor'" class="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
         </svg>
@@ -162,9 +156,7 @@
       </button>
     </div>
 
-    <!-- Doctors list -->
     <div id="doctorsList" class="space-y-3">
-      <!-- Loading skeleton -->
       <div id="loadingSkeleton" class="space-y-3">
         <div class="border border-gray-100 rounded-xl p-5 animate-pulse flex items-center gap-4">
           <div class="w-14 h-14 rounded-full bg-gray-200"></div>
@@ -232,14 +224,21 @@
   function doctorCard(doc) {
     const initials  = getInitials(doc.first_name, doc.last_name);
     const fullName  = `Dr. ${doc.first_name.trim()} ${doc.last_name.trim()}`;
+    
+    // Status Badge updates based on is_deactivated
     const status    = doc.is_deactivated
       ? `<span class="text-xs font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">Inactive</span>`
       : `<span class="text-xs font-medium text-primary bg-primary-light px-2 py-0.5 rounded-full">Active</span>`;
 
+    // Dynamic Action Button Label and Style configuration
+    const actionText = doc.is_deactivated ? 'Activate' : 'Deactivate';
+    const actionClass = doc.is_deactivated
+      ? 'border border-primary text-primary hover:bg-primary-light text-sm font-semibold px-4 py-2 rounded-lg transition'
+      : 'bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2 rounded-lg transition';
+
     return `
       <div class="border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:shadow-sm transition" data-id="${doc.doctor_id}">
 
-        <!-- Avatar -->
         <div class="w-14 h-14 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
           ${doc.profile_path
             ? `<img src="${doc.profile_path}" alt="${fullName}" class="w-14 h-14 rounded-full object-cover" />`
@@ -247,7 +246,6 @@
           }
         </div>
 
-        <!-- Info -->
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             <p class="font-bold text-gray-900">${fullName}</p>
@@ -261,13 +259,12 @@
           <div class="mt-1">${renderStars(doc.rating)}</div>
         </div>
 
-        <!-- Actions -->
         <div class="flex items-center gap-2 flex-shrink-0">
           <button onclick="viewDoctor(${doc.doctor_id})" class="border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-medium px-4 py-2 rounded-lg transition">
             View Details
           </button>
-          <button onclick="editDoctor(${doc.doctor_id})" class="bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-            Edit
+          <button id="toggle-btn-${doc.doctor_id}" onclick="deactivate(${doc.doctor_id})" class="${actionClass}">
+           ${actionText}
           </button>
         </div>
 
@@ -304,10 +301,20 @@
     }
   }
 
+
+  
   // ── Fetch doctors ─────────────────────────────────
   async function loadDoctors() {
     try {
-      const res  = await fetch('/api/v1/admin/showDoctors?hospital_id=1');
+      const accessToken = localStorage.getItem('accessToken')
+
+      const res  = await fetch('/api/v1/admin/showDoctors',{
+         headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+      );
       const json = await res.json();
       allDoctors = json.data ?? [];
       renderDoctors(allDoctors);
@@ -330,23 +337,59 @@
 
   // ── Tabs ──────────────────────────────────────────
   function switchTab(btn, tab) {
-    document.querySelectorAll('.tab-btn').forEach(b => {
-      b.classList.remove('text-primary', 'font-semibold', 'border-b-2', 'border-primary');
-      b.classList.add('text-gray-400', 'font-medium');
-    });
-    btn.classList.remove('text-gray-400', 'font-medium');
-    btn.classList.add('text-primary', 'font-semibold', 'border-b-2', 'border-primary');
-  }
+  window.location.href = `/admin/${tab}`;
+}
 
   // ── Actions ─
   function viewDoctor(id) {
-    window.location.href = `/admin/doctors/${id}`;
+    window.location.href = `/admin/doctor/${id}`;
   }
 
-  function editDoctor(id) {
-    window.location.href = `/admin/doctors/${id}/edit`;
-  }
+  // ── DEACTIVATE / ACTIVATE TOGGLE FUNCTION ──
+  async function deactivate(id) {
+    const btn = document.getElementById(`toggle-btn-${id}`);
+    if (!btn) return;
 
+    // Find the current active record in your global array state
+    const doctorRecord = allDoctors.find(doc => doc.doctor_id === id);
+    if (!doctorRecord) return;
+
+    // 1. Determine target state (if current state is truthy/1 -> toggle to 0, otherwise toggle to 1)
+    const targetStatus = doctorRecord.is_deactivated ? 0 : 1;
+    const accessToken = localStorage.getItem('accessToken');
+
+    // Visually dim the button to give instant visual feedback during the network handshake
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+
+    try {
+      const response = await fetch(`/api/v1/admin/toggleDoctorStatus/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_deactivated: targetStatus })
+      });
+
+      const resData = await response.json();
+
+      if (response.ok) {
+        // 2. Mutate state variables & force list refresh to propagate text, structural context, and status badges
+        doctorRecord.is_deactivated = targetStatus;
+        filterDoctors();
+      } else {
+        alert(resData.message || 'Error occurred while updating physician access rights.');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }
+    } catch (error) {
+      console.error('Network Error:', error);
+      alert('Cannot deactivate the doctor...Some problem has come.');
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  }
 
 
   // ── Init ──────────────────────────────────────────

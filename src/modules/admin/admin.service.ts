@@ -12,10 +12,56 @@ export class AdminService{
         return doctors;
      } 
 
-     async addDoctor(data:any){
-     const result = await this.authservice.registerDoctor(data);
-     
-     }
+     async addDoctor(data: {
+    firstName:       string;
+    lastName:        string;
+    email:           string;
+    password:        string;
+    gender:          string | null;
+    bio:             string | null;
+    consultationFee: number | null;
+    experienceYears: number | null;
+    hospitalId:      number;
+    specialties:     number[];
+    qualifications:  { degree: string; college_name: string; graduation_year: number }[];
+  }) {
+    const { doctor } = await this.authservice.registerDoctor({
+      firstName:       data.firstName,
+      lastName:        data.lastName,
+      email:           data.email,
+      password:        data.password,
+      gender:          data.gender,
+      bio:             data.bio,
+      consultationFee: data.consultationFee,
+      experienceYears: data.experienceYears,
+      hospitalId:      data.hospitalId,
+    });
+
+    const doctor_id = doctor.doctor_id;
+    
+    
+
+if (data.qualifications.length > 0) {
+  try {
+    await this.adminRepo.insertDoctorQualifications(doctor_id, data.qualifications);
+  } catch (err: any) {
+    console.log('qualifications FAILED ', err.message);
+    throw err;
+  }
+}
+
+if (data.specialties.length > 0) {
+  try {
+    await this.adminRepo.insertDoctorSpecialties(doctor_id, data.specialties);
+  } catch (err: any) {
+    throw err;
+  }
+}
+   
+
+    // Step 4 — return full doctor with specialties + qualifications
+    return await this.adminRepo.getDoctorById(doctor_id);
+  }
      async getHospitalId (user_id : number){
       const {hospital_id} = await this.adminRepo.fetchHospitalIdFromAdminId(user_id);
       return hospital_id;
@@ -28,10 +74,14 @@ export class AdminService{
   return doctor;
   }
 
-  async editDoctor(doctor_id:number,data:any){
-   const doctor = await this.adminRepo.editDoctor(doctor_id,data);
-   return doctor;
-  }
+
+async editDoctor(doctor_id: number, data: any) {
+  // Check doctor exists before updating
+  const existing = await this.adminRepo.getDoctorById(doctor_id);
+  if (!existing) throw new Error('Doctor not found');
+
+  return await this.adminRepo.editDoctor(doctor_id, data);
+}
 
   async addAuditLogs(payload:AuditPayload){
    const logs = await this.adminRepo.addAuditLogs(payload);
@@ -46,4 +96,13 @@ export class AdminService{
     const logs = await this.adminRepo.fetchAuditLogs(hospital_id);
     return logs;
   }
+
+  async fetchSpecialties(){
+    const spec = await this.adminRepo.fetchSpecialties();
+    return spec;
+  }
+
+  async toggleDoctorStatus(doctorId: number, is_deactivated: number) {
+         return await this.adminRepo.updateDoctorStatus(doctorId, is_deactivated);
+     }
 }

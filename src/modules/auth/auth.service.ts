@@ -1,8 +1,10 @@
+import { SessionData } from "express-session";
 import { BadRequestException, NotFoundException } from "../../common/helpers/http-exception.js";
 import { UserRepository } from "./auth.repository.js";
 import { comparePassword, getHashedPassword } from "./utils/bcrypt.js";
-import { sign } from "./utils/jwt.js";
+import { sign, signRefreshToken } from "./utils/jwt.js";
 import crypto from 'crypto'
+import { SessionInfo } from "./interfaces/auth.interface.js";
 
 export class AuthService {
   // private userRepo=new UserRepository();
@@ -19,7 +21,7 @@ export class AuthService {
   //   }
 
   private userRepo = new UserRepository();
-  
+
   async registerAdmin(data: any) {
     const existingUser = await this.userRepo.findUserByEmail(data.email);
 
@@ -53,7 +55,7 @@ export class AuthService {
       user,
     };
   }
-  
+
   async registerDoctor(data: any) {
     const existingUser = await this.userRepo.findUserByEmail(data.email);
 
@@ -69,7 +71,7 @@ export class AuthService {
       "DOCTOR",
     );
 
-    await this.userRepo.createDoctor({
+   const doctor =  await this.userRepo.createDoctor({
       user_id: user.user_id,
       hospital_id: data.hospitalId,
       first_name: data.firstName,
@@ -80,6 +82,9 @@ export class AuthService {
       bio: data.bio,
     });
 
+    
+    
+
     const accessToken = sign({
       id: user.user_id,
       email: user.email,
@@ -89,6 +94,7 @@ export class AuthService {
     return {
       accessToken,
       user,
+      doctor
     };
   }
 
@@ -103,13 +109,15 @@ export class AuthService {
       hashedPassword,
       "PATIENT",
     );
+ 
 
+    console.log(data)
     await this.userRepo.createPatient(
       user.user_id,
-      data.firstName,
-      data.lastName,
-      data.countryCode,
-      data.mobile,
+      data.first_name,
+      data.last_name,
+      data.country_code,
+      data.phone,
       data.dob,
       data.gender,
     );
@@ -122,7 +130,7 @@ export class AuthService {
     return { user, token };
   }
 
-  async login(data: any) {
+  async login(data: any, sessionInfo?: SessionInfo) {
     const user = await this.userRepo.findUserByEmail(data.email);
 
     if (!user) {
@@ -145,8 +153,25 @@ export class AuthService {
       role: user.role,
     });
 
+    const refreshToken = signRefreshToken({
+      id: user.user_id,
+      email: user.user_email,
+      role: user.role
+    })
+
+
+    await this.userRepo.createSession(
+      user.user_id,
+      refreshToken,
+      sessionInfo?.deviceInfo ?? "",
+      sessionInfo?.ipAddress ?? "",
+      "LOCAL"
+    );
+
+
     return {
       accessToken,
+      refreshToken,
       user,
     };
   }
@@ -202,14 +227,14 @@ export class AuthService {
     const hashedPassword = await getHashedPassword(password);
 
     await this.userRepo.updatePassword(hashedPassword, user_id);
-await this.userRepo.deleteOtp(user_id);
+    await this.userRepo.deleteOtp(user_id);
     return {
       success: true,
       message: "Password updated successfully",
     };
   }
 
-  async getLatestOtpService(email : string){
+  async getLatestOtpService(email: string) {
     return await this.userRepo.getLatestOtp(email);
   }
 }

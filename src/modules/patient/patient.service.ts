@@ -191,7 +191,7 @@ export class PatientService {
 
     await this.repo.createNotification({
       userId,
-      title: "APPOINTMENT_RESCHEDULED",
+      title: "APPOINTMENT_SCHEDULED",
       message: `Your appointment has been rescheduled successfully to ${data.slotDate} at ${data.startTime}.`,
     });
 
@@ -318,7 +318,7 @@ export class PatientService {
       if (date === today) {
         const [slotH, slotM]: any = s.split(":").map(Number);
         const slotMs = slotH * 60 + slotM;
-        const curMs = now.getHours() * 60 + now.getMinutes() + 120; 
+        const curMs = now.getHours() * 60 + now.getMinutes() + 120;
         return slotMs > curMs;
       }
       return true;
@@ -421,8 +421,7 @@ export class PatientService {
 
   // Notifications
   async getNotifications(userId: number, unreadOnly: boolean) {
-    const patientId = await this.resolvePatientId(userId);
-    return this.repo.getNotifications(patientId, unreadOnly);
+    return this.repo.getNotifications(userId, unreadOnly);
   }
 
   async markNotificationRead(userId: number, notificationId: number) {

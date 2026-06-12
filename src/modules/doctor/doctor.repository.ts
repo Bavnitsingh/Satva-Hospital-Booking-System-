@@ -1,5 +1,7 @@
-import { query } from "../../database/connection.js";
+import { HttpException, InternalServerException } from "../../common/helpers/http-exception.js";
+import { query, query2 } from "../../database/connection.js";
 import {
+  IDoctorDetails,
   IDoctorLeave,
   IDoctorNotification,
   IDoctorSchedule,
@@ -24,7 +26,7 @@ export class DoctorRepo {
   async findDoctorQualificationByDoctorID(doctor_id: number) {
     const rows: any = await query(
       `
-            SELECT * FROM doctor_qualifications where 
+            SELECT degree,graduation_year,college_name FROM doctor_qualifications where 
             doctor_id=?`,
       [doctor_id],
     );
@@ -32,13 +34,32 @@ export class DoctorRepo {
     return rows;
   }
 
-  async findDoctorScheduleByDoctorID(doctor_id: number,start_date:string) {
+  async findDoctorSpecialitesByDoctorID(doctor_id:number){
+
+    const rows:any=await query(` 
+      select s.specialty_id,s.specialty_name from doctor_specialties d 
+      inner join specialties s 
+      on d.specialty_id=s.specialty_id 
+      and d.doctor_id=?;
+      `,[doctor_id])
+      return rows
+
+  }
+
+
+  async findSpecialities(search:string){
+
+    const rows:any =await query(`select * from specialties where specialty_name like ?`,[`%${search}%`])
+    return rows
+  }
+
+  async findDoctorScheduleByDoctorID(doctor_id: number, start_date: string) {
     const rows: any = await query(
       `     
             SELECT working_from,working_to,Date_format(working_date,'%Y-%m-%d') as working_date,slot_duration
             FROM doctor_schedules 
             where doctor_id=? and working_date >=?`,
-      [doctor_id,start_date],
+      [doctor_id, start_date],
     );
 
     return rows;
@@ -64,10 +85,17 @@ export class DoctorRepo {
     return rows;
   }
 
-  async insertDoctorSchedule(data: IDoctorSchedule) {
+  async insertORUpdateDoctorSchedule(data: IDoctorSchedule) {
     const result: any = await query(
       `insert into doctor_schedules(doctor_id,working_date,working_from,working_to,slot_duration)
-         values (?,?,?,?,?)`,
+         values (?,?,?,?,?) as new_row
+         on duplicate key update
+         doctor_id=new_row.doctor_id,
+         working_date=new_row.working_date,
+         working_from=new_row.working_from,
+         working_to=new_row.working_to,
+         slot_duration=new_row.slot_duration
+         `,
       [
         data.doctor_id,
         data.working_date,
@@ -92,10 +120,11 @@ export class DoctorRepo {
     const rows: any = await query(
       `    
 select 
-	COUNT(a.appointment_status='CONFIRMED') as 'TOTAL APPOINTMENT',
-    SUM(CASE WHEN a.appointment_status='CONFIRMED' THEN 1 ELSE 0 END)-SUM(CASE WHEN a.appointment_status='COMPLETED' THEN 1 ELSE 0 END) AS 'UPCOMING',
-    SUM(CASE WHEN a.appointment_status='CANCELLED' THEN 1 ELSE 0 END) AS 'CANCELLED',
-    SUM(CASE WHEN a.appointment_status='RESCHEDULED' THEN 1 ELSE 0 END) as 'RESCHEDULED'
+	COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' THEN 1 END) AS 'TOTAL APPOINTMENT',
+    COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' THEN 1 END) - 
+    COUNT(CASE WHEN a.appointment_status = 'COMPLETED' THEN 1 END) AS 'UPCOMING',
+    COUNT(CASE WHEN a.appointment_status = 'CANCELLED' THEN 1 END) AS 'CANCELLED',
+    COUNT(CASE WHEN a.appointment_status = 'RESCHEDULED' THEN 1 END) AS 'RESCHEDULED'
  from appointments a inner join doctors d on a.doctor_id=d.doctor_id and a.slot_date=current_date where d.doctor_id=?;`,
       [doctor_id],
     );
@@ -119,17 +148,16 @@ select
     return rows[0];
   }
 
-async insertDoctorNotification(data:IDoctorNotification){
-  const rows:any =await query(`
+  async insertDoctorNotification(data: IDoctorNotification) {
+    const rows: any = await query(
+      `
     
     insert into notifications(doctor_id,notification_type,notification_message)
     values(?,?,?)
-    `,[data.doctor_id,
-       data.notification_type,
-       data.notification_message
-    ])
-}
-
+    `,
+      [data.doctor_id, data.notification_type, data.notification_message],
+    );
+  }
 
   async insertMedicalRecords(data: IMedicalRecords) {
     const result: any = await query(
@@ -263,13 +291,119 @@ async insertDoctorNotification(data:IDoctorNotification){
   }
 
   async fetchDoctorStatus(doctor_id: number) {
-    const rows: any = await query(`
+    const rows: any = await query(
+      `
       select from, to ,status_date,reason,status from doctor_status where doctor_id=?
-      `,[doctor_id])
+      `,
+      [doctor_id],
+    );
 
-      return rows[0]
+    return rows[0];
+  }
+
+  async fetchPatientList(doctor_id: number) {
+    const rows: any = await query(
+      `
+    select p.patient_id,p.first_name,p.last_name,p.blood_group,TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) AS age ,p.gender  from patients p where exists(
+    select 1 from appointments a where a.patient_id=p.patient_id AND a.doctor_id=?)`,
+      [doctor_id],
+    );
+
+    return rows;
+  }
+
+  async fetchPatientAllMedicalRecords(patient_id: number, doctor_id: number) {
+    // this fetches all medical records
+    const rows: any = await query(
+      `
+     select m.record_id,m.diagnosis,m.examination_notes,
+     date_format(m.created_at,'%Y-%m-%d') from medical_records m where m.patient_id=? and m.doctor_id=?
+      `,
+      [patient_id, doctor_id],
+    );
+
+    return rows;
+  }
+
+  async fetchPatientMedicalAttachments(record_id: number) {
+    // this fethces all medical records data like attachments
+
+    const rows: any = await query(
+      `select file_name,file_path from medical_record_attachments where record_id=?`,
+      [record_id],
+    );
+
+    return rows;
+  }
+
+  async fetchPatientPrescriptions(record_id: number) {
+    // this fetches all prescription from record_id
+
+    const rows: any = await query(
+      `select notes from prescriptions where record_id=?`,
+      [record_id],
+    );
+    return rows;
+  }
+
+  async fetchPatientPrescriptionsItems(prescription_id:number){
+
+      const rows:any=await query(`
+        select medicine_name,dosage,frequency,duration,instructions 
+        from prescription_items where prescription_id=?
+        `,[prescription_id])
+
+        return rows
+  }
+
+  async updateDoctorDetail(data:IDoctorDetails){
+    console.log(data)
+    const result=await query(`update doctors set first_name=?, 
+      last_name=?,
+      experience_years=?,
+      consultation_fee=?,
+      bio=? ,
+      profile_path=? 
+      where doctor_id=?`,[
+        data.first_name,
+        data.last_name,
+        data.experience_years,
+        data.consultation_fee,
+        data.bio,
+        data.profile_path,
+        data.doctor_id
+      ])
+      console.log(result)
+      
+      return result
+  
+  }
+
+  async updateDoctorQualifications(data:any){
+ const qualPlaceholders = data.map(() => "(?, ?, ?, ?)").join(", ");
+    const result =await query(`delete from doctor_qualifications where doctor_id=?`,[data[0]])
+    if(!result){
+      throw new InternalServerException('Unable to update')
+    }
+    else{
+    const result1=await query2(`insert into doctor_qualifications(doctor_id,degree,graduation_year,college_name) values ${qualPlaceholders}`,data.flat())
+      return result1
+    }
 
   }
 
-  
+  async updateDoctorSpecialities(data:any){
+
+    const result=await query(`delete from doctor_specialties where doctor_id=?`,[data[0]])
+
+    if(!result){
+      throw new InternalServerException(`unable to update Specialites`)
+    }
+    else{
+      const result1=await query2(`insert into doctor_specialties(doctor_id,speciality_id) values ?`,[data])
+      return result1
+    }
+
+  }
+
 }

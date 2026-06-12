@@ -9,7 +9,7 @@ export interface JwtPayload {
 
 export function sign(payload: JwtPayload): string {
   const token = jwt.sign(payload, env.JWT_SECRET_KEY as string, {
-    expiresIn: "8h",
+    expiresIn: "1d",
   });
   return token;
 }

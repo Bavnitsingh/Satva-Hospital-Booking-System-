@@ -11,6 +11,10 @@ import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
 import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
+import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
+
+
+
 
 export function buildApp(): Application {
   const app: Express = express();
@@ -71,17 +75,22 @@ export function buildApp(): Application {
   //
   app.use(passport.initialize());
   app.use(passport.session());
-  app.use("/patient", new PatientPageRoutes().router);
+
 
   //ROUTER
-  app.use("/api/v1", buildApiRouter());
-
-  app.use("/", new AuthPageRoutes().router);
 
 
+app.use("/", new AuthPageRoutes().router);
+app.use("/patient", new PatientPageRoutes().router);
+app.use('/doctor',new DoctorPageRoutes().router);
 
-  // global error handler
-  app.use(errorMiddleware);
+  //ROUTER 
+  app.use("/api/v1",buildApiRouter())
+
+  
+// HANDLES GLOBAL ERROR
+  app.use(errorMiddleware)
+  
 
   return app;
 }

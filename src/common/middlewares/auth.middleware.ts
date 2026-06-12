@@ -32,11 +32,14 @@ export async function authenticate(
     // Access token valid
     const payload = verifyToken(accessToken ?? "");
 
+    console.log("this is token --------------------------------",accessToken);
+
     (req as AuthRequest).user = payload;
 
     return next();
 
   } catch (error: any) {
+    console.log(error)
 
     // Token is invalid but NOT expired
     if (error.name !== "TokenExpiredError") {
@@ -51,6 +54,7 @@ export async function authenticate(
     // Access token expired
     const refreshToken = req.cookies.refreshToken;
 
+    console.log(req.cookies.refreshToken)
     if (!refreshToken) {
       res.status(401).json({
         statusCode: 401,

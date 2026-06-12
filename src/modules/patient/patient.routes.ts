@@ -57,10 +57,12 @@ export class PatientRoutes implements Routes {
 
     // Notifications 
     this.router.get("/notifications", this.patient.getNotifications);
+    
     this.router.patch(
       "/notifications/:notificationId/read",
       this.patient.markNotificationRead,
     );
+
     this.router.patch(
       "/notifications/read-all",
       this.patient.markAllNotificationsRead,

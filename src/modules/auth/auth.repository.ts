@@ -295,18 +295,25 @@ export class UserRepository {
     ipAddress: string,
     auth_provider: string
   ) {
+    // Delete existing sessions for the user
+    await query(
+      `DELETE FROM user_sessions WHERE user_id = ?`,
+      [userId]
+    );
+
+    // Insert the new session
     const sql = `
-  INSERT INTO user_sessions
-  (
-    user_id,
-    refresh_token,
-    expires_at,
-    device_info,
-    ip_address,
-    auth_provider
-  )
-  VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 15 DAY), ?, ?, ?)
-`;
+    INSERT INTO user_sessions
+    (
+      user_id,
+      refresh_token,
+      expires_at,
+      device_info,
+      ip_address,
+      auth_provider
+    )
+    VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 15 DAY), ?, ?, ?)
+  `;
 
     await query(sql, [
       userId,
@@ -316,7 +323,6 @@ export class UserRepository {
       auth_provider
     ]);
   }
-
 
   async findSessionByRefreshToken(
     refreshToken: string

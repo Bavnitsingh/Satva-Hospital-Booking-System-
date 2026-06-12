@@ -58,7 +58,7 @@ export class AuthRoutes implements Routes {
         'email',
         // 'https://www.googleapis.com/auth/user.phonenumbers.read'
       ],
-      successRedirect: '/dashboard'
+      successRedirect: '/api/v1/patient/dashboard'
     }
     ))
 

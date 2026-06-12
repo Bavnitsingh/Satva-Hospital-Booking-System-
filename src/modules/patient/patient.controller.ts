@@ -11,7 +11,7 @@ export class PatientController {
 
 // for static file serving
   showDashboard = catchAsync(async (req: Request, res: Response) => {
- res.render("patient_dashboard")
+ res.render("patient/patient-dashboard")
 });
 
 

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { Routes } from "../../common/interfaces/routes.interfaces.js";
 import { DoctorController } from "./doctor.controller.js";
 import { doctorAuth } from "../../common/middlewares/auth.middleware.js";
+import { uploadDoctorProfile } from "../../utils/multer.js";
 
 
 
@@ -26,11 +27,12 @@ private init():void{
     this.router.get("/get-patient-list",doctorAuth,this.doctorController.getPatientList)
     this.router.get('/get-patient-all-medical-records/:patient_id',doctorAuth,this.doctorController.getPatientAllMedicalRecords)
     this.router.get('/get-patient-all-medical-record-data/:record_id',doctorAuth,this.doctorController.getPatientMedicalData)
-
+    this.router.get("/get-specialities",doctorAuth,this.doctorController.getSpecialites)
     this.router.post('/post-weekly-schedule',doctorAuth,this.doctorController.postWeeklySchedule)
     // this.router.post('/post-medical-records',doctorAuth,this.doctorController.postPatientMedicalRecords)
     
-}
+    this.router.post("/profile/update",doctorAuth,uploadDoctorProfile.single('profile_image'),this.doctorController.postProfileData)
+} 
 
 
 }

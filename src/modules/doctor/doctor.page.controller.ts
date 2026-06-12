@@ -8,6 +8,14 @@ export class DoctorPageController{
         res.render("doctor/dashboard",{user:(req as any).user})
     }
 
+    renderProfile=(req:Request,res:Response)=>{
+        res.render("doctor/doctor-profile",{user:(req as any).user})
+    }
+
+    renderEditProfile=(req:Request,res:Response)=>{
+        res.render("doctor/edit-profile",{user:(req as any).user})
+    }
+
 
     
 }

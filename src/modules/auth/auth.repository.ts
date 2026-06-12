@@ -76,7 +76,7 @@ export class UserRepository {
     gender: string,
   ) {
 
-    console.log(userId, firstName, lastName, countryCode, mobile, dob, gender)
+   
     const result: any = await query(
       `
         insert into patients(

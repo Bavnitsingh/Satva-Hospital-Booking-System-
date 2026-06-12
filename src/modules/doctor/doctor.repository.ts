@@ -1,5 +1,7 @@
-import { query } from "../../database/connection.js";
+import { HttpException, InternalServerException } from "../../common/helpers/http-exception.js";
+import { query, query2 } from "../../database/connection.js";
 import {
+  IDoctorDetails,
   IDoctorLeave,
   IDoctorNotification,
   IDoctorSchedule,
@@ -24,12 +26,31 @@ export class DoctorRepo {
   async findDoctorQualificationByDoctorID(doctor_id: number) {
     const rows: any = await query(
       `
-            SELECT * FROM doctor_qualifications where 
+            SELECT degree,graduation_year,college_name FROM doctor_qualifications where 
             doctor_id=?`,
       [doctor_id],
     );
 
     return rows;
+  }
+
+  async findDoctorSpecialitesByDoctorID(doctor_id:number){
+
+    const rows:any=await query(` 
+      select s.specialty_id,s.specialty_name from doctor_specialties d 
+      inner join specialties s 
+      on d.specialty_id=s.specialty_id 
+      and d.doctor_id=?;
+      `,[doctor_id])
+      return rows
+
+  }
+
+
+  async findSpecialities(search:string){
+
+    const rows:any =await query(`select * from specialties where specialty_name like ?`,[`%${search}%`])
+    return rows
   }
 
   async findDoctorScheduleByDoctorID(doctor_id: number, start_date: string) {
@@ -99,10 +120,11 @@ export class DoctorRepo {
     const rows: any = await query(
       `    
 select 
-	COUNT(a.appointment_status='CONFIRMED') as 'TOTAL APPOINTMENT',
-    SUM(CASE WHEN a.appointment_status='CONFIRMED' THEN 1 ELSE 0 END)-SUM(CASE WHEN a.appointment_status='COMPLETED' THEN 1 ELSE 0 END) AS 'UPCOMING',
-    SUM(CASE WHEN a.appointment_status='CANCELLED' THEN 1 ELSE 0 END) AS 'CANCELLED',
-    SUM(CASE WHEN a.appointment_status='RESCHEDULED' THEN 1 ELSE 0 END) as 'RESCHEDULED'
+	COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' THEN 1 END) AS 'TOTAL APPOINTMENT',
+    COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' THEN 1 END) - 
+    COUNT(CASE WHEN a.appointment_status = 'COMPLETED' THEN 1 END) AS 'UPCOMING',
+    COUNT(CASE WHEN a.appointment_status = 'CANCELLED' THEN 1 END) AS 'CANCELLED',
+    COUNT(CASE WHEN a.appointment_status = 'RESCHEDULED' THEN 1 END) AS 'RESCHEDULED'
  from appointments a inner join doctors d on a.doctor_id=d.doctor_id and a.slot_date=current_date where d.doctor_id=?;`,
       [doctor_id],
     );
@@ -333,4 +355,55 @@ select
 
         return rows
   }
+
+  async updateDoctorDetail(data:IDoctorDetails){
+    console.log(data)
+    const result=await query(`update doctors set first_name=?, 
+      last_name=?,
+      experience_years=?,
+      consultation_fee=?,
+      bio=? ,
+      profile_path=? 
+      where doctor_id=?`,[
+        data.first_name,
+        data.last_name,
+        data.experience_years,
+        data.consultation_fee,
+        data.bio,
+        data.profile_path,
+        data.doctor_id
+      ])
+      console.log(result)
+      
+      return result
+  
+  }
+
+  async updateDoctorQualifications(data:any){
+ const qualPlaceholders = data.map(() => "(?, ?, ?, ?)").join(", ");
+    const result =await query(`delete from doctor_qualifications where doctor_id=?`,[data[0]])
+    if(!result){
+      throw new InternalServerException('Unable to update')
+    }
+    else{
+    const result1=await query2(`insert into doctor_qualifications(doctor_id,degree,graduation_year,college_name) values ${qualPlaceholders}`,data.flat())
+      return result1
+    }
+
+  }
+
+  async updateDoctorSpecialities(data:any){
+
+    const result=await query(`delete from doctor_specialties where doctor_id=?`,[data[0]])
+
+    if(!result){
+      throw new InternalServerException(`unable to update Specialites`)
+    }
+    else{
+      const result1=await query2(`insert into doctor_specialties(doctor_id,speciality_id) values ?`,[data])
+      return result1
+    }
+
+  }
+
 }

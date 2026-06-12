@@ -16,7 +16,7 @@ export class DoctorController{
 
 private doctorService=new DoctorService()
 
-getDoctor=catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+getDoctor=catchAsync(async(req:Request,res:Response)=>{
    
     const user_id:number=(req as AuthRequest).user.id
     const result=await this.doctorService.getDoctor(user_id)    
@@ -112,7 +112,31 @@ getPatientMedicalData=catchAsync(async(req:Request,res:Response)=>{
 
 })
 
+getSpecialites=catchAsync(async(req:Request,res:Response)=>{
+   
 
+    const search=String(req.query.search) || ''
+    if(!search || search==undefined){
+        throw new BadRequestException('search value cannot be empty')
+    }
+    const specialities_list=await this.doctorService.getSpecialties(search)
+
+    generalResponse({res,data:[specialities_list],message:'Successfully Fetched Specialities List',statusCode:200})
+})
+
+
+postProfileData=catchAsync(async(req:Request,res:Response)=>{
+
+
+const data= JSON.parse(req.body.data)
+const file=req.file 
+
+const result=await this.doctorService.postProfileUpdateData(data,file)
+console.log(result)
+
+generalResponse({res,data:[],message:'Successfully Data upload',statusCode:201})
+     
+})
 
 
 }

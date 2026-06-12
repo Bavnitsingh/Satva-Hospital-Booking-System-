@@ -77,4 +77,13 @@ export interface IPrescriptionItems{
     instructions:string,
 }
 
-e
+export interface IDoctorDetails{
+    doctor_id:number, 
+    first_name:string,
+    last_name:string,
+    experience_years:number,
+    consultation_fee:number,   
+    bio:string,
+    profile_path?:string
+
+}

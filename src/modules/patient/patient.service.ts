@@ -1,15 +1,14 @@
 import { PatientRepository } from "./patient.repository.js";
 import { generateConfirmationNo } from "./utils/confirmation.js";
+import {
+  IBookAppointment,
+  IRescheduleAppointment,
+  ISearchDoctorsQuery,
+  IUpdatePatientProfile,
+  IAddFamilyMember,
+} from "./types/patient.js";
 
-const DAY_MAP: Record<number, string> = {
-  0: "SUNDAY",
-  1: "MONDAY",
-  2: "TUESDAY",
-  3: "WEDNESDAY",
-  4: "THURSDAY",
-  5: "FRIDAY",
-  6: "SATURDAY",
-};
+
 
 export class PatientService {
   private repo = new PatientRepository();
@@ -27,71 +26,71 @@ export class PatientService {
   }
 
   // profile
-async getProfile(userId: number) {
-  const patient = await this.repo.getPatientByUserId(userId);
-  if (!patient) throw new Error("Patient not found");
+  async getProfile(userId: number) {
+    const patient = await this.repo.getPatientByUserId(userId);
+    if (!patient) throw new Error("Patient not found");
 
-  const insurance = await this.repo.getInsuranceByPatientId(patient.patient_id);
-  const familyMembers = await this.repo.getFamilyMembers(patient.patient_id);
+    const insurance = await this.repo.getInsuranceByPatientId(
+      patient.patient_id,
+    );
+    const familyMembers = await this.repo.getFamilyMembers(patient.patient_id);
 
-  return {
-    ...patient,
-    insurance,
-    familyMembers,
-  };
-}
-
-
-
-async updateProfile(userId: number, data: any) {
-  const patientId: any = await this.resolvePatientId(userId);
-
-  const allowed = [
-    "first_name",
-    "last_name",
-    "address_line1",
-    "address_line2",
-    "blood_group",
-    "profile_path",
-    "is_insured",
-    "country_code",
-    "mobile",
-    "dob",
-    "gender",
-  ];
-
-  const filtered = Object.fromEntries(
-    Object.entries(data).filter(([k]) => allowed.includes(k)),
-  );
-
-  const isInsured =
-    filtered.is_insured === true ||
-    filtered.is_insured === "true" ||
-    filtered.is_insured === 1 ||
-    filtered.is_insured === "1";
-
-  filtered.is_insured = isInsured ? 1 : 0;
-
-  await this.repo.updateProfile(patientId, filtered);
-
-  if (isInsured) {
-    const policyNumber = data.policy_number?.trim();
-    const policyCompany = data.policy_company?.trim();
-    const policyDocumentPath = data.policy_document_path || null;
-
-    if (policyNumber && policyCompany) {
-      await this.repo.upsertInsuranceDetails(patientId, {
-        policyNumber,
-        policyCompany,
-        policyDocumentPath,
-      });
-    }
-  } else {
-    await this.repo.deleteInsuranceDetails(patientId);
+    return {
+      ...patient,
+      insurance,
+      familyMembers,
+    };
   }
 
-  return this.repo.getPatientByUserId(userId);
-}
+  async updateProfile(userId: number, data: IUpdatePatientProfile) {
+    const patientId: any = await this.resolvePatientId(userId);
+
+    const allowed = [
+      "first_name",
+      "last_name",
+      "address_line1",
+      "address_line2",
+      "blood_group",
+      "profile_path",
+      "is_insured",
+      "country_code",
+      "mobile",
+      "dob",
+      "gender",
+    ];
+
+    const filtered = Object.fromEntries(
+      Object.entries(data).filter(([k]) => allowed.includes(k)),
+    );
+
+    const isInsured =
+      filtered.is_insured === true ||
+      filtered.is_insured === "true" ||
+      filtered.is_insured === 1 ||
+      filtered.is_insured === "1";
+
+    filtered.is_insured = isInsured ? 1 : 0;
+
+    await this.repo.updateProfile(patientId, filtered);
+
+    if (isInsured) {
+      const policyNumber = data.policy_number?.trim();
+      const policyCompany = data.policy_company?.trim();
+      const policyDocumentPath = data.policy_document_path || null;
+
+      if (policyNumber && policyCompany) {
+        await this.repo.upsertInsuranceDetails(patientId, {
+          policyNumber,
+          policyCompany,
+          policyDocumentPath,
+        });
+      }
+    } else {
+      await this.repo.deleteInsuranceDetails(patientId);
+    }
+
+    return this.repo.getPatientByUserId(userId);
+  }
 
   // Family members
   async getFamilyMembers(userId: number) {
@@ -99,7 +98,7 @@ async updateProfile(userId: number, data: any) {
     return this.repo.getFamilyMembers(patientId);
   }
 
-  async addFamilyMember(userId: number, data: any) {
+  async addFamilyMember(userId: number, data: IAddFamilyMember) {
     const patientId = await this.resolvePatientId(userId);
 
     return this.repo.addFamilyMember(patientId, data);
@@ -115,17 +114,13 @@ async updateProfile(userId: number, data: any) {
   }
 
   // doctor searcg
-  async searchDoctors(query: any) {
+  async searchDoctors(query: ISearchDoctorsQuery) {
     return this.repo.searchDoctors({
-      name: query.name || query.first_name || query.last_name || undefined,
-
+      name: query.name || undefined,
       specialty: query.specialty || undefined,
       gender: query.gender || undefined,
-
-      hospitalId: query.hospitalId ? Number(query.hospitalId) : undefined,
-
+      hospitalId: query.hospital_id ? Number(query.hospital_id) : undefined,
       limit: query.limit ? Number(query.limit) : 20,
-
       offset: query.offset ? Number(query.offset) : 0,
     });
   }
@@ -139,21 +134,14 @@ async updateProfile(userId: number, data: any) {
   // Book appointment
   async bookAppointment(
     userId: number,
-    data: {
-      doctorId: number;
-      slotDate: string;
-      startTime: string;
-      appointmentType: "IN_PERSON" | "TELEMEDICINE";
-      chiefComplaint?: string;
-      amount: number;
-    },
+    data: IBookAppointment,
   ) {
     const patientId = await this.resolvePatientId(userId);
 
     const today = new Date().toISOString().split("T")[0];
 
-    if (data.slotDate === today) {
-      const [sh, sm]: any = data.startTime.split(":").map(Number);
+    if (data.slot_date === today) {
+      const [sh, sm]: any = data.start_time.split(":").map(Number);
 
       const slotMinutes = sh * 60 + sm;
 
@@ -169,14 +157,14 @@ async updateProfile(userId: number, data: any) {
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() + 60);
 
-    if (new Date(data.slotDate) > maxDate) {
+    if (new Date(data.slot_date) > maxDate) {
       throw new Error("Cannot book more than 60 days in advance");
     }
 
     const taken = await this.repo.isSlotTaken(
-      data.doctorId,
-      data.slotDate,
-      data.startTime,
+      data.doctor_id,
+      data.slot_date,
+      data.start_time,
     );
 
     if (taken) {
@@ -185,38 +173,37 @@ async updateProfile(userId: number, data: any) {
       );
     }
 
-    const schedules: any = await this.repo.getDoctorSchedule(data.doctorId);
-
-    const daySchedule = schedules.find(
-      (s: any) => s.working_day === DAY_MAP[new Date(data.slotDate).getDay()],
+    const daySchedule: any = await this.repo.getDoctorSchedule(
+      data.doctor_id,
+      data.slot_date
     );
 
     if (!daySchedule) {
-      throw new Error("Doctor is not available on this day");
+      throw new Error("Doctor is not available on this date");
     }
 
     const endTime = this.addMinutesToTime(
-      data.startTime,
+      data.start_time,
       daySchedule.slot_duration,
     );
 
     const confirmationNo = generateConfirmationNo();
 
     const appointmentId = await this.repo.createAppointment({
-      doctorId: data.doctorId,
+      doctorId: data.doctor_id,
       patientId,
-      slotDate: data.slotDate,
-      startTime: data.startTime,
+      slotDate: data.slot_date,
+      startTime: data.start_time,
       endTime,
-      appointmentType: data.appointmentType,
-      chiefComplaint: data.chiefComplaint,
+      appointmentType: data.appointment_type,
+      chiefComplaint: data.chief_complaint,
       confirmationNo,
     });
 
     const paymentId = await this.repo.createPayment({
       appointmentId,
       amount: data.amount,
-      paymentMethod: "UPI",
+      paymentMethod: data.payment_method,
       status: "SUCCESS",
       transactionId: `TXN-${Date.now()}`,
     });
@@ -234,15 +221,15 @@ async updateProfile(userId: number, data: any) {
     await this.repo.createNotification({
       userId,
       title: "APPOINTMENT_SCHEDULED",
-      message: `Your appointment has been rescheduled successfully to ${data.slotDate} at ${data.startTime}.`,
+      message: `Your appointment has been rescheduled successfully to ${data.slot_date} at ${data.start_time}.`,
     });
 
     return {
       appointmentId,
       paymentId,
       confirmationNo,
-      slotDate: data.slotDate,
-      startTime: data.startTime,
+      slotDate: data.slot_date,
+      startTime: data.start_time,
       endTime,
       status: "CONFIRMED",
     };
@@ -252,10 +239,7 @@ async updateProfile(userId: number, data: any) {
   async rescheduleAppointment(
     userId: number,
     appointmentId: number,
-    data: {
-      slotDate: string;
-      startTime: string;
-    },
+    data: IRescheduleAppointment & { doctor_id?: number },
   ) {
     const patientId = await this.resolvePatientId(userId);
     const appt: any = await this.repo.getAppointmentById(appointmentId);
@@ -278,31 +262,33 @@ async updateProfile(userId: number, data: any) {
     // Check new slot availability
     const taken = await this.repo.isSlotTaken(
       appt.doctor_id,
-      data.slotDate,
-      data.startTime,
+      data.slot_date,
+      data.start_time,
     );
     if (taken) throw new Error("New slot is not available");
 
-    const schedules: any = await this.repo.getDoctorSchedule(appt.doctor_id);
-    const daySchedule = schedules.find(
-      (s: any) => s.working_day === DAY_MAP[new Date(data.slotDate).getDay()],
+    const daySchedule: any = await this.repo.getDoctorSchedule(
+      data.doctor_id || appt.doctor_id,
+      data.slot_date
     );
-    if (!daySchedule) throw new Error("Doctor is not available on that day");
 
+    if (!daySchedule) {
+      throw new Error("Doctor is not available on this date");
+    }
     const endTime = this.addMinutesToTime(
-      data.startTime,
+      data.start_time,
       daySchedule.slot_duration,
     );
 
     await this.repo.rescheduleAppointment(appointmentId, {
-      slotDate: data.slotDate,
-      startTime: data.startTime,
+      slotDate: data.slot_date,
+      startTime: data.start_time,
       endTime,
     });
     await this.repo.createNotification({
       userId,
       title: "APPOINTMENT_RESCHEDULED",
-      message: `Your appointment has been rescheduled successfully to ${data.slotDate} at ${data.startTime}.`,
+      message: `Your appointment has been rescheduled successfully to ${data.slot_date} at ${data.start_time}.`,
     });
 
     await this.repo.logStatusHistory({
@@ -310,75 +296,156 @@ async updateProfile(userId: number, data: any) {
       oldStatus: appt.appointment_status,
       newStatus: "RESCHEDULED",
       changedByUserId: userId,
-      remarks: `Rescheduled to ${data.slotDate} ${data.startTime}`,
+      remarks: `Rescheduled to ${data.slot_date} ${data.start_time}`,
     });
 
     return {
       appointmentId,
-      newSlotDate: data.slotDate,
-      newStartTime: data.startTime,
+      newSlotDate: data.slot_date,
+      newStartTime: data.start_time,
       endTime,
     };
   }
 
-  async getAvailableSlots(doctorId: number, date: string) {
-    // Validate date is not in the past
-    const today: any = new Date().toISOString().split("T")[0];
-    if (date < today) throw new Error("Cannot view slots for a past date");
+    async getAvailableSlots(
+      doctorId: number,
+      date: string
+    ) {
+      const now_today = new Date();
 
-    const onLeave = await this.repo.isDoctorOnLeave(doctorId, date);
-    if (onLeave)
-      return { available: false, slots: [], reason: "Doctor is on leave" };
-
-    const dayOfWeek = DAY_MAP[new Date(date).getDay()];
-    const schedules: any = await this.repo.getDoctorSchedule(doctorId);
-    const daySchedule = schedules.find((s: any) => s.working_day === dayOfWeek);
-    if (!daySchedule)
-      return {
-        available: false,
-        slots: [],
-        reason: `Doctor does not work on ${dayOfWeek}`,
-      };
-
-    // Generate all slots
-    const slots: string[] = [];
-    const [sh, sm] = daySchedule.working_from.split(":").map(Number);
-    const [eh, em] = daySchedule.working_to.split(":").map(Number);
-    let cur = sh * 60 + sm;
-    const end = eh * 60 + em;
-    while (cur + daySchedule.slot_duration <= end) {
-      slots.push(
-        `${String(Math.floor(cur / 60)).padStart(2, "0")}:${String(cur % 60).padStart(2, "0")}`,
-      );
-      cur += daySchedule.slot_duration;
-    }
-
-    const booked = await this.repo.getBookedSlots(doctorId, date);
-    const now = new Date();
-    const available = slots.filter((s) => {
-      if (booked.includes(s)) return false;
-      if (date === today) {
-        const [slotH, slotM]: any = s.split(":").map(Number);
-        const slotMs = slotH * 60 + slotM;
-        const curMs = now.getHours() * 60 + now.getMinutes() + 120;
-        return slotMs > curMs;
+      const today = `${now_today.getFullYear()}-${
+        String(now_today.getMonth() + 1).padStart(2, "0")
+      }-${String(now_today.getDate()).padStart(2, "0")}`;
+      if (date < today) {
+        throw new Error(
+          "Cannot view slots for a past date"
+        );
       }
-      return true;
-    });
 
-    return {
-      available: true,
-      doctorId,
-      date,
-      dayOfWeek,
-      slotDurationMinutes: daySchedule.slot_duration,
-      workingFrom: daySchedule.working_from,
-      workingTo: daySchedule.working_to,
-      totalSlots: slots.length,
-      bookedCount: booked.length,
-      availableSlots: available,
-    };
-  }
+      const onLeave =
+        await this.repo.isDoctorOnLeave(
+          doctorId,
+          date
+        );
+
+      if (onLeave) {
+        return {
+          available: false,
+          slots: [],
+          reason: "Doctor is on leave",
+        };
+      }
+
+      const daySchedule =
+        await this.repo.getDoctorSchedule(
+          doctorId,
+          date
+        );
+
+      if (!daySchedule) {
+        return {
+          available: false,
+          slots: [],
+          reason:
+            "Doctor is not available on selected date",
+        };
+      }
+
+      const slots: string[] = [];
+
+      const [sh, sm] =
+        daySchedule.working_from
+          .split(":")
+          .map(Number);
+
+      const [eh, em] =
+        daySchedule.working_to
+          .split(":")
+          .map(Number);
+
+      let cur = sh * 60 + sm;
+
+      const end = eh * 60 + em;
+
+      while (
+        cur + daySchedule.slot_duration <=
+        end
+      ) {
+        slots.push(
+          `${String(
+            Math.floor(cur / 60)
+          ).padStart(2, "0")}:${String(
+            cur % 60
+          ).padStart(2, "0")}`
+        );
+
+        cur += daySchedule.slot_duration;
+      }
+
+      const booked =
+        await this.repo.getBookedSlots(
+          doctorId,
+          date
+        );
+
+      const now = new Date();
+
+      const available = slots.filter(
+        (slot) => {
+          if (booked.includes(slot))
+            return false;
+
+          if (date === today) {
+            const [slotH, slotM]:any =
+              slot
+                .split(":")
+                .map(Number);
+
+            const slotMinutes =
+              slotH * 60 + slotM;
+
+            const currentMinutes =
+              now.getHours() * 60 +
+              now.getMinutes() +
+              120;
+
+            return (
+              slotMinutes > currentMinutes
+            );
+          }
+
+          return true;
+        }
+      );
+
+      const dayName = new Date(
+        date
+      ).toLocaleDateString("en-US", {
+        weekday: "long",
+      });
+
+      return {
+        available: true,
+        doctorId,
+        date,
+        dayName,
+
+        slotDurationMinutes:
+          daySchedule.slot_duration,
+
+        workingFrom:
+          daySchedule.working_from,
+
+        workingTo:
+          daySchedule.working_to,
+
+        totalSlots: slots.length,
+
+        bookedCount: booked.length,
+
+        availableSlots: available,
+      };
+    }
 
   // Cancel
   async cancelAppointment(

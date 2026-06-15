@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { Routes } from "../../common/interfaces/routes.interfaces.js";
 import { AuthController } from "./auth.controller.js";
-import passport from './utils/googleauth.js'
+import passport from "./utils/googleauth.js";
 
 export class AuthRoutes implements Routes {
   path: string = "/auth";
@@ -13,24 +13,14 @@ export class AuthRoutes implements Routes {
   }
 
   private initializationRoutes(): void {
-
     //SERVING STATIC PAGES
 
-    this.router.get(
-      "/register-page",
-      this.authController.showRegisterPage
-    );
+    this.router.get("/register-page", this.authController.showRegisterPage);
 
-    this.router.get(
-      "/login-page",
-      this.authController.showLoginPage
-    );
+    this.router.get("/login-page", this.authController.showLoginPage);
 
-    this.router.get(
-      "/enter-otp-page",
-      this.authController.showEnterOtpPage
-    );
-
+    this.router.get("/enter-otp-page", this.authController.showEnterOtpPage);
+    this.router.get("/get-country-codes", this.authController.getCountryCodes);
 
     this.router.post("/register-doctor", this.authController.registerDoctor);
     this.router.post("/register-admin", this.authController.registerAdmin);
@@ -41,27 +31,32 @@ export class AuthRoutes implements Routes {
     this.router.get("/enter-otp-page", this.authController.showEnterOtpPage);
     this.router.post("/sendOtp", this.authController.sendOtp);
     this.router.post("/reset-password", this.authController.resetPassword);
-    this.router.get("/forgot-password", (req, res) => { res.render("auth/forgot-password-page") })
-    this.router.get('/google', passport.authenticate('google', {
-      scope: [
-        'profile',
-        'email',
-        //  'https://www.googleapis.com/auth/user.phonenumbers.read',
-        //  'https://www.googleapis.com/auth/user.birthday.read',
-        // 'https://www.googleapis.com/auth/user.gender.read',
+    this.router.get("/forgot-password", (req, res) => {
+      res.render("auth/forgot-password-page");
+    });
+    this.router.get(
+      "/google",
+      passport.authenticate("google", {
+        scope: [
+          "profile",
+          "email",
+          //  'https://www.googleapis.com/auth/user.phonenumbers.read',
+          //  'https://www.googleapis.com/auth/user.birthday.read',
+          // 'https://www.googleapis.com/auth/user.gender.read',
+        ],
+      }),
+    );
 
-      ]
-    }))
-
-    this.router.get('/google/callback', passport.authenticate('google', {
-      scope: ['profile',
-        'email',
-        // 'https://www.googleapis.com/auth/user.phonenumbers.read'
-      ],
-      successRedirect: '/dashboard'
-    }
-    ))
-
-
+    this.router.get(
+      "/google/callback",
+      passport.authenticate("google", {
+        scope: [
+          "profile",
+          "email",
+          // 'https://www.googleapis.com/auth/user.phonenumbers.read'
+        ],
+        successRedirect: "/dashboard",
+      }),
+    );
   }
 }

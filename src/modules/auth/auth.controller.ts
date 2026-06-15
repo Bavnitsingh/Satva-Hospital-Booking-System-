@@ -3,6 +3,7 @@ import { catchAsync } from "../../common/helpers/catch-async.js";
 import { generalResponse } from "../../common/helpers/general-response.js";
 import { AuthService } from "./auth.service.js";
 import { HttpException } from "../../common/helpers/http-exception.js";
+import { country } from "../../common/countryCodes.js";
 
 export class AuthController {
   private authService = new AuthService();
@@ -212,5 +213,9 @@ export class AuthController {
         statusCode: 400,
       });
     }
+  };
+
+  getCountryCodes = async (req: Request, res: Response) => {
+    return res.json(country);
   };
 }

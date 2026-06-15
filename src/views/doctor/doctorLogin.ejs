@@ -24,15 +24,15 @@
 </head>
 <body class="bg-[#f0faf6] min-h-screen flex flex-col font-sans">
 
-  <!-- Back to home -->
+  <!-- Back to home
   <div class="px-6 pt-8">
-    <a href="/api/v1/auth/home" class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm transition">
+    <a href="/" class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm transition">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
       </svg>
       Back to home
     </a>
-  </div>
+  </div> -->  
 
   <!-- Card -->
   <div class="flex flex-1 items-center justify-center px-4 py-10">
@@ -54,7 +54,7 @@
      
 
       <!-- Form -->
-      <form action="/login/doctor" method="POST" class="space-y-5">
+      <form  class="space-y-5" id="login-form">
 
         <!-- Email -->
         <div>
@@ -68,6 +68,7 @@
             <input
               type="email"
               name="email"
+              id="email"
               placeholder="Enter your email"
               class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
               required
@@ -111,7 +112,7 @@
         </div>
 
         <!-- Sign In Button -->
-        <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 rounded-lg transition text-sm">
+        <button type="button" id="submit-btn" class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 rounded-lg transition text-sm">
           Sign In
         </button>
 
@@ -128,11 +129,14 @@
     </div>
   </div>
 
+  <script src="/js/doctor-login.js"></script>
   <script>
     function togglePassword() {
       const input = document.getElementById('passwordInput');
       input.type = input.type === 'password' ? 'text' : 'password';
     }
+
+    
   </script>
 
 </body>

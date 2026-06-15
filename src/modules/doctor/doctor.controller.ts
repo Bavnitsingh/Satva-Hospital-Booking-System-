@@ -90,7 +90,7 @@ getPatientAllMedicalRecords=catchAsync(async(req:Request,res:Response)=>{
     if(!patient_id || patient_id==undefined){
         throw new BadRequestException('patient id is required')
     } 
-    console.log(user_id)
+
 
     const result =await this.doctorService.getPatientAllMedicalRecords(user_id,patient_id)
 
@@ -126,16 +126,22 @@ getSpecialites=catchAsync(async(req:Request,res:Response)=>{
 
 
 postProfileData=catchAsync(async(req:Request,res:Response)=>{
-
-
 const data= JSON.parse(req.body.data)
 const file=req.file 
-
 const result=await this.doctorService.postProfileUpdateData(data,file)
-console.log(result)
-
 generalResponse({res,data:[],message:'Successfully Data upload',statusCode:201})
      
+})
+
+
+
+getHospitalDetails=catchAsync(async(req:Request,res:Response)=>{    
+
+const user_id=(req as AuthRequest).user.id
+const hospitalDetails =await this.doctorService.getHospitalDetails(user_id)
+generalResponse({res,data:[hospitalDetails],message:'Successfully Fetched Data',statusCode:200})
+
+
 })
 
 

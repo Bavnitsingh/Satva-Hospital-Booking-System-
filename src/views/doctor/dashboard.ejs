@@ -71,10 +71,10 @@
     <!-- Patient List -->
      <%-include('patient_list.ejs');%>
    <!-- /tab-patients -->
-
+    
+    <%- include('today_schedule.ejs');%>
     <!-- Placeholder panels for other tabs -->
-    <div id="tab-today"   class="tab-panel hidden"><p class="text-gray-400 text-sm py-8 text-center">Today's schedule will appear here.</p></div>
-    <div id="tab-weekly"  class="tab-panel hidden"><p class="text-gray-400 text-sm py-8 text-center">Weekly schedule will appear here.</p></div>
+    <%- include('weekly_schedule.ejs');%>
     <div id="tab-records" class="tab-panel hidden"><p class="text-gray-400 text-sm py-8 text-center">Medical records will appear here.</p></div>
 
   </main>

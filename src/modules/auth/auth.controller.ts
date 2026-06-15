@@ -11,6 +11,7 @@ export class AuthController {
   //SERVING STATIC PAGES
 
   login = catchAsync(async (req: Request, res: Response) => {
+  
     const { refreshToken, ...data } = await this.authService.login(req.body);
 
     res.cookie("refreshToken", refreshToken, {

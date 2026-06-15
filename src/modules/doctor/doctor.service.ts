@@ -15,7 +15,8 @@ import {
  
 } from "../../common/helpers/http-exception.js";
 import { getNextWeekStartingDay } from "./utils/doctor.utilts.js";
-import { profile } from "node:console";
+import fs from 'fs'
+
 
 
 export class DoctorService {
@@ -165,8 +166,14 @@ export class DoctorService {
   async postProfileUpdateData(data: any, file: any) {
     const doctor_details=data.doctor_details
 
-    const profile_path=file?.destination || '/uploads/doctor_profile/default.png'
-    
+    let profile_path=file?.path || 'uploads/doctor_profile/default.png'
+    if(!file){
+      const result=await this.doctorRepo.getFileDetails(doctor_details.doctor_id)
+      if(!result){
+        throw new NotFoundException('Image Url Not Found')
+      }
+      profile_path=result.profile_path
+    }
     const docDetail: IDoctorDetails = {
       first_name: doctor_details.first_name,
       last_name: doctor_details.last_name,
@@ -177,11 +184,10 @@ export class DoctorService {
       doctor_id:doctor_details.doctor_id
     };
 
-
+    // unlink files in doctor_proifle
+  
     const docQualifictionDetail=data.qualifications.map((q:any,i:number)=>[doctor_details.doctor_id,q.degree,q.graduation_year,q.college_name])
     const docSpecialities=data.specialties.map((q:any,i:number)=>[doctor_details.doctor_id,q.specialty_id])
-
-    console.log(docQualifictionDetail,docSpecialities)
 
     const doc_detail_result=await this.doctorRepo.updateDoctorDetail(docDetail)
     const doc_qualification_result=await this.doctorRepo.updateDoctorQualifications(docQualifictionDetail)
@@ -191,5 +197,12 @@ export class DoctorService {
     return {doc_detail_result,doc_qualification_result,doctor_specialties_result}
 
 
+  }
+
+
+  async getHospitalDetails(user_id:number){
+
+    const hospital_details=await this.doctorRepo.getHosptialDetails(user_id)
+    return {hospital_details}
   }
 }

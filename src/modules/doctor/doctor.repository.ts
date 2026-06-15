@@ -1,3 +1,4 @@
+import { Console } from "winston/lib/winston/transports/index.js";
 import { HttpException, InternalServerException } from "../../common/helpers/http-exception.js";
 import { query, query2 } from "../../database/connection.js";
 import {
@@ -11,6 +12,7 @@ import {
   IPrescriptionItems,
   IPrescriptions,
 } from "./doctor.interface.js";
+import { QueryResult, RowDataPacket } from "mysql2";
 
 export class DoctorRepo {
   async findDoctorByUserID(user_id: number) {
@@ -357,7 +359,7 @@ select
   }
 
   async updateDoctorDetail(data:IDoctorDetails){
-    console.log(data)
+
     const result=await query(`update doctors set first_name=?, 
       last_name=?,
       experience_years=?,
@@ -373,37 +375,48 @@ select
         data.profile_path,
         data.doctor_id
       ])
-      console.log(result)
+     
       
       return result
   
   }
 
   async updateDoctorQualifications(data:any){
- const qualPlaceholders = data.map(() => "(?, ?, ?, ?)").join(", ");
-    const result =await query(`delete from doctor_qualifications where doctor_id=?`,[data[0]])
+  
+    const result =await query(`delete from doctor_qualifications where doctor_id=?`,[data[0][0]])
+
     if(!result){
       throw new InternalServerException('Unable to update')
     }
     else{
-    const result1=await query2(`insert into doctor_qualifications(doctor_id,degree,graduation_year,college_name) values ${qualPlaceholders}`,data.flat())
+    const result1=await query2(`insert into doctor_qualifications(doctor_id,degree,graduation_year,college_name) values?`,[data])
       return result1
     }
 
   }
 
   async updateDoctorSpecialities(data:any){
-
-    const result=await query(`delete from doctor_specialties where doctor_id=?`,[data[0]])
+   
+    const result=await query(`delete from doctor_specialties where doctor_id=?`,[data[0][0]])
 
     if(!result){
       throw new InternalServerException(`unable to update Specialites`)
     }
     else{
-      const result1=await query2(`insert into doctor_specialties(doctor_id,speciality_id) values ?`,[data])
+      const result1=await query2(`insert into doctor_specialties(doctor_id,specialty_id) values?`,[data])
       return result1
     }
 
   }
+
+async getFileDetails(doctor_id:number){
+  const rows:RowDataPacket[]=await query(`Select profile_path from doctors where doctor_id=?`,[doctor_id]) as RowDataPacket[]
+  return rows[0]
+}
+
+async getHosptialDetails(user_id:number){
+  const rows=await query(`Select d.doctor_id, d.hospital_id,h.hospital_name from hospitals h inner join doctors d on d.hospital_id=h.hospital_id where d.user_id=?`,[user_id]) as RowDataPacket[]
+  return rows[0]
+}
 
 }

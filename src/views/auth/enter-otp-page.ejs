@@ -326,13 +326,7 @@
               class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-medium"
             ></div>
 
-            <form
-              action="/verify-otp"
-              method="POST"
-              id="resetForm"
-              class="space-y-5"
-              novalidate
-            >
+            <form method="POST" id="resetForm" class="space-y-5" novalidate>
               <!-- OTP -->
               <div>
                 <label
@@ -466,25 +460,18 @@
               </div>
 
               <!-- Timer -->
-              <div class="flex items-center justify-between text-sm">
-                <span id="timerText" class="text-gray-500">
-                  Resend code in:
-                  <span id="seconds" class="font-semibold text-primary"
-                    >120</span
-                  >s
-                </span>
-                <span id="resendBtn" class="hidden">
-                  <a
-                    href="/send-otp-page"
-                    class="text-primary font-semibold hover:underline"
-                    >Resend OTP →</a
-                  >
-                </span>
+              <div class="text-left">
+                <a
+                  href="/send-otp-page"
+                  class="text-primary font-semibold hover:underline"
+                >
+                  Resend OTP →
+                </a>
               </div>
 
               <!-- Submit -->
               <button
-                type="button"
+                type="submit"
                 id="changePassword"
                 class="w-full py-3 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl shadow-md transition-all duration-200 flex items-center justify-center gap-2"
               >
@@ -634,7 +621,7 @@
       </div>
     </footer>
     <%- include("../error_flash") %>
-    <script src="/utils.js"></script>
+
     <script>
       document.getElementById("menuBtn").addEventListener("click", () => {
         document.getElementById("mobileMenu").classList.toggle("hidden");
@@ -655,32 +642,28 @@
       makeToggle("toggleNew", "newPassword", "eyeNew");
       makeToggle("toggleConfirm", "confirm_password", "eyeConfirm");
       // Frontend validations
-      function showError(input, errorId, message) {
-        document.getElementById(errorId).textContent = message;
-        document.getElementById(errorId).classList.remove("hidden");
 
-        if (input) {
-          input.classList.add("border-red-500");
-        }
-
-        isValid = false;
-      }
-
-      // Change password handler — original fetch logic preserved
       document
         .getElementById("resetForm")
         .addEventListener("submit", async (e) => {
-          const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-          let formData = new FormData(document.getElementById("resetForm"));
-          let formEntries = Object.fromEntries(formData.entries());
-          formEntries["timezone"] = userTimezone;
-          // console.log(formEntries);
+          e.preventDefault();
           const otpError = document.getElementById("otpError");
           const passwordError = document.getElementById("passwordError");
           const confirmError = document.getElementById("confirmError");
           const otp = document.getElementById("otp");
-          const password = document.getElementById("newPasseord");
+          const password = document.getElementById("newPassword");
           const confirmPassword = document.getElementById("confirm_password");
+          function showError(input, errorId, message) {
+            document.getElementById(errorId).textContent = message;
+            document.getElementById(errorId).classList.remove("hidden");
+
+            if (input) {
+              input.classList.add("border-red-500");
+            }
+
+            isValid = false;
+          }
+
           let isValid = true;
           [otp, password, confirmPassword].forEach((ele) => {
             ele.classList.remove("border-red-500");
@@ -691,42 +674,59 @@
           });
 
           if (otp.value.trim() == "") {
-            // otpError.classList.remove("hidden");
-            // otpError.textContent = "OTP is required";
-            // otp.classList.add("border-red-500");
             showError(otp, "otpError", "OTP is required");
-            isValid = false;
-          } else if (/^\d{6}$/.test(otp.value.trim())) {
-            // otpError.classList.remove("hidden");
-            // otpError.textContent = "Enter valid OTP";
-            // otp.classList.add("border-red-500");
+          } else if (!/^\d{6}$/.test(otp.value.trim())) {
             showError(otp, "otpError", "Enter valid OTP");
-            isValid = false;
           }
 
           if (!password.value) {
-            // passwordError.classList.remove("hidden");
-            // passwordError.textContent = "";
             showError(password, "passwordError", "New password is required");
-
-            isValid = false;
           } else if (
             !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#?!@$%^&*-]).{8,}$/.test(
               password.value,
             )
           ) {
-            showError(password, "passwordError", "");
+            showError(
+              password,
+              "passwordError",
+              "Password must contain uppercase, lowercase, number and special character",
+            );
+          }
+          if (!confirmPassword.value) {
+            showError(
+              confirmPassword,
+              "confirmError",
+              "Confirm password is required",
+            );
+          } else if (
+            !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#?!@$%^&*-]).{8,}$/.test(
+              password.value,
+            )
+          ) {
+            showError(
+              confirmPassword,
+              "confirmError",
+              "Password must contain uppercase, lowercase, number and special character",
+            );
+          } else if (confirmPassword.value != password.value) {
+            showError(confirmPassword, "confirmError", "Password do not match");
           }
 
+          if (!isValid) {
+            e.preventDefault();
+            return;
+          }
+          const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          let formData = new FormData(document.getElementById("resetForm"));
+          let formEntries = Object.fromEntries(formData.entries());
+          formEntries["timezone"] = userTimezone;
           let response = await fetch("/api/v1/auth/reset-password", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formEntries),
           });
 
-          console.log(response);
           let data = await response.json();
-          console.log(data);
 
           if (response.ok) {
             // showMessage(data.message, false);
@@ -736,43 +736,6 @@
             showFlash(data.message, "error");
           }
         });
-
-      // Timer — original logic preserved
-      async function showtimer() {
-        try {
-          let response = await fetch("/getTimer");
-          if (!response.ok) {
-            document.getElementById("seconds").innerText =
-              "OTP has been expired !!";
-            document.getElementById("resendBtn").style.display = "inline-block";
-            document.getElementById("timerText").style.display = "none";
-            console.log("unable to get timer");
-            return;
-          }
-          let seconds = (await response.json()).data;
-          if (seconds > 0) {
-            startTimer(seconds);
-          }
-        } catch (e) {
-          console.log(e);
-        }
-      }
-
-      showtimer();
-
-      function startTimer(seconds) {
-        const countdown = setInterval(() => {
-          seconds--;
-          document.getElementById("seconds").innerText = seconds;
-          if (seconds <= 0) {
-            clearInterval(countdown);
-            document.getElementById("seconds").innerText =
-              "OTP has been expired !!";
-            document.getElementById("resendBtn").style.display = "inline-block";
-          }
-        }, 1000);
-        return countdown;
-      }
     </script>
   </body>
 </html>

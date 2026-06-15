@@ -150,12 +150,24 @@ export class AuthController {
 
   resetPassword = async (req: Request, res: Response) => {
     try {
-      let { otp, newPassword } = req.body;
+      let { otp, newPassword, confirm_password } = req.body;
 
       let user_id = req.session.user_id as number;
-
       let email = req.session.email as string;
+      let isPassValid = await this.authService.verifyPassAndCpass(
+        newPassword,
+        confirm_password,
+      );
+      if (!isPassValid) {
+        return generalResponse({
+          res,
+          data: null,
+          message: "Password do not match",
+          statusCode: 400,
+        });
+      }
       let response = await this.verifyOtp(email, otp);
+
       if (response) {
         let isReset = await this.authService.resetPassword(
           newPassword,
@@ -164,19 +176,19 @@ export class AuthController {
 
         req.session.isEmailVerified = false;
 
-        if (isReset) {
+        if (isReset.success) {
           return generalResponse({
             res,
             data: null,
-            message: "password hasbeen changed Successfully!!",
+            message: "password has been changed Successfully!!",
             statusCode: 200,
           });
         } else {
           return generalResponse({
             res,
             data: null,
-            message: "password hasbeen changed Successfully!!",
-            statusCode: 200,
+            message: "Password not updated!!",
+            statusCode: 400,
           });
         }
       } else {

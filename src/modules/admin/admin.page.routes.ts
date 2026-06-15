@@ -16,6 +16,9 @@ private page = new AdminPageController();
     this.router.get('/doctors',this.page.renderDoctorsPage);
     this.router.get('/add-doctor',this.page.renderAddDoctorPage);
     this.router.get('/patients',this.page.renderPatientsPage);
-    this.router.get('/doctor/:doctorId',this.page.renderSingleDoctorPage)
+    this.router.get('/doctor/:doctorId',this.page.renderSingleDoctorPage);
+    this.router.get('/appointments',this.page.renderAppointmentsPage);
+    this.router.get('/patients/:patientId',this.page.renderSinglePatientPage),
+    this.router.get('/settings',this.page.renderSettingsPage);
   }
 }

@@ -1,24 +1,25 @@
 import { query } from "../../database/connection.js";
 import { AuditPayload } from "./interfaces/audit.interface.js";
+import { Hospital } from "./interfaces/hospital.interface.js";
 
 export class AdminRepository{
 
     async fetchDoctorsByHospitalId(hospital_id:number){
-        const rows:any = await query(
+        const rows = await query(
             `
             select * from doctors where hospital_id=? 
             `,[hospital_id]
         );
-         return rows.length > 0 ? rows : null;
+         return rows ;
     }
 
     async fetchHospitalIdFromAdminId(user_id:number){
-        const rows : any = await query(`select hospital_id from admins where user_id= ?`,[user_id]);
+        const rows:any = await query(`select hospital_id from admins where user_id= ?`,[user_id]);
         return rows[0];
     }
 
     async fetchPatientsByHospital(hospital_id: number) {
-    const rows: any = await query(
+    const rows= await query(
       `SELECT DISTINCT p.*
 FROM patients p
 JOIN appointments a  ON p.patient_id  = a.patient_id
@@ -80,7 +81,7 @@ WHERE d.hospital_id  = ? `,
   const doctor = rows[0];
 
   // Specialties
-  const specialties: any = await query(
+  const specialties = await query(
     `SELECT s.specialty_id, s.specialty_name
      FROM doctor_specialties ds
      JOIN specialties s ON ds.specialty_id = s.specialty_id
@@ -89,7 +90,7 @@ WHERE d.hospital_id  = ? `,
   );
 
   // Qualifications
-  const qualifications: any = await query(
+  const qualifications = await query(
     `SELECT qualification_id, degree, college_name, graduation_year
      FROM doctor_qualifications
      WHERE doctor_id = ?`,
@@ -134,12 +135,12 @@ async editDoctor(doctor_id: number, data: any) {
   return await this.getDoctorById(doctor_id);
 }
   async addAuditLogs(payload:AuditPayload){
-    const rows : any = await query(`Insert into audit_logs (performed_by_user_id,action,entity_name,entity_id,ip_address) values (?,?,?,?,?)`,[payload.performed_by_user_id,payload.action,payload.entity_name,payload.entity_id,payload.ip_address ?? null]);
+    const rows = await query(`Insert into audit_logs (performed_by_user_id,action,entity_name,entity_id,ip_address) values (?,?,?,?,?)`,[payload.performed_by_user_id,payload.action,payload.entity_name,payload.entity_id,payload.ip_address ?? null]);
     return rows;
   }
 
   async showLogs(hospital_id:number){
-    const rows : any = await query(`
+    const rows = await query(`
       
       SELECT
   al.audit_id,
@@ -174,7 +175,7 @@ ORDER BY al.created_at DESC
 
 
   async fetchAppointments(hospital_id:number){
-    const rows:any = await query(`SELECT 
+    const rows = await query(`SELECT 
     a.appointment_id,
     CONCAT(d.first_name, ' ', d.last_name) AS doctor_name,
     a.start_time,
@@ -189,7 +190,7 @@ WHERE d.hospital_id = ?; `,[hospital_id]);
   };
  
 async fetchAuditLogs(hospital_id:number){
-  const rows : any = await query(`
+  const rows = await query(`
     SELECT
   al.audit_id,
   al.action,
@@ -234,7 +235,7 @@ ORDER BY al.created_at DESC
 }
 
 async fetchSpecialties(){
-const specialties:any = await query(`select * from specialties`,[]);
+const specialties = await query(`select * from specialties`,[]);
 return specialties;
 }
 
@@ -246,5 +247,48 @@ async updateDoctorStatus(doctorId: number, is_deactivated: number) {
         );
         return result;
     }
+
+    async fetchPatientDetailsById(patient_id:number){
+      const patient = await query(`select * from patients where patient_id = ?`,[patient_id]);
+      return patient;
+    }
+
+    async fetchHospitalDetails(hospital_id:number){
+      const hospital = await query(`select * from hospitals where hospital_id = ?`,[hospital_id]);
+      return hospital;
+    }
+
+    async updateSettings(hospital_id:number,payload:Hospital){
+      const hospital = await query(`update hospitals set hospital_name = ?,email=?,address_line1=?,address_line2=?,contact_number=? where hospital_id = ?`,[payload.hospital_name,payload.email,payload.address_line1,payload.address_line2,payload.contact_number,hospital_id]);
+      return hospital;
+    }
+
+    async fetchStatsOfHospital(hospital_id:number){
+     const stats = await query(`
+      SELECT 
+    -- 1. Today's Appointments vs Yesterday's Appointments
+    COUNT(CASE WHEN DATE(a.start_time) = CURRENT_DATE() THEN 1 END) AS today_appointments,
+    COUNT(CASE WHEN DATE(a.start_time) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY) THEN 1 END) AS yesterday_appointments,
+
+    -- 2. Total Active Patients vs Registered Patients Yesterday
+    COUNT(DISTINCT CASE WHEN p.created_at <= NOW() THEN p.patient_id END) AS active_patients,
+    COUNT(DISTINCT CASE WHEN p.created_at < CURRENT_DATE() THEN p.patient_id END) AS patients_yesterday,
+
+    -- 3. Today's Revenue vs Yesterday's Revenue
+    COALESCE(SUM(CASE WHEN DATE(a.start_time) = CURRENT_DATE() AND a.appointment_status = 'COMPLETED' THEN d.consultation_fee ELSE 0 END), 0) AS revenue_today,
+    COALESCE(SUM(CASE WHEN DATE(a.start_time) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY) AND a.appointment_status = 'COMPLETED' THEN d.consultation_fee ELSE 0 END), 0) AS revenue_yesterday,
+
+    -- 4. Active Doctors vs Total Doctors Registered Yesterday
+    COUNT(DISTINCT CASE WHEN d.is_deactivated = FALSE THEN d.doctor_id END) AS active_doctors,
+    COUNT(DISTINCT CASE WHEN d.created_at < CURRENT_DATE() THEN d.doctor_id END) AS doctors_yesterday
+
+FROM doctors d
+LEFT JOIN appointments a ON d.doctor_id = a.doctor_id
+LEFT JOIN patients p ON a.patient_id = p.patient_id
+WHERE d.hospital_id = ?;
+      `,[hospital_id]) ;
+      return stats;
+    } 
+
 
 }

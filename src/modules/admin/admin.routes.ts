@@ -25,6 +25,11 @@ export class AdminRoutes implements Routes {
     this.router.get('/fetchAuditLogs', this.adminController.fetchAuditLogs);
     this.router.get('/fetchSpecialties', this.adminController.fetchSpecialties);
     this.router.put('/toggleDoctorStatus/:id', this.adminController.toggleDoctorStatus);
+    this.router.get('/patients/:patientId',this.adminController.fetchPatientDetails);
+    this.router.get('/hospital',this.adminController.fetchHospitalDetails);
+    this.router.put('/hospital',this.adminController.updateHospitalSettings);
+    this.router.get('/stats',this.adminController.fetchStatsOfHospital);
+    
   }
 
 }

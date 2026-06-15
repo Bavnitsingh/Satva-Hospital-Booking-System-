@@ -1,6 +1,7 @@
 import { AuthService } from "../auth/auth.service.js";
 import { AdminRepository } from "./admin.repository.js";
 import { AuditPayload } from "./interfaces/audit.interface.js";
+import { Hospital } from "./interfaces/hospital.interface.js";
 
 
 export class AdminService{
@@ -105,4 +106,24 @@ async editDoctor(doctor_id: number, data: any) {
   async toggleDoctorStatus(doctorId: number, is_deactivated: number) {
          return await this.adminRepo.updateDoctorStatus(doctorId, is_deactivated);
      }
+  
+  async fetchPatientDetails(patient_id:number){
+    const patient= await this.adminRepo.fetchPatientDetailsById(patient_id);
+    return patient;
+  }
+
+  async fetchHospitalDetails(hospital_id:number){
+    const hospital = await this.adminRepo.fetchHospitalDetails(hospital_id);
+    return hospital;
+  }
+
+  async updateSettings(hospital_id:number,payload:Hospital){
+    const hospital = await this.adminRepo.updateSettings(hospital_id,payload);
+    return hospital;
+  }
+
+  async fetchStats(hospital_id:number){
+    const stats = await this.adminRepo.fetchStatsOfHospital(hospital_id);
+    return stats;
+  }
 }

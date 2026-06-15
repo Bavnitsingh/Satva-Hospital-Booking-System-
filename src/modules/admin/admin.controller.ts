@@ -3,6 +3,8 @@ import { catchAsync } from "../../common/helpers/catch-async.js";
 import { generalResponse } from "../../common/helpers/general-response.js";
 import { AdminService } from "./admin.service.js";
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js";
+import { Hospital } from "./interfaces/hospital.interface.js";
+import { calculatePercentageChange } from "./utils/stats.utils.js";
 
 export class AdminController{
     private adminService = new AdminService();
@@ -19,7 +21,7 @@ export class AdminController{
             res,
             data:doctors,
             message:"Doctors Fetched Successfully",
-            statusCode:201
+            statusCode:200
         })
         
     })
@@ -29,7 +31,10 @@ export class AdminController{
         const user_id = (req as AuthRequest).user.id;
         const hospitalId = await this.adminService.getHospitalId(user_id);
         const patients = await this.adminService.fetchPatients(hospitalId);
-    generalResponse({ res, data: patients, message: "Patients fetched successfully", statusCode: 200 });
+    generalResponse({ res,
+         data: patients, 
+         message: "Patients fetched successfully",
+          statusCode: 200 });
   });
 
     
@@ -72,7 +77,7 @@ export class AdminController{
             res,
             data:doctor,
             message:"Doctor Fetched from ID",
-            statusCode:201
+            statusCode:200
         })
     })
 
@@ -102,7 +107,7 @@ editDoctor = catchAsync(async (req: Request, res: Response) => {
         res,
         data:appointments,
         message:"Appointments fetched properly",
-        statusCode:201
+        statusCode:200
     })
     })
 
@@ -114,7 +119,7 @@ editDoctor = catchAsync(async (req: Request, res: Response) => {
             res,
             data:logs,
             message:"Logs fetched successfully",
-            statusCode:201
+            statusCode:200
 
         })
     })
@@ -125,7 +130,7 @@ editDoctor = catchAsync(async (req: Request, res: Response) => {
             res,
             data:specs,
             message:"Specialities fetched successfully",
-            statusCode:201
+            statusCode:200
         })
     })
 
@@ -143,8 +148,91 @@ editDoctor = catchAsync(async (req: Request, res: Response) => {
             res,
             data: result,
             message: `Doctor status altered successfully`,
-            statusCode: 200
+            statusCode: 201
         });
     });
 
+    fetchPatientDetails = catchAsync(async(req:Request,res:Response)=>{
+        const patient_id = Number(req.params.patientId);
+        const patient = await this.adminService.fetchPatientDetails(patient_id);
+        generalResponse({
+            res,
+            data:patient,
+            message:`Patient Fetched successfully`,
+            statusCode:200
+        })
+    })
+
+fetchHospitalDetails = catchAsync(async(req:Request,res:Response)=>{
+ const user_id = (req as AuthRequest).user.id;
+ const hospital_id = await this.adminService.getHospitalId(user_id);
+ const hospital = await this.adminService.fetchHospitalDetails(hospital_id);
+ generalResponse({
+    res,
+    data:hospital,
+    message:`Hospital fetched successfully`,
+    statusCode:200
+ })
+})
+
+updateHospitalSettings = catchAsync(async(req:Request,res:Response)=>{
+    const user_id = (req as AuthRequest).user.id;
+ const hospital_id = await this.adminService.getHospitalId(user_id);
+ const {hospital_name,email,address_line1,address_line2,contact_number} = req.body;
+ const payload:Hospital = {hospital_name,email,address_line1,address_line2,contact_number};
+ const hospital = await this.adminService.updateSettings(hospital_id,payload);
+ generalResponse({
+    res,
+    data:hospital,
+    message:`Hospital Settings updated successfully`,
+    statusCode:201
+ })
+})
+
+
+fetchStatsOfHospital = catchAsync(async (req: Request, res: Response) =>  {
+  const user_id = (req as AuthRequest).user.id;
+  const hospital_id = await this.adminService.getHospitalId(user_id);
+  const statsArray:any = await this.adminService.fetchStats(hospital_id);
+  
+  // 1. Safely extract the single stats object from the database array result
+  const rawStats = statsArray && statsArray.length > 0 ? statsArray[0] : null;
+
+  if (!rawStats) {
+     generalResponse({
+      res,
+      data: {
+        today_appointments: 0, appt_change: '0%',
+        active_patients: 0, patients_change: '0%',
+        revenue_today: '0.00', revenue_change: '0%',
+        active_doctors: 0, doctors_change: '0%'
+      },
+      message: `No stats found for this hospital.`,
+      statusCode: 200
+    });
+  }
+
+  // 2. Map and compute percentage changes exactly as expected by public/js/stats.js
+  const formattedStats = {
+    today_appointments: rawStats.today_appointments,
+    appt_change: calculatePercentageChange(rawStats.today_appointments, rawStats.yesterday_appointments),
+
+    active_patients: rawStats.active_patients,
+    patients_change: calculatePercentageChange(rawStats.active_patients, rawStats.patients_yesterday),
+
+    revenue_today: rawStats.revenue_today, // Kept as string format "300.00" for your NumberFormatter on frontend
+    revenue_change: calculatePercentageChange(rawStats.revenue_today, rawStats.revenue_yesterday),
+
+    active_doctors: rawStats.active_doctors,
+    doctors_change: calculatePercentageChange(rawStats.active_doctors, rawStats.doctors_yesterday)
+  };
+
+  // 3. Dispatch structured clean data back
+  generalResponse({
+    res,
+    data: formattedStats,
+    message: `Stats fetched and formatted successfully`,
+    statusCode: 200
+  });
+});
 }

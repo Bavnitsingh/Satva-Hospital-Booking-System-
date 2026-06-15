@@ -10,22 +10,9 @@
 <body class="bg-white font-sans">
 
   <!-- Navbar -->
-  <nav class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
-    <div class="flex items-center gap-2">
-      <div class="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center">
-        <i class="ti ti-heart text-white text-lg"></i>
-      </div>
-      <span class="text-base font-medium text-gray-900">Satva</span>
-    </div>
-    <div class="flex items-center gap-4">
-      <i class="ti ti-bell text-xl text-gray-500 cursor-pointer"></i>
-      <i class="ti ti-user text-xl text-gray-500 cursor-pointer"></i>
-      <button class="flex items-center gap-2 bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-700 transition">
-        <i class="ti ti-logout text-base"></i>
-        Logout
-      </button>
-    </div>
-  </nav>
+  <div class="max-w-7xl mx-auto px-6 pt-7">
+ <%- include('navbar.ejs') %>
+ </div>
 
   <div class="max-w-7xl mx-auto px-6 pt-7">
 
@@ -33,52 +20,13 @@
     <h1 class="text-2xl font-medium text-gray-900 mb-1">Admin Dashboard</h1>
     <p class="text-sm text-gray-500 mb-6">System overview and management</p>
 
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-4 gap-4 mb-7">
-      <div class="border border-gray-200 rounded-xl p-5">
-        <div class="flex items-center justify-between mb-2">
-          <i class="ti ti-calendar text-green-600 text-2xl"></i>
-          <span class="text-sm text-green-600 font-medium">+12%</span>
-        </div>
-        <div class="text-3xl font-medium text-gray-900 mb-1">156</div>
-        <div class="text-sm text-gray-500">Today's Appointments</div>
-      </div>
-      <div class="border border-gray-200 rounded-xl p-5">
-        <div class="flex items-center justify-between mb-2">
-          <i class="ti ti-users text-green-600 text-2xl"></i>
-          <span class="text-sm text-green-600 font-medium">+8%</span>
-        </div>
-        <div class="text-3xl font-medium text-gray-900 mb-1">2,847</div>
-        <div class="text-sm text-gray-500">Active Patients</div>
-      </div>
-      <div class="border border-gray-200 rounded-xl p-5">
-        <div class="flex items-center justify-between mb-2">
-          <i class="ti ti-currency-dollar text-green-600 text-2xl"></i>
-          <span class="text-sm text-green-600 font-medium">+15%</span>
-        </div>
-        <div class="text-3xl font-medium text-gray-900 mb-1">$12,450</div>
-        <div class="text-sm text-gray-500">Revenue (Today)</div>
-      </div>
-      <div class="border border-gray-200 rounded-xl p-5">
-        <div class="flex items-center justify-between mb-2">
-          <i class="ti ti-activity text-green-600 text-2xl"></i>
-          <span class="text-sm text-green-600 font-medium">+2</span>
-        </div>
-        <div class="text-3xl font-medium text-gray-900 mb-1">48</div>
-        <div class="text-sm text-gray-500">Active Doctors</div>
-      </div>
-    </div>
+      <!-- stats -->
+
+   <%- include('stats.ejs') %>
 
     <!-- Tabs -->
-   <div class="flex gap-6 border-b border-gray-200 mb-7 overflow-x-auto">
-      <button onclick="switchTab(this,'overview')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Overview</button>
-      <button onclick="switchTab(this,'doctors')"  class="tab-btn text-sm font-medium text-gray-400  pb-3 whitespace-nowrap transition">Doctors</button>
-      <button onclick="switchTab(this,'patients')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Patients</button>
-      <button onclick="switchTab(this,'appointments')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Appointments</button>
-      <button onclick="switchTab(this,'reports')"  class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Reports</button>
-      <button onclick="switchTab(this,'settings')" class="tab-btn text-sm font-medium text-gray-400 hover:text-gray-700 pb-3 whitespace-nowrap transition">Settings</button>
-      <button onclick="switchTab(this,'audit-logs')"    class="tab-btn text-sm font-semibold text-primary-400 text-green-600 border-b-2 border-primary pb-3 whitespace-nowrap transition">Audit Log</button>
-    </div>
+   <%-include('tabs.ejs')%>
+
 
     <!-- Audit Log Card -->
     <div class="border border-gray-200 rounded-xl mb-6">
@@ -291,9 +239,7 @@
       return str[0].toUpperCase() + str.slice(1).toLowerCase();
     }
 
-      function switchTab(btn, tab) {
-  window.location.href = `/admin/${tab}`;
-}
+  
     // ─── PAGINATION ──────────────────────────────────────────────────────────
     function renderPagination() {
       const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
@@ -460,6 +406,8 @@
     // ─── INIT ─────────────────────────────────────────────────────────────────
     loadLogs();
   </script>
+  <script src="/js/tabs.js"></script>
+  <script src="/js/stats.js"></script>
 
 </body>
 </html>

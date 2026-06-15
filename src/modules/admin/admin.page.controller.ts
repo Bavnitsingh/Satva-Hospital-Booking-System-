@@ -20,4 +20,13 @@ export class AdminPageController{
     renderSingleDoctorPage = catchAsync(async(req:Request,res:Response)=>{
         res.render('admin/view_single_doctor')
     })
+    renderAppointmentsPage = catchAsync(async(req:Request,res:Response)=>{
+        res.render('admin/show_appointments');
+    })
+    renderSinglePatientPage=catchAsync(async(req:Request,res:Response)=>{
+        res.render('admin/view_single_patient')
+    })
+    renderSettingsPage = catchAsync(async(req:Request,res:Response)=>{
+        res.render('admin/settings');
+    })
 }

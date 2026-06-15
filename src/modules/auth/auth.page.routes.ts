@@ -22,5 +22,6 @@ export class AuthPageRoutes {
 
     this.router.get("/show-email", this.page.showMail);
     this.router.get("/enter-otp", this.page.showEnterOtpPage);
+    this.router.get("/",this.page.showIndex)
   }
 }

@@ -80,13 +80,13 @@ export function buildApp(): Application {
   //ROUTER
 
 
-app.use("/", new AuthPageRoutes().router);
+
 app.use("/patient", new PatientPageRoutes().router);
 app.use('/doctor',new DoctorPageRoutes().router);
 
   //ROUTER 
   app.use("/api/v1",buildApiRouter())
-
+app.use("/", new AuthPageRoutes().router);
   
 // HANDLES GLOBAL ERROR
   app.use(errorMiddleware)

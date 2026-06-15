@@ -45,4 +45,9 @@ export class AuthPageController {
       });
     }
   };
+
+  showIndex=async(req:Request,res:Response)=>{
+    res.render("index")
+  }
+
 }

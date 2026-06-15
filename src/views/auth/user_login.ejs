@@ -150,12 +150,12 @@
         <!-- Desktop Buttons -->
         <div class="hidden md:flex items-center gap-3">
           <a
-            href="login-page"
+            href="/login"
             class="text-sm font-medium text-gray-700 hover:text-primary px-4 py-2"
             >Login</a
           >
           <a
-            href="register-page"
+            href="/register"
             class="text-sm font-semibold bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-primary-dark transition"
             >Register</a
           >
@@ -462,7 +462,7 @@
               <p class="text-sm text-gray-500 text-center">
                 Don't have an account?
                 <a
-                  href="register-page"
+                  href="/register"
                   class="text-primary font-semibold hover:underline ml-1"
                   >Create one →</a
                 >
@@ -681,25 +681,6 @@
               }),
             });
 
-<<<<<<< HEAD
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.message);
-      return;
-    }
-
-
-    console.log(data.data.accessToken);
-  
-    localStorage.setItem("accessToken", data.data.accessToken);
-
-    window.location.href = "/api/v1/patient/dashboard";
-  } catch (error) {
-    console.error(error);
-    alert("Something went wrong");
-  }
-=======
             const resp = await response.json();
             if (!response.ok) {
               alert(data.message);
@@ -723,7 +704,6 @@
             console.error(error);
             alert("Something went wrong");
           }
->>>>>>> doctor
         }
       });
     </script>

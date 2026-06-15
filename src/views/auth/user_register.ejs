@@ -125,9 +125,9 @@
       </div>
 
       <div class="hidden md:flex items-center gap-3">
-        <a href="login-page"
+        <a href="login"
           class="text-sm font-semibold text-gray-700 hover:text-primary px-4 py-2 transition">Login</a>
-        <a href="register-page"
+        <a href="register"
           class="text-sm font-semibold bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-primary-dark transition">Register</a>
       </div>
 
@@ -369,7 +369,7 @@
             <!-- Login link -->
             <p class="text-sm text-gray-500 text-center">
               Already have an account?
-              <a href="login-page" class="text-primary font-semibold hover:underline ml-1">Sign in →</a>
+              <a href="/login" class="text-primary font-semibold hover:underline ml-1">Sign in →</a>
             </p>
           </form>
         </div>
@@ -703,7 +703,7 @@ document.addEventListener(
         alert(data.message || "Registration successful");
 
         // Redirect to login page
-        window.location.href = "login-page";
+        window.location.href = "/login";
       } catch (error) {
         console.error("Registration error:", error);
         alert("Something went wrong. Please try again.");

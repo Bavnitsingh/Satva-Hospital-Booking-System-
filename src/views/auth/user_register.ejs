@@ -484,7 +484,7 @@
     async function loadCountries() {
       try {
         const res = await fetch(
-          "https://restcountries.com/v3.1/all?fields=name,idd"
+          "/api/v1/auth/country"
         );
 
         const data = await res.json();
@@ -541,174 +541,176 @@
   </script>
 </body>
 <!-- Script for validations -->
-<script>
-  const form = document.getElementById("registerForm");
+<%- include("../error_flash") %>
+  <script>
+    const form = document.getElementById("registerForm");
 
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
 
-    let isValid = true;
+      let isValid = true;
 
-    // Clear previous errors
-    document.querySelectorAll("[id$='_error']").forEach((el) => {
-      el.textContent = "";
-      el.classList.add("hidden");
-    });
+      // Clear previous errors
+      document.querySelectorAll("[id$='_error']").forEach((el) => {
+        el.textContent = "";
+        el.classList.add("hidden");
+      });
 
-    document
-      .querySelectorAll(".border-red-500")
-      .forEach((el) => el.classList.remove("border-red-500"));
+      document
+        .querySelectorAll(".border-red-500")
+        .forEach((el) => el.classList.remove("border-red-500"));
 
-    const firstName = document.getElementById("first_name");
-    const lastName = document.getElementById("last_name");
-    const email = document.getElementById("email");
-    const countryCode = document.getElementById("country_code");
-    const phone = document.getElementById("phone");
-    const dob = document.getElementById("dob");
-    const gender = document.getElementById("gender");
-    const password = document.getElementById("password");
-    const confirmPassword = document.getElementById("confirm_password");
-    const terms = document.getElementById("terms");
+      const firstName = document.getElementById("first_name");
+      const lastName = document.getElementById("last_name");
+      const email = document.getElementById("email");
+      const countryCode = document.getElementById("country_code");
+      const phone = document.getElementById("phone");
+      const dob = document.getElementById("dob");
+      const gender = document.getElementById("gender");
+      const password = document.getElementById("password");
+      const confirmPassword = document.getElementById("confirm_password");
+      const terms = document.getElementById("terms");
 
-    function showError(input, errorId, message) {
-      document.getElementById(errorId).textContent = message;
-      document.getElementById(errorId).classList.remove("hidden");
+      function showError(input, errorId, message) {
+        document.getElementById(errorId).textContent = message;
+        document.getElementById(errorId).classList.remove("hidden");
 
-      if (input) {
-        input.classList.add("border-red-500");
-      }
-
-      isValid = false;
-    }
-
-    // First Name
-    if (!firstName.value.trim()) {
-      showError(firstName, "first_name_error", "First name is required");
-    }
-
-    // Last Name
-    if (!lastName.value.trim()) {
-      showError(lastName, "last_name_error", "Last name is required");
-    }
-
-    // Email
-    if (!email.value.trim()) {
-      showError(email, "email_error", "Email is required");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
-      showError(email, "email_error", "Please enter a valid email address");
-    }
-
-    // Country Code
-    if (!countryCode.value) {
-      showError(
-        countryCode,
-        "country_code_error",
-        "Please select a country code",
-      );
-    }
-
-    // Phone Number
-    if (!phone.value.trim()) {
-      showError(phone, "phone_error", "Phone number is required");
-    } else if (!/^[0-9]{6,15}$/.test(phone.value.trim())) {
-      showError(phone, "phone_error", "Please enter a valid phone number");
-    }
-
-    // Date of Birth
-    if (!dob.value) {
-      showError(dob, "dob_error", "Date of birth is required");
-    }
-
-    // Gender
-    if (!gender.value) {
-      showError(gender, "gender_error", "Please select your gender");
-    }
-
-    // Password
-    if (!password.value) {
-      showError(password, "password_error", "Password is required");
-    } else if (password.value.length < 8) {
-      showError(
-        password,
-        "password_error",
-        "Password must be at least 8 characters",
-      );
-    } else if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#?!@$%^&*-]).{8,}$/.test(
-        password.value,
-      )
-    ) {
-      showError(
-        password,
-        "password_error",
-        "Password must contain uppercase, lowercase, number and special character",
-      );
-    }
-
-    // Confirm Password
-    if (!confirmPassword.value) {
-      showError(
-        confirmPassword,
-        "confirm_password_error",
-        "Please confirm your password",
-      );
-    } else if (password.value !== confirmPassword.value) {
-      showError(
-        confirmPassword,
-        "confirm_password_error",
-        "Passwords do not match",
-      );
-    }
-
-    // Terms
-    if (!terms.checked) {
-      showError(
-        null,
-        "terms_error",
-        "You must accept the Terms & Privacy Policy",
-      );
-    }
-
-    if (isValid) {
-      console.log("Form Valid");
-      // Fetch api for registration form
-      try {
-        const response = await fetch("register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            first_name: firstName.value.trim(),
-            last_name: lastName.value.trim(),
-            email: email.value.trim(),
-            country_code: countryCode.value,
-            phone: phone.value.trim(),
-            dob: dob.value,
-            gender: gender.value,
-            password: password.value,
-            confirm_password: confirmPassword.value,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          alert(data.message || "Registration failed");
-          return;
+        if (input) {
+          input.classList.add("border-red-500");
         }
 
-        alert(data.message || "Registration successful");
-
-        // Redirect to login page
-        window.location.href = "/login";
-      } catch (error) {
-        console.error("Registration error:", error);
-        alert("Something went wrong. Please try again.");
+        isValid = false;
       }
-    }
-  });
-</script>
+
+      // First Name
+      if (!firstName.value.trim()) {
+        showError(firstName, "first_name_error", "First name is required");
+      }
+
+      // Last Name
+      if (!lastName.value.trim()) {
+        showError(lastName, "last_name_error", "Last name is required");
+      }
+
+      // Email
+      if (!email.value.trim()) {
+        showError(email, "email_error", "Email is required");
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+        showError(email, "email_error", "Please enter a valid email address");
+      }
+
+      // Country Code
+      if (!countryCode.value) {
+        showError(
+          countryCode,
+          "country_code_error",
+          "Please select a country code",
+        );
+      }
+
+      // Phone Number
+      if (!phone.value.trim()) {
+        showError(phone, "phone_error", "Phone number is required");
+      } else if (!/^[0-9]{6,15}$/.test(phone.value.trim())) {
+        showError(phone, "phone_error", "Please enter a valid phone number");
+      }
+
+      // Date of Birth
+      if (!dob.value) {
+        showError(dob, "dob_error", "Date of birth is required");
+      }
+
+      // Gender
+      if (!gender.value) {
+        showError(gender, "gender_error", "Please select your gender");
+      }
+
+      // Password
+      if (!password.value) {
+        showError(password, "password_error", "Password is required");
+      } else if (password.value.length < 8) {
+        showError(
+          password,
+          "password_error",
+          "Password must be at least 8 characters",
+        );
+      } else if (
+        !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#?!@$%^&*-]).{8,}$/.test(
+          password.value,
+        )
+      ) {
+        showError(
+          password,
+          "password_error",
+          "Password must contain uppercase, lowercase, number and special character",
+        );
+      }
+
+      // Confirm Password
+      if (!confirmPassword.value) {
+        showError(
+          confirmPassword,
+          "confirm_password_error",
+          "Please confirm your password",
+        );
+      } else if (password.value !== confirmPassword.value) {
+        showError(
+          confirmPassword,
+          "confirm_password_error",
+          "Passwords do not match",
+        );
+      }
+
+      // Terms
+      if (!terms.checked) {
+        showError(
+          null,
+          "terms_error",
+          "You must accept the Terms & Privacy Policy",
+        );
+      }
+
+      if (isValid) {
+        console.log("Form Valid");
+        // Fetch api for registration form
+        try {
+          const response = await fetch("/api/v1/auth/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              first_name: firstName.value.trim(),
+              last_name: lastName.value.trim(),
+              email: email.value.trim(),
+              country_code: countryCode.value,
+              phone: phone.value.trim(),
+              dob: dob.value,
+              gender: gender.value,
+              password: password.value,
+              confirm_password: confirmPassword.value,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            showFlash(data.message || "Registration Failed", "error")
+
+            return;
+          }
+
+
+          showFlash(data.message || "Registration Successful", "success")
+          // Redirect to login page
+          window.location.href = "/login";
+        } catch (error) {
+          console.error("Registration error:", error);
+          showFlash("Something went wrong. Please try again.", "error")
+        }
+      }
+    });
+  </script>
 
 </html>

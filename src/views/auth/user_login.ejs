@@ -394,107 +394,107 @@
         : "fa-regular fa-eye text-sm";
     });
   </script>
+  <%- include("../error_flash") %>
+    <!--! Validation Script  -->
+    <script>
+      const loginForm = document.getElementById("loginform");
+      const email = document.getElementById("email");
+      const password = document.getElementById("password");
 
-  <!--! Validation Script  -->
-  <script>
-    const loginForm = document.getElementById("loginform");
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
+      const emailError = document.getElementById("emailError");
+      const passwordError = document.getElementById("passwordError");
 
-    const emailError = document.getElementById("emailError");
-    const passwordError = document.getElementById("passwordError");
-
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      let isValid = true;
-
-      // Reset errors
-      emailError.classList.add("hidden");
-      passwordError.classList.add("hidden");
-
-      email.classList.remove("border-red-500");
-      password.classList.remove("border-red-500");
-
-      // Email validation
-      if (!email.value.trim()) {
-        emailError.textContent = "Email address is required";
-        emailError.classList.remove("hidden");
-        email.classList.add("border-red-500");
-        isValid = false;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
-        emailError.textContent = "Please enter a valid email address";
-        emailError.classList.remove("hidden");
-        email.classList.add("border-red-500");
-        isValid = false;
-      }
-
-      // Password validation
-      if (!password.value.trim()) {
-        passwordError.textContent = "Password is required";
-        passwordError.classList.remove("hidden");
-        password.classList.add("border-red-500");
-        isValid = false;
-      } else if (password.value.length < 8) {
-        passwordError.textContent = "Password must be at least 8 characters";
-        passwordError.classList.remove("hidden");
-        password.classList.add("border-red-500");
-        isValid = false;
-      } else if (
-        !/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/.test(
-          password.value,
-        )
-      ) {
-        passwordError.textContent =
-          "Password shoud contain one lowercase , uppercase , digit and special symbol";
-        passwordError.classList.remove("hidden");
-        password.classList.add("border-red-500");
-        isValid = false;
-      }
-
-      if (!isValid) {
+      loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-      } else {
-        try {
-          const response = await fetch("/api/v1/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-              email: email.value.trim(),
-              password: password.value,
-            }),
-          });
+        let isValid = true;
 
-          const resp = await response.json();
-          if (!response.ok) {
-            alert(data.message);
-            return;
-          }
-          console.log(resp)
-          const data = resp.data;
-          const user = data.user;
-          const role = user.role;
-          const token = data.accessToken;
-          //   // const user = resp.data.user;
-          //   console.log(data);
-          localStorage.setItem("accessToken", token);
-          if (role === 'PATIENT') {
-            window.location.href = "/patient/dashboard";
-          } else if (role === 'DOCTOR') {
-            {
-              window.location.href = "/doctor/dashboard";
-            }
-          }
+        // Reset errors
+        emailError.classList.add("hidden");
+        passwordError.classList.add("hidden");
 
-        } catch (error) {
-          console.error(error);
-          alert("Something went wrong");
+        email.classList.remove("border-red-500");
+        password.classList.remove("border-red-500");
+
+        // Email validation
+        if (!email.value.trim()) {
+          emailError.textContent = "Email address is required";
+          emailError.classList.remove("hidden");
+          email.classList.add("border-red-500");
+          isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+          emailError.textContent = "Please enter a valid email address";
+          emailError.classList.remove("hidden");
+          email.classList.add("border-red-500");
+          isValid = false;
         }
-      }
-    });
-  </script>
+
+        // Password validation
+        if (!password.value.trim()) {
+          passwordError.textContent = "Password is required";
+          passwordError.classList.remove("hidden");
+          password.classList.add("border-red-500");
+          isValid = false;
+        } else if (password.value.length < 8) {
+          passwordError.textContent = "Password must be at least 8 characters";
+          passwordError.classList.remove("hidden");
+          password.classList.add("border-red-500");
+          isValid = false;
+        } else if (
+          !/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/.test(
+            password.value,
+          )
+        ) {
+          passwordError.textContent =
+            "Password shoud contain one lowercase , uppercase , digit and special symbol";
+          passwordError.classList.remove("hidden");
+          password.classList.add("border-red-500");
+          isValid = false;
+        }
+
+        if (!isValid) {
+          e.preventDefault();
+        } else {
+          try {
+            const response = await fetch("/api/v1/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                email: email.value.trim(),
+                password: password.value,
+              }),
+            });
+
+            const resp = await response.json();
+            if (!response.ok) {
+              showFlash(resp.message, "error")
+              return;
+            }
+            console.log(resp)
+            const data = resp.data;
+            const user = data.user;
+            const role = user.role;
+            const token = data.accessToken;
+            //   // const user = resp.data.user;
+            //   console.log(data);
+            localStorage.setItem("accessToken", token);
+            if (role === 'PATIENT') {
+              window.location.href = "/patient/dashboard";
+            } else if (role === 'DOCTOR') {
+              {
+                window.location.href = "/doctor/dashboard";
+              }
+            }
+
+          } catch (error) {
+            console.error(error);
+            showFlash("Something went wrong", "error");
+          }
+        }
+      });
+    </script>
 </body>
 
 </html>

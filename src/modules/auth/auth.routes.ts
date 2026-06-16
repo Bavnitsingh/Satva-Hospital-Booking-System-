@@ -34,6 +34,8 @@ export class AuthRoutes implements Routes {
 
       ]
     }))
+    this.router.get('/country', this.authController.getCountryCodes);
+
 
     this.router.get('/google/callback', passport.authenticate('google', {
       scope: ['profile',

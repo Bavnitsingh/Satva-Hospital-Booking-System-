@@ -61,10 +61,10 @@
     <!-- Tab Navigation -->
     <div class="border-b border-gray-200">
       <nav class="-mb-px flex gap-6" aria-label="Tabs">
-        <button onclick="setTab(this,'today')"   class="tab-btn pb-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-teal-600 hover:border-teal-300 transition">Today's Schedule</button>
-        <button onclick="setTab(this,'weekly')"  class="tab-btn pb-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-teal-600 hover:border-teal-300 transition">Weekly Schedule</button>
-        <button onclick="setTab(this,'patients')" class="tab-btn tab-active pb-3 text-sm font-medium text-teal-600 border-b-2 border-teal-600 transition">Patient List</button>
-        <button onclick="setTab(this,'records')" class="tab-btn pb-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-teal-600 hover:border-teal-300 transition">Medical Records</button>
+        <button onclick="setTab('today')"   class="tab-btn tab-today-btn pb-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-teal-600 hover:border-teal-300 transition">Today's Schedule</button>
+        <button onclick="setTab('weekly')"  class="tab-btn  tab-weekly-btn pb-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-teal-600 hover:border-teal-300 transition">Weekly Schedule</button>
+        <button onclick="setTab('patients')" class="tab-btn tab-patients-btn pb-3 text-sm font-medium text-teal-600 border-b-2 border-teal-600 transition">Patient List</button>
+        <!-- <button onclick="setTab('records')" class="tab-btn pb-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-teal-600 hover:border-teal-300 transition">Medical Records</button> -->
       </nav>
     </div>
 
@@ -82,21 +82,36 @@
   <script>
     const tabMap = { today: 'tab-today', weekly: 'tab-weekly', patients: 'tab-patients', records: 'tab-records' };
 
-    function setTab(btn, key) {
-      // hide all panels
+    
+    const tab_panel=localStorage.getItem('tab-panel')
+    console.log(tab_panel)
+    if(!tab_panel){
+    
+      setTab('today')
+    }
+    else{
+    setTab(tab_panel)}
+
+    function setTab(key) {
+      let btn=document.querySelector(`.${tabMap[key]}-btn`)
+
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-      // reset all buttons
+   
       document.querySelectorAll('.tab-btn').forEach(b => {
         b.classList.remove('text-teal-600', 'border-teal-600');
         b.classList.add('text-gray-500', 'border-transparent');
       });
       // show selected
+      localStorage.setItem("tab-panel",key) 
+    
       document.getElementById(tabMap[key]).classList.remove('hidden');
+      
       btn.classList.remove('text-gray-500', 'border-transparent');
       btn.classList.add('text-teal-600', 'border-teal-600');
     }
   </script>
   <script src="/js/doctor.js"></script>
+  <script src="/js/today_schedule.js"></script>
 
 </body>
 </html>

@@ -33,6 +33,7 @@ private init():void{
     
     this.router.post("/profile/update",doctorAuth,uploadDoctorProfile.single('profile_image'),this.doctorController.postProfileData)
     this.router.get("/get-hospital-details",doctorAuth,this.doctorController.getHospitalDetails)
+    this.router.patch("/appointment-status-update",doctorAuth,this.doctorController.updateAppointmentStatus)
 
 } 
 

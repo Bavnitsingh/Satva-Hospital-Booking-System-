@@ -21,7 +21,7 @@ passport.use(
         }
         const email = profile.emails[0].value;
 
-        
+        console.log(accessToken)
         req.session.googleToken=accessToken
         let user = await userRepo.findUserByEmail(email);
        

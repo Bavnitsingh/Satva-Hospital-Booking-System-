@@ -5,9 +5,9 @@ import { DoctorService } from "./doctor.service.js"
 
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js"
 import { IDoctorSchedule } from "./doctor.interface.js"
-import logger from "../../common/logger.js"
+
 import { BadRequestException, InternalServerException, NotFoundException } from "../../common/helpers/http-exception.js"
-import { resolveObjectURL } from "node:buffer"
+
 
 
 
@@ -144,5 +144,16 @@ generalResponse({res,data:[hospitalDetails],message:'Successfully Fetched Data',
 
 })
 
+
+updateAppointmentStatus=catchAsync(async(req:Request,res:Response)=>{
+
+    const user_id=(req as AuthRequest).user.id
+
+    const {appointment_id,appointment_status}=req.body
+    const result=await this.doctorService.updateAppointmentStatus(user_id,appointment_id,appointment_status)
+    generalResponse({res,data:[],message:'Successfully Updated',statusCode:200})
+    
+
+})
 
 }

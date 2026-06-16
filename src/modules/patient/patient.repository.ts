@@ -389,8 +389,6 @@ export class PatientRepository {
   }
 
   async getDoctorSchedule(doctorId: number, date: string) {
-
-    console.log(doctorId, date);
     const rows: any = await query(
       `
         select *
@@ -401,7 +399,6 @@ export class PatientRepository {
       [doctorId, date],
     );
 
-    console.log(rows[0])
     return rows[0];
   }
 

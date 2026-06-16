@@ -270,9 +270,9 @@ export class PatientService {
     const start_time = data.start_time;
 
     const taken = await this.repo.isSlotTaken(
-     doctorId,
-     slot_date,
-     start_time
+      data.doctor_id,
+      data.slot_date,
+      data.start_time,
     );
 
     if (taken) {

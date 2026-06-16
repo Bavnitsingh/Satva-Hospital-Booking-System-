@@ -4,16 +4,14 @@ import { generalResponse } from "../../common/helpers/general-response.js";
 import { PatientService } from "./patient.service.js";
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js";
 import logger from "../../common/logger.js";
+import {
+  IBookAppointment,
+  ISearchDoctorsQuery,
+  IUpdatePatientProfile,
+} from "./types/patient.js";
 
 export class PatientController {
   private service = new PatientService();
-
-
-// for static file serving
-  showDashboard = catchAsync(async (req: Request, res: Response) => {
- res.render("patient/patient-dashboard")
-});
-
 
   // Profile
   getProfile = catchAsync(async (req: Request, res: Response) => {
@@ -28,7 +26,7 @@ export class PatientController {
 
 updateProfile = catchAsync(async (req: Request, res: Response) => {
   const files = req.files as any;
-  const body = req.body;
+  const body = req.body as IUpdatePatientProfile;
 
   const profileImage = files?.profile_upload?.[0];
   const policyDocument = files?.policy_document?.[0];
@@ -109,7 +107,8 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
 
   // Doctor search
   searchDoctors = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.searchDoctors(req.query as any);
+    const query = (req as any).validatedQuery as ISearchDoctorsQuery;
+    const result = await this.service.searchDoctors(query);
     generalResponse({
       res,
       data: result,
@@ -146,6 +145,7 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
   });
 
   bookAppointment = catchAsync(async (req: Request, res: Response) => {
+    const dto = req.body as IBookAppointment;
     const result = await this.service.bookAppointment(
       (req as AuthRequest).user.id,
       req.body,
@@ -228,7 +228,8 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
 
   // Notifications
   getNotifications = catchAsync(async (req: Request, res: Response) => {
-    const unreadOnly = req.query.unread === "true";
+    const { unread } = (req as any).validatedQuery as { unread?: string };
+    const unreadOnly = unread === "true";
     const result = await this.service.getNotifications(
       (req as AuthRequest).user.id,
       unreadOnly,
@@ -265,10 +266,8 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
   });
 
   getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
-    const { doctorId, date } = req.query as { doctorId: string; date: string };
-    if (!doctorId || !date)
-      throw new Error("doctorId and date (YYYY-MM-DD) are required");
-    const result = await this.service.getAvailableSlots(Number(doctorId), date);
+    const { doctor_id, date } = (req as any).validatedQuery as { doctor_id: number; date: string };
+    const result = await this.service.getAvailableSlots(doctor_id, date);
     generalResponse({
       res,
       data: result,

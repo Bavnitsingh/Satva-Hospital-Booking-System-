@@ -237,4 +237,50 @@ export class AuthService {
   async getLatestOtpService(email: string) {
     return await this.userRepo.getLatestOtp(email);
   }
+
+
+ async registerStaff(data: any) {
+    const existingUser = await this.userRepo.findUserByEmail(data.email);
+
+    if (existingUser) {
+      throw new Error("Email already exists");
+    }
+
+    const hashedPassword = await getHashedPassword(data.password);
+
+    const user = await this.userRepo.createUser(
+      data.email,
+      hashedPassword,
+      "STAFF",
+    );
+
+   const staff =  await this.userRepo.createStaff({
+      user_id: user.user_id,
+      hospital_id: data.hospitalId,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      gender: data.gender,
+     staff_role : data.staff_role,
+     contact_number:data.contact_number,
+     dob:data.dob,
+     address_line1:data.address_line1,
+     address_line2:data.address_line2 ?? ''
+    });
+
+    
+    
+
+    const accessToken = sign({
+      id: user.user_id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return {
+      accessToken,
+      user,
+      staff
+    };
+  }
+
 }

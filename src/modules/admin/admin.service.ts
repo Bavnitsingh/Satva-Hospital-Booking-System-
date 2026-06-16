@@ -126,4 +126,20 @@ async editDoctor(doctor_id: number, data: any) {
     const stats = await this.adminRepo.fetchStatsOfHospital(hospital_id);
     return stats;
   }
+
+
+  async fetchAppointment(appointment_id:number){
+    const appointment = await this.adminRepo.fetchAppointmentDetails(appointment_id);
+    return appointment;
+  }
+
+  async fetchStaff (hospital_id:number){
+    const staff = await this.adminRepo.fetchStaffs(hospital_id);
+    return staff;
+  }
+
+  async getStaffById(staff_id:number){
+    const staff = await this.adminRepo.getStaffById(staff_id);
+    return staff;
+  }
 }

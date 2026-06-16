@@ -38,8 +38,8 @@
     <!-- Summary Mini Cards -->
     <div class="grid grid-cols-4 gap-4 mb-6">
       <div class="border border-gray-200 rounded-xl p-5">
-        <div id="stat-total" class="text-2xl font-bold text-gray-900 mb-1">—</div>
-        <div class="text-sm text-gray-500">Total Today</div>
+        <div id="stat-reschedule" class="text-2xl font-bold text-gray-900 mb-1">—</div>
+        <div class="text-sm text-gray-500">Rescheduled</div>
       </div>
       <div class="border border-gray-200 rounded-xl p-5">
         <div id="stat-completed" class="text-2xl font-bold text-green-600 mb-1">—</div>
@@ -122,6 +122,11 @@
         <p class="text-sm text-gray-400">No appointments found</p>
       </div>
 
+
+
+
+
+      
       <!-- Appointment List -->
       <div id="appointment-list" class="divide-y divide-gray-100"></div>
 
@@ -252,16 +257,20 @@
     }
 
     // ─── UPDATE STATS ────────────────────────────────────────────────
-    function updateStats(appointments, total) {
-      document.getElementById('stat-total').textContent =
-        total.toLocaleString();
-      document.getElementById('stat-completed').textContent =
-        appointments.filter(a => a.appointment_status === 'COMPLETED').length;
-      document.getElementById('stat-upcoming').textContent =
-        appointments.filter(a => ['CONFIRMED','CHECKED_IN'].includes(a.appointment_status)).length;
-      document.getElementById('stat-cancelled').textContent =
-        appointments.filter(a => a.appointment_status === 'CANCELLED').length;
-    }
+   function updateStats(appointments, total) {
+  // 1. Updated to filter and calculate only RESCHEDULED appointments
+  document.getElementById('stat-reschedule').textContent =
+    appointments.filter(a => a.appointment_status === 'RESCHEDULED').length;
+    
+  document.getElementById('stat-completed').textContent =
+    appointments.filter(a => a.appointment_status === 'COMPLETED').length;
+    
+  document.getElementById('stat-upcoming').textContent =
+    appointments.filter(a => ['CONFIRMED','CHECKED_IN'].includes(a.appointment_status)).length;
+    
+  document.getElementById('stat-cancelled').textContent =
+    appointments.filter(a => a.appointment_status === 'CANCELLED').length;
+}
 
     // ─── PAGINATION ──────────────────────────────────────────────────
     function updatePagination() {
@@ -302,7 +311,7 @@
     // ─── LOAD DOCTORS FOR FILTER DROPDOWN ────────────────────────────
     async function loadDoctorFilter() {
       try {
-        const res = await fetch(`${API_BASE}/fetchDoctors`, {
+        const res = await fetch(`${API_BASE}/showDoctors`, {
           headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         if (!res.ok) return;
@@ -321,6 +330,10 @@
         console.warn('Could not load doctor filter:', err);
       }
     }
+
+
+
+    
 
     // ─── MAIN FETCH ──────────────────────────────────────────────────
     async function loadAppointments() {

@@ -328,4 +328,29 @@ async createDoctor(data: any) {
       : null;
   }
 
+
+
+async createStaff(data: any) {
+  const result:any = await query(
+    `INSERT INTO staff 
+      (user_id, hospital_id, first_name, last_name, gender, staff_role,contact_number,dob,address_line1,address_line2)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?,?,?)`,
+    [
+      data.user_id, data.hospital_id, data.first_name, data.last_name,
+      data.gender,  data.staff_role, data.contact_number, data.dob,data.address_line1,data.address_line2 ?? ''
+    ]
+  );
+
+    const insertId = result[0]?.insertId ?? result.insertId;
+  // fetch and return the created doctor so doctor_id is available
+  const rows:any = await query(
+    `SELECT * FROM staff WHERE staff_id = ?`,
+    [insertId]
+  );
+
+  return rows[0]; // { staff_id, user_id, hospital_id, ... }
+}
+
+
+
 }

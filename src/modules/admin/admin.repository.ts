@@ -185,7 +185,8 @@ ORDER BY al.created_at DESC
 FROM appointments a 
 INNER JOIN doctors d ON a.doctor_id = d.doctor_id 
 LEFT JOIN patients p ON a.patient_id = p.patient_id
-WHERE d.hospital_id = ?; `,[hospital_id]);
+
+WHERE d.hospital_id = ? order by a.start_time ; `,[hospital_id]);
  return rows;
   };
  
@@ -290,5 +291,31 @@ WHERE d.hospital_id = ?;
       return stats;
     } 
 
+
+    async fetchAppointmentDetails(appointment_id:number){
+      const appointment = await query(`SELECT 
+    a.appointment_id,
+    CONCAT(d.first_name, ' ', d.last_name) AS doctor_name,
+    a.start_time,
+    a.appointment_type,
+    a.appointment_status,
+    CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+FROM appointments a 
+INNER JOIN doctors d ON a.doctor_id = d.doctor_id 
+LEFT JOIN patients p ON a.patient_id = p.patient_id
+WHERE a.appointment_id = ?;`,[appointment_id]);
+return appointment;
+    }
+
+    async fetchStaffs(hospital_id:number){
+      const staffs = await query(`select * from staff where hospital_id= ?`,[hospital_id]);
+      return staffs;
+
+    }
+
+    async getStaffById(staff_id:number){
+      const staff = await query(`select * from staff where staff_id = ? `,[staff_id]);
+      return staff;
+    }
 
 }

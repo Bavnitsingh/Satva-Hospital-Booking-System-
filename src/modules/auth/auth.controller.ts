@@ -185,4 +185,18 @@ export class AuthController {
 
     }
   }
+
+
+registerStaff = catchAsync(async (req: Request, res: Response) => {
+
+    const result = await this.authService.registerStaff(req.body);
+
+
+    generalResponse({
+      res,
+      data: result,
+      message: "Staff Registration Successful",
+      statusCode: 201,
+    });
+  });
 }

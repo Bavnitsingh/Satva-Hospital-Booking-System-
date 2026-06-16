@@ -5,9 +5,11 @@ import { AdminService } from "./admin.service.js";
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js";
 import { Hospital } from "./interfaces/hospital.interface.js";
 import { calculatePercentageChange } from "./utils/stats.utils.js";
+import { AuthService } from "../auth/auth.service.js";
 
 export class AdminController{
     private adminService = new AdminService();
+    private authService = new AuthService();
  
     fetchDoctors = catchAsync(async (req:Request,res:Response)=>{
          const user_id = (req as AuthRequest).user.id;
@@ -69,6 +71,34 @@ export class AdminController{
       statusCode: 201,
     });
   });
+
+
+
+addStaff = catchAsync(async(req:Request,res:Response)=>{
+   const {
+      firstName, lastName, email, password,
+      gender, dob, staff_role, contact_number,address_line1,address_line2
+      
+    } = req.body;
+    const user_id    = (req as AuthRequest).user.id;
+    const hospitalId = await this.adminService.getHospitalId(user_id);
+
+  const result = await this.authService.registerStaff({
+      firstName, lastName, email, password,
+      gender, dob,staff_role,
+      hospitalId,address_line1,address_line2,
+    contact_number
+    });
+
+    generalResponse({
+      res,
+      data:result,
+      message:`Staff Added successfully`,
+      statusCode:201
+
+    })
+})
+
 
     viewDoctor = catchAsync (async(req:Request,res:Response)=>{
         const doctor_id =  Number(req.params.doctorId);
@@ -235,4 +265,43 @@ fetchStatsOfHospital = catchAsync(async (req: Request, res: Response) =>  {
     statusCode: 200
   });
 });
+
+
+
+fetchAppointment = catchAsync(async(req:Request,res:Response)=>{
+  const appointment_id = Number(req.params.appointment_id);
+  const appointment = await this.adminService.fetchAppointment(appointment_id);
+  generalResponse({
+    res,
+    data:appointment,
+    message:'Appointment fetched successfully',
+    statusCode:200
+  })
+})
+
+
+fetchStaff = catchAsync(async(req:Request,res:Response)=>{
+ const user_id = (req as AuthRequest).user.id;
+  const hospital_id = await this.adminService.getHospitalId(user_id);
+
+const staff = await this.adminService.fetchStaff(hospital_id);
+generalResponse({
+  res,
+  data:staff,
+  message:"Staff fetched successfully",
+  statusCode:200
+})
+
+})
+
+getStaffById = catchAsync(async(req:Request,res:Response)=>{
+  const staff_id = Number(req.params.staff_id);
+  const staff = await this.adminService.getStaffById(staff_id);
+  generalResponse({
+    res,
+    data:staff,
+    message:'staff fetched successfully',
+    statusCode:200
+  })
+})
 }

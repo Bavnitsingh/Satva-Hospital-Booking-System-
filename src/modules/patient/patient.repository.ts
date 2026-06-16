@@ -1,31 +1,21 @@
 import { query } from "../../database/connection.js";
+import { IUpdatePatientProfile } from "./types/patient.js";
 
-export interface PatientSchema {
-  patient_id: string;
-
+export interface IPatient {
+  patient_id: number;
   user_id: number;
-
   first_name: string;
   last_name: string;
-
   country_code: string;
   mobile: string;
-
   address_line1?: string | null;
   address_line2?: string | null;
-
   blood_group?: string | null;
-
   profile_path?: string | null;
-
   dob: Date;
-
   gender: "MALE" | "FEMALE" | "OTHER";
-
   is_insured: boolean;
-
   created_at: Date;
-
   updated_at: Date;
 }
 
@@ -40,7 +30,7 @@ type SearchDoctorsFilters = {
 
 type UpdatePatientProfileDto = Partial<
   Pick<
-    PatientSchema,
+    IPatient,
     | "first_name"
     | "last_name"
     | "address_line1"
@@ -71,7 +61,7 @@ export class PatientRepository {
     return rows[0]?.patient_id ?? null;
   }
 
-  async updateProfile(patientId: string, data: UpdatePatientProfileDto) {
+  async updateProfile(patientId: number, data: UpdatePatientProfileDto) {
     const entries = Object.entries(data).filter(
       ([, value]) => value !== undefined,
     );
@@ -94,9 +84,6 @@ export class PatientRepository {
       [...values, patientId],
     );
   }
-
-
-
 
   async updateFamilyMember(
     memberId: number,
@@ -225,13 +212,12 @@ export class PatientRepository {
     );
   }
 
-
   async addFamilyMember(
     patientId: number | string,
     data: {
       relation: string;
-      firstName: string;
-      lastName: string;
+      first_name: string;
+      last_name: string;
       dob?: string;
       mobile?: string;
       email?: string;
@@ -252,8 +238,8 @@ export class PatientRepository {
       [
         patientId,
         data.relation,
-        data.firstName,
-        data.lastName,
+        data.first_name,
+        data.last_name,
         data.dob ?? null,
         data.mobile ?? null,
         data.email ?? null,
@@ -366,6 +352,8 @@ export class PatientRepository {
     slotDate: string,
     startTime: string,
   ): Promise<boolean> {
+
+    console.log(doctorId, slotDate, startTime)
     const rows: any = await query(
       `select 1 from appointments
        where doctor_id = ? and slot_date = ? and start_time = ?
@@ -376,33 +364,45 @@ export class PatientRepository {
     return rows.length > 0;
   }
 
+
   async getBookedSlots(doctorId: number, date: string): Promise<string[]> {
     const rows: any = await query(
-      `select time_format(start_time, '%h:%i') as slot_time
-        from appointments
-        where doctor_id = ? and slot_date = ?
-        and appointment_status not in ('cancelled')`,
+      `
+      SELECT TIME_FORMAT(start_time,'%H:%i') AS slot_time
+      FROM appointments
+      WHERE doctor_id = ?
+      AND slot_date = ?
+      AND appointment_status NOT IN ('CANCELLED')
+      `,
       [doctorId, date],
     );
+
     return rows.map((r: any) => r.slot_time);
   }
 
   async isDoctorOnLeave(doctorId: number, date: string): Promise<boolean> {
     const rows: any = await query(
-      `select 1 from doctor_leaves
-where doctor_id = ? and ? between from_date and to_date limit 1`,
+      `select 1 from doctor_leaves where doctor_id = ? and ? between from_date and to_date limit 1`,
       [doctorId, date],
     );
     return rows.length > 0;
   }
 
-  // Doctor schedule helpers
-  async getDoctorSchedule(doctorId: number) {
-    return query(
-      `SELECT * FROM doctor_schedules WHERE doctor_id = ?
-ORDER BY FIELD(working_day,'MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY')`,
-      [doctorId],
+  async getDoctorSchedule(doctorId: number, date: string) {
+
+    console.log(doctorId, date);
+    const rows: any = await query(
+      `
+        select *
+        from doctor_schedules
+        where doctor_id = ?
+        and working_date = ?
+        `,
+      [doctorId, date],
     );
+
+    console.log(rows[0])
+    return rows[0];
   }
 
   async createAppointment(data: {
@@ -415,6 +415,8 @@ ORDER BY FIELD(working_day,'MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','S
     chiefComplaint?: string | undefined;
     confirmationNo: string;
   }) {
+
+    console.log("----------------------------------",data)
     const result: any = await query(
       `INSERT INTO appointments
 (doctor_id, patient_id, slot_date, start_time, end_time,
@@ -505,7 +507,7 @@ VALUES (?, ?, ?, ?, ?, ?, 'PAYMENT_PENDING', ?, ?)`,
     await query(
       `
         UPDATE payments
-        SET payment_status=?
+        SET status=?
         WHERE payment_id=?
         `,
       [status, paymentId],
@@ -556,12 +558,12 @@ VALUES (?, ?, ?)`,
 
   async getAppointmentById(appointmentId: number) {
     const rows: any = await query(
-      `SELECT a.*,
-d.first_name AS doctor_first_name, d.last_name AS doctor_last_name,
-d.consultation_fee, d.currency_code
-FROM appointments a
-JOIN doctors d ON a.doctor_id = d.doctor_id
-WHERE a.appointment_id = ?`,
+      `select a.*,
+        d.first_name as doctor_first_name, d.last_name as doctor_last_name,
+        d.consultation_fee, d.currency_code
+        from appointments a
+        join doctors d on a.doctor_id = d.doctor_id
+        where a.appointment_id = ?`,
       [appointmentId],
     );
     return rows[0] ?? null;
@@ -577,10 +579,10 @@ WHERE a.appointment_id = ?`,
     },
   ) {
     return query(
-      `UPDATE appointments
-SET slot_date = ?, start_time = ?, end_time = ?,
-appointment_status = 'CONFIRMED', updated_at = UTC_TIMESTAMP()
-WHERE appointment_id = ?`,
+      `update appointments
+        set slot_date = ?, start_time = ?, end_time = ?,
+        appointment_status = 'CONFIRMED', updated_at = UTC_TIMESTAMP()
+        where appointment_id = ?`,
       [data.slotDate, data.startTime, data.endTime, appointmentId],
     );
   }
@@ -589,8 +591,8 @@ WHERE appointment_id = ?`,
   async cancelAppointment(appointmentId: number) {
     return query(
       `UPDATE appointments
-SET appointment_status = 'CANCELLED', updated_at = UTC_TIMESTAMP()
-WHERE appointment_id = ?`,
+        set appointment_status = 'CANCELLED', updated_at = UTC_TIMESTAMP()
+        where appointment_id = ?`,
       [appointmentId],
     );
   }
@@ -599,17 +601,17 @@ WHERE appointment_id = ?`,
 
   async failPayment(paymentId: number) {
     return query(
-      `UPDATE payments SET status = 'FAILED', updated_at = UTC_TIMESTAMP()
-WHERE payment_id = ?`,
+      `update payments set status = 'FAILED', updated_at = UTC_TIMESTAMP()
+        where payment_id = ?`,
       [paymentId],
     );
   }
 
   async initiateRefund(paymentId: number) {
     return query(
-      `UPDATE payments
-SET status = 'REFUNDED', refund_status = TRUE, updated_at = UTC_TIMESTAMP()
-WHERE payment_id = ? AND status = 'SUCCESS'`,
+      `update payments
+      SET status = 'REFUNDED', refund_status = TRUE, updated_at = UTC_TIMESTAMP()
+      where payment_id = ? and status = 'SUCCESS'`,
       [paymentId],
     );
   }
@@ -631,11 +633,11 @@ WHERE payment_id = ? AND status = 'SUCCESS'`,
   async markPaymentRefunded(paymentId: number) {
     await query(
       `
-      UPDATE payments
-      SET
-        status = 'REFUNDED',
+      update payments
+      set
+        status = 'refunded',
         refund_status = 1
-      WHERE payment_id = ?
+      where payment_id = ?
     `,
       [paymentId],
     );
@@ -684,16 +686,16 @@ WHERE payment_id = ? AND status = 'SUCCESS'`,
 
   async getMedicalRecordById(recordId: number, patientId: number) {
     const rows: any = await query(
-      `SELECT
+      `select
             mr.*,
             d.first_name AS doctor_first_name, d.last_name AS doctor_last_name,
             a.slot_date, a.start_time, a.appointment_type,
             pr.prescription_id, pr.notes AS prescription_notes
-            FROM medical_records mr
-            JOIN doctors d ON mr.doctor_id = d.doctor_id
-            JOIN appointments a ON mr.appointment_id = a.appointment_id
-            LEFT JOIN prescriptions pr ON mr.record_id = pr.record_id
-            WHERE mr.record_id = ? AND mr.patient_id = ?`,
+            from medical_records mr
+            join doctors d on mr.doctor_id = d.doctor_id
+            join appointments a on mr.appointment_id = a.appointment_id
+            left join prescriptions pr on mr.record_id = pr.record_id
+            where mr.record_id = ? and mr.patient_id = ?`,
       [recordId, patientId],
     );
     if (!rows[0]) return null;
@@ -727,16 +729,16 @@ WHERE payment_id = ? AND status = 'SUCCESS'`,
 
   async markNotificationRead(notificationId: number, patientId: number) {
     return query(
-      `UPDATE notifications SET is_read = TRUE, updated_at = UTC_TIMESTAMP()
-WHERE notification_id = ? AND patient_id = ?`,
+      `update notifications set is_read = TRUE, updated_at = UTC_TIMESTAMP()
+        where notification_id = ? and user_id = ?`,
       [notificationId, patientId],
     );
   }
 
   async markAllNotificationsRead(patientId: number) {
     return query(
-      `UPDATE notifications SET is_read = TRUE, updated_at = UTC_TIMESTAMP()
-WHERE patient_id = ?`,
+      `update notifications set is_read = TRUE, updated_at = UTC_TIMESTAMP()
+        where user_id = ?`,
       [patientId],
     );
   }

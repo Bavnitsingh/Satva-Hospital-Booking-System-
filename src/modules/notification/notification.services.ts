@@ -1,57 +1,46 @@
-import {
-  CreateINotification,
-  INotification
-} from "./notification.interface.js";
+import { INotification } from "./notification.interface.js";
+import { NotificationRepository } from "./notification.repository.js";
 
-import { INotificationRepository } from "./notification.repository.js";
-
-export class INotificationService {
+export class NotificationService {
 
   private notificationRepository =
-    new INotificationRepository();
+    new NotificationRepository();
 
-
-  async createINotification(
+  async createNotification(
     data: INotification
-  ): Promise<{
-    notification_id: number;
-  }> {
+  ): Promise<{ notification_id: number }> {
 
     return await this.notificationRepository
-      .createNotification(data) as;
+      .createNotification(data);
 
   }
 
-
-  async getINotifications(
-    userId: number
+  async getNotifications(
+    receiverId: number
   ): Promise<INotification[]> {
 
     return await this.notificationRepository
-      .getINotifications(userId);
+      .getINotifications(receiverId);
 
   }
 
-
-  async getUnreadINotifications(
-    userId: number
+  async getUnreadNotifications(
+    receiverId: number
   ): Promise<INotification[]> {
 
     return await this.notificationRepository
-      .getUnreadINotifications(userId);
+      .getUnreadINotifications(receiverId);
 
   }
-
 
   async getUnreadCount(
-    userId: number
+    receiverId: number
   ): Promise<number> {
 
     return await this.notificationRepository
-      .getUnreadCount(userId);
+      .getUnreadCount(receiverId);
 
   }
-
 
   async markAsRead(
     notificationId: number
@@ -62,13 +51,12 @@ export class INotificationService {
 
   }
 
-
   async markAllAsRead(
-    userId: number
+    receiverId: number
   ): Promise<void> {
 
     await this.notificationRepository
-      .markAllAsRead(userId);
+      .markAllAsRead(receiverId);
 
   }
 

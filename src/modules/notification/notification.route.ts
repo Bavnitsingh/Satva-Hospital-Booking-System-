@@ -1,68 +1,45 @@
 import { Router } from "express";
 import { Routes } from "../../common/interfaces/routes.interfaces.js";
+import { NotificationController } from "./notification.controller.js";
 
 export class NotificationRouter implements Routes {
 
-    path: string = "notification";
+    path: string = "/notifications";
 
     router = Router();
+
+    private notificationController =
+        new NotificationController();
 
     constructor() {
         this.init();
     }
 
-    init() {
-        // Get all notifications
+    private init(): void {
+
         this.router.get(
             "/",
+            this.notificationController.getNotifications
         );
 
-        // Get unread notifications
         this.router.get(
             "/unread",
+            this.notificationController.getUnreadNotifications
         );
 
-        // Get unread notifications count
         this.router.get(
             "/unread/count",
+            this.notificationController.getUnreadCount
         );
 
-        // Get single notification (optional)
-        this.router.get(
-            "/:notificationId",
-        );
-
-        // Mark a notification as read
         this.router.patch(
             "/:notificationId/read",
+            this.notificationController.markAsRead
         );
 
-        // Mark all notifications as read
         this.router.patch(
             "/read-all",
-            // notificationController.markAllAsRead
+            this.notificationController.markAllAsRead
         );
-
-        // Delete a notification (optional)
-        this.router.delete(
-            "/:notificationId",
-            // authMiddleware,
-            // notificationController.deleteNotification
-        );
-
-        // Delete all notifications (optional)
-        this.router.delete(
-            "/",
-            // authMiddleware,
-            // notificationController.deleteAllNotifications
-        );
-
-
-
     }
-
-
-
-
-
 }

@@ -21,7 +21,7 @@ private init():void{
 
     // use doctorAuth
     this.router.get('/get-doctor',doctorAuth,this.doctorController.getDoctor)
-    this.router.get('/get-appointment',doctorAuth,this.doctorController.getTodaysAppointment)
+    // this.router.get('/get-appointment',doctorAuth,this.doctorController.getTodaysAppointment)
     this.router.get('/get-dashboard-data',doctorAuth,this.doctorController.getDoctorDashboard)
     this.router.get('/get-weekly-schedule',doctorAuth,this.doctorController.getWeeklySchedule)
     this.router.get("/get-patient-list",doctorAuth,this.doctorController.getPatientList)
@@ -32,6 +32,8 @@ private init():void{
     // this.router.post('/post-medical-records',doctorAuth,this.doctorController.postPatientMedicalRecords)
     
     this.router.post("/profile/update",doctorAuth,uploadDoctorProfile.single('profile_image'),this.doctorController.postProfileData)
+    this.router.get("/get-hospital-details",doctorAuth,this.doctorController.getHospitalDetails)
+
 } 
 
 

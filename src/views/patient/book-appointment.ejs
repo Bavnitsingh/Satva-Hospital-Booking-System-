@@ -6,6 +6,10 @@
     <title>Satva — Book Appointment</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import { checkJwt } from "/js/check-jwt.js";
+      checkJwt();
+    </script>
     <script>
       tailwind.config = {
         theme: {
@@ -556,7 +560,7 @@
           <a href="/patient/dashboard" class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-2xl font-semibold transition">
             Go to Dashboard
           </a>
-          <a href="/patient/appointments" class="bg-primary-light text-primary hover:bg-green-100 px-6 py-3 rounded-2xl font-semibold transition">
+          <a href="/appointment/my-appointments" class="bg-primary-light text-primary hover:bg-green-100 px-6 py-3 rounded-2xl font-semibold transition">
             View Appointments
           </a>
         </div>
@@ -1544,7 +1548,7 @@
               Go to Dashboard
             </a>
             <a
-              href="/patient/appointments"
+              href="/appointment/my-appointments"
               class="bg-primary-light text-primary hover:bg-green-100 px-6 py-3 rounded-2xl font-semibold transition"
             >
               View Appointments
@@ -1949,7 +1953,7 @@
 
         try {
           const res = await fetch(
-            `/api/v1/patient/doctors/slots?doctorId=${state.selectedDoctor.doctor_id}&date=${date}`,
+            `/api/v1/appointment/slots?doctorId=${state.selectedDoctor.doctor_id}&date=${date}`,
             {
               method: "GET",
               headers: {
@@ -2244,4 +2248,3 @@
     </script>
   </body>
 </html>
-

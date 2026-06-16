@@ -34,7 +34,7 @@ async function loadDashboard() {
     localStorage.setItem("username",profile.data.first_name)
 
     const appointmentsRes = await fetch(
-      "/api/v1/patient/appointments",
+      "/api/v1/appointments/patient",
       {
         method: "GET",
         headers: {
@@ -117,4 +117,3 @@ console.log(app_date);
 }
 
 document.addEventListener("DOMContentLoaded", loadDashboard);
-loadDashboard();

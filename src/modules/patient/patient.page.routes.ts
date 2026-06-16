@@ -18,11 +18,10 @@ export class PatientPageRoutes implements Routes {
     this.router.get("/profile", this.page.renderProfile);
     this.router.get("/doctors/:doctorId", this.page.renderDoctorProfile);
     this.router.get("/doctors", this.page.renderDoctors);
-    this.router.get("/book-appointment", this.page.renderBookAppointment);
     this.router.get("/notifications", this.page.renderNotifications);
     this.router.get("/payments", this.page.renderPayments);
     this.router.get("/records/:recordId", this.page.renderRecordDetails);
     this.router.get("/records", this.page.renderRecords);
-    this.router.get("/my-appointments", this.page.renderPatientAppointments);
+    this.router.get("/my-appointments",this.page.renderMyAppointments)
   }
 }

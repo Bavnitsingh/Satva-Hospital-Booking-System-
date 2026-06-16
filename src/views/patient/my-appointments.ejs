@@ -590,7 +590,7 @@
       `;
 
         try {
-          const res = await fetch("/api/v1/patient/appointments", {
+          const res = await fetch("/api/v1/appointments/patient", {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
@@ -645,7 +645,7 @@
 
         try {
           const res = await fetch(
-            `/api/v1/patient/appointments/${state.cancelAppointmentId}/cancel`,
+            `/api/v1/appointments/${state.cancelAppointmentId}/cancel`,
             {
               method: "PATCH",
               headers: {

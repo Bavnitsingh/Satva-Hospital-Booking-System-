@@ -49,7 +49,7 @@ export class UserRepository {
   }
 
   async findUserById(user_id: number) {
-    const result: any = await query("Select * from users where user_id=?", [
+    const result: any = await query("select * from users where user_id=?", [
       user_id,
     ]);
 
@@ -60,19 +60,37 @@ export class UserRepository {
     email: string,
     passwordHash: string,
     google_sub: string,
+    firstName: string = '',
+    lastName: string = ''
   ) {
     const result: any = await query(
-      `Insert into users(email,password_hash,role,google_sub) values(?,?,'PATIENT',?)`,
+      `insert into users(email,password_hash,role,google_sub) values(?,?,'PATIENT',?)`,
       [email, passwordHash, google_sub],
     );
 
     const userId = result.insertId;
 
-    const rows: any = await query(`SELECT * FROM users where user_id=?`, [
+    // Create a base patient record to avoid "Patient not found" errors
+    await query(
+      `insert into patients (user_id, first_name, last_name, country_code, mobile, dob, gender) values (?, ?, ?, '', '', '2000-01-01', 'MALE')`,
+      [userId, firstName, lastName]
+    );
+
+    const rows: any = await query(`select * from users where user_id=?`, [
       userId,
     ]);
 
     return rows[0];
+  }
+
+  async ensurePatientExists(userId: number, firstName: string, lastName: string) {
+    const existing: any = await query(`select patient_id from patients where user_id = ?`, [userId]);
+    if (!existing.length) {
+      await query(
+        `insert into patients (user_id, first_name, last_name, country_code, mobile, dob, gender) values (?, ?, ?, '', '', '2000-01-01', 'MALE')`,
+        [userId, firstName, lastName]
+      );
+    }
   }
 
   async createPatient(
@@ -111,8 +129,8 @@ export class UserRepository {
     await query(
       `
         update users
-        set last_login_at = UTC_TIMESTAMP(),
-        updated_at = UTC_TIMESTAMP()
+        set last_login_at = utc_timestamp(),
+        updated_at = utc_timestamp()
         where user_id = ?
         `,
       [userId],
@@ -122,7 +140,7 @@ export class UserRepository {
   async createDoctor(data: any) {
     const result = await query(
       `
-        INSERT INTO doctors (
+        insert into doctors (
             user_id,
             hospital_id,
             first_name,
@@ -134,7 +152,7 @@ export class UserRepository {
             created_at,
             updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        values (?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, current_timestamp)
         `,
       [
         data.user_id,
@@ -196,7 +214,7 @@ export class UserRepository {
 
     if (!user) return false;
     const sql = `
-            INSERT INTO otp_verifications
+            insert into otp_verifications
             (
                
                 user_id,
@@ -205,13 +223,13 @@ export class UserRepository {
                 expires_at,
                 created_at
             )
-            VALUES
+            values
             (
                 ?,
                 ?,
                  'PASSWORD_RESET' ,
-                NOW() + INTERVAL 2 MINUTE,
-                NOW()
+                now() + interval 2 minute,
+                now()
             )
         `;
 
@@ -291,13 +309,13 @@ export class UserRepository {
   ) {
     // Delete existing sessions for the user
     await query(
-      `DELETE FROM user_sessions WHERE user_id = ?`,
+      `delete from user_sessions where user_id = ?`,
       [userId]
     );
 
     // Insert the new session
     const sql = `
-    INSERT INTO user_sessions
+    insert into user_sessions
     (
       user_id,
       refresh_token,
@@ -306,7 +324,7 @@ export class UserRepository {
       ip_address,
       auth_provider
     )
-    VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 15 DAY), ?, ?, ?)
+    values (?, ?, date_add(utc_timestamp(), interval 15 day), ?, ?, ?)
   `;
 
     await query(sql, [
@@ -322,11 +340,11 @@ export class UserRepository {
     refreshToken: string,
   ): Promise<UserSession | null> {
     const sql = `
-    SELECT *
-    FROM user_sessions
-    WHERE refresh_token = ?
-      AND expires_at > UTC_TIMESTAMP()
-    LIMIT 1
+    select *
+    from user_sessions
+    where refresh_token = ?
+      and expires_at > utc_timestamp()
+    limit 1
   `;
 
     const sessions: any = await query(sql, [refreshToken]);

@@ -13,18 +13,21 @@ export class AppointmentRepository {
   }
 
   async isSlotTaken(doctorId: number, slotDate: string, startTime: string): Promise<boolean> {
+    console.log(doctorId,slotDate,startTime)
     const result: any = await query(
       `select appointment_id from appointments where doctor_id = ? and slot_date = ? and start_time = ? and appointment_status not in ('CANCELLED', 'REJECTED')`,
       [doctorId, slotDate, startTime]
     );
+
     return result.length > 0;
   }
 
   async getDoctorSchedule(doctorId: number, date: string): Promise<any> {
-    const dayOfWeek = new Date(date).toLocaleString('en-US', { weekday: 'long' });
+    // const dayOfWeek = new Date(date).toLocaleString('en-US', { weekday: 'long' });
+    // console.log(dayOfWeek)
     const result: any = await query(
-      `select * from doctor_schedules where doctor_id = ? and day_of_week = ?`,
-      [doctorId, dayOfWeek]
+      `select * from doctor_schedules where doctor_id = ? and working_date = ?`,
+      [doctorId, date]
     );
     return result.length ? result[0] : null;
   }
@@ -116,7 +119,7 @@ export class AppointmentRepository {
 
   async isDoctorOnLeave(doctorId: number, date: string): Promise<boolean> {
     const result: any = await query(
-      `select leave_id from doctor_leaves where doctor_id = ? and ? between start_date and end_date`,
+      `select leave_id from doctor_leaves where doctor_id = ? and ? between from_date and to_date`,
       [doctorId, date]
     );
     return result.length > 0;

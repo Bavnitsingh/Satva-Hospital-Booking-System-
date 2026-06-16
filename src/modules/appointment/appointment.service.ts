@@ -30,7 +30,7 @@ export class AppointmentService {
   // Book appointment
   async bookAppointment(userId: number, data: IBookAppointment) {
     const patientId = await this.resolvePatientId(userId);
-
+    console.log(data,patientId)
     const today = new Date().toISOString().split("T")[0];
 
     if (data.slot_date === today) {
@@ -53,7 +53,7 @@ export class AppointmentService {
     if (new Date(data.slot_date) > maxDate) {
       throw new Error("Cannot book more than 60 days in advance");
     }
-
+    
     const taken = await this.repo.isSlotTaken(
       data.doctor_id,
       data.slot_date,
@@ -151,7 +151,7 @@ export class AppointmentService {
     if (diffMs < 4 * 60 * 60 * 1000) {
       throw new Error("Cannot reschedule within 4 hours of the appointment");
     }
-
+    console.log(data)
     // Check new slot availability
     const taken = await this.repo.isSlotTaken(
       appt.doctor_id,

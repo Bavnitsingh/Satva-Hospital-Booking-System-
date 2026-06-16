@@ -34,3 +34,11 @@ export async function query(
   const [rows] = await pool.execute(sql, params);
   return rows;
 }
+
+export async function query2(
+  sql:string,
+  params:any[]=[]
+){
+  const [rows]=await pool.query(sql,params);
+  return rows
+}

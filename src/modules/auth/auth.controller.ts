@@ -1,32 +1,18 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../common/helpers/catch-async.js";
 import { generalResponse } from "../../common/helpers/general-response.js";
 import { AuthService } from "./auth.service.js";
 import { HttpException } from "../../common/helpers/http-exception.js";
 import { country } from "../../common/countryCodes.js";
+import { AuthRequest } from "../../common/middlewares/auth.middleware.js";
 
 export class AuthController {
   private authService = new AuthService();
 
   //SERVING STATIC PAGES
 
-  showLoginPage = async (req: Request, res: Response) => {
-    try {
-      res.render("auth/user_login");
-    } catch (e) {
-      throw e;
-    }
-  };
-
-  showRegisterPage = async (req: Request, res: Response) => {
-    try {
-      res.render("auth/user_register");
-    } catch (e) {
-      throw e;
-    }
-  };
-
   login = catchAsync(async (req: Request, res: Response) => {
+
     const { refreshToken, ...data } = await this.authService.login(req.body);
 
     res.cookie("refreshToken", refreshToken, {
@@ -35,7 +21,6 @@ export class AuthController {
       sameSite: "strict",
       maxAge: 15 * 24 * 60 * 60 * 1000,
     });
-
     generalResponse({
       res,
       data: data,
@@ -75,67 +60,33 @@ export class AuthController {
       statusCode: 201,
     });
   });
-  listSendOtpPage = async (req: Request, res: Response) => {
-    try {
-      res.render("auth/forgot-password-page");
-    } catch (e) {
-      throw e;
-    }
-  };
 
-  showMail = async (req: Request, res: Response) => {
-    try {
-      if (!req.session.isEmailVerified || !req.session.email) {
-        return res.redirect("/api/v1/auth/forgot-password-page");
-      }
+  sendOtp = catchAsync(async (req: Request, res: Response) => {
+    const { email } = req.body;
 
-      const otp = await this.authService.getLatestOtpService(req.session.email);
-
-      console.log("hdasfds", otp);
-      if (!otp) {
-        return res.redirect("api/v1/auth/forgot-password-page");
-      }
-
-      console.log("OTP to show:", otp);
-      return res.render("auth/show-email", { otp_code: otp });
-    } catch (e) {
-      console.log(e);
-      return generalResponse({
+    if (!email) {
+      generalResponse({
         res,
         data: null,
-        message: "Failed to load OTP page",
-        statusCode: 500,
-      });
-    }
-  };
-  showEnterOtpPage = async (req: Request, res: Response) => {
-    if (!req.session.email) {
-      return res.redirect("/forgot-password-page.ejs");
-    }
-    return res.render("auth/enter-otp-page");
-  };
-
-  sendOtp = async (req: Request, res: Response) => {
-    const email = req.body.email;
-    if (!email)
-      return generalResponse({
-        res,
-        message: "Email required",
+        message: "Email is required",
         statusCode: 400,
       });
+      return;
+    }
 
-    const response = await this.authService.getOtp(email);
+    const otpResult: any = await this.authService.getOtp(email);
 
-    req.session.isEmailVerified = true;
     req.session.email = email;
-    req.session.user_id = response.data.user_id;
+    req.session.isEmailVerified = true;
+    req.session.user_id = otpResult.data.user_id;
 
-    return generalResponse({
+    generalResponse({
       res,
+      data: null,
       message: "OTP sent successfully",
       statusCode: 200,
     });
-  };
+  });
 
   verifyOtp = async (email: string, otp: string) => {
     let response = await this.authService.verifyOtp(email, otp);
@@ -177,11 +128,11 @@ export class AuthController {
 
         req.session.isEmailVerified = false;
 
-        if (isReset.success) {
+        if (isReset) {
           return generalResponse({
             res,
             data: null,
-            message: "password has been changed Successfully!!",
+            message: "password hasbeen changed Successfully!!",
             statusCode: 200,
           });
         } else {
@@ -218,4 +169,14 @@ export class AuthController {
   getCountryCodes = async (req: Request, res: Response) => {
     return res.json(country);
   };
+  logout = catchAsync(async (req: Request, res: Response) => {
+    await this.authService.logout((req as AuthRequest).user.id);
+
+    req.session?.destroy(() => { });
+
+    generalResponse({
+      res,
+      message: "Logged out successfully",
+    });
+  });
 }

@@ -7,6 +7,8 @@ import { PatientPageRoutes } from "../modules/patient/patient.page.routes.js";
 import { DoctorRoutes } from "../modules/doctor/doctor.routes.js";
 import { SuperAdminRoutes } from "../modules/super_admin/super.admin.routes.js";
 import { HospitalRoutes } from "../modules/hospital/hospital.routes.js";
+import { TelemedicineRoutes } from "../modules/telemedicine/telemedicine.routes.js";
+import { AuthPageRoutes } from "../modules/auth/auth.page.routes.js";
 
 export function buildApiRouter(): Router {
   const router = Router();
@@ -20,6 +22,8 @@ export function buildApiRouter(): Router {
     new DoctorRoutes(),
     new SuperAdminRoutes(),
     new HospitalRoutes(),
+    new TelemedicineRoutes(),
+    new DoctorRoutes(),
   ];
 
   router.get("/", (req, res) => {
@@ -30,9 +34,6 @@ export function buildApiRouter(): Router {
     router.use(route.path, route.router);
   });
 
-  routes.forEach((route) => {
-    router.use(route.path, route.router);
-  });
 
   return router;
 }

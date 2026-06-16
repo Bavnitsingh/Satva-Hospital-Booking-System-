@@ -6,6 +6,11 @@
     <title>Satva - Patient Dashboard</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import { checkJwt } from "/js/check-jwt.js";
+
+  checkJwt();
+</script>
     <script>
       tailwind.config = {
         theme: {
@@ -183,8 +188,8 @@
               </div>
             </div>
 
-            <a
-              href="/logout"
+            <button
+              id="logoutBtn"
               class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition"
             >
               <svg
@@ -201,7 +206,7 @@
                 />
               </svg>
               Logout
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -209,7 +214,7 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Welcome -->
-      <section class="mb-10 animate-fadeUp">
+      <section class="mb-10 mt-6 animate-fadeUp">
         <h2 class="font-display text-4xl text-dark mb-2">
           Welcome Back,
           <span class="text-primary" id="patient_name"></span>
@@ -370,9 +375,17 @@
     </main>
 
     <%- include('../partials/footer') %>
-
+    <script type="module">
+      import { logout } from "/js/logout.js";
+      const logout_btn = document.getElementById("logoutBtn");
+      logout_btn.addEventListener("click", async function (e) {
+        e.preventDefault();
+        await logout();
+        
+      });
+    </script>
     <script>
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       function statusPill(status) {
         const map = {
           CONFIRMED: "bg-green-100 text-green-700",
@@ -394,6 +407,10 @@
               "Content-Type": "application/json",
             },
           });
+
+          if(profileRes.status === 401){
+            throw new Error("Unauthorized");
+          }
 
           const profile = await profileRes.json();
           console.log(profile);
@@ -420,7 +437,7 @@
 
           localStorage.setItem(
             "username",
-            profile.data?.first_name || "Patient",
+            `${profile.data?.first_name} ${profile.data?.last_name}` || "Patient",
           );
 
           const appointmentsRes = await fetch("/api/v1/patient/appointments", {
@@ -544,6 +561,10 @@
             notifications.data?.length || 0;
         } catch (err) {
           console.error("Dashboard Error:", err);
+          if(err.message == "Unauthorized"){
+            localStorage.removeItem("accessToken");
+            window.location.replace("/login");
+          }
         }
       }
 

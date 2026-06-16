@@ -10,7 +10,11 @@ export class PatientPageController {
   };
 
   renderDoctors = (req: Request, res: Response) => {
-    res.render("patient/doctors", { user: (req as any).user });
+    res.render("patient/doctor-list", { user: (req as any).user });
+  };
+
+  renderDoctorProfile = (req: Request, res: Response) => {
+    res.render("patient/doctor-profile", { user: (req as any).user });
   };
 
   renderBookAppointment = (req: Request, res: Response) => {

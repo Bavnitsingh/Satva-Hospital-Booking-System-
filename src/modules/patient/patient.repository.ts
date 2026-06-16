@@ -95,40 +95,8 @@ export class PatientRepository {
     );
   }
 
-  async getFamilyMembers(patientId: number) {
-    return query(
-      "select * from family_members where patient_id = ? order by created_at asc",
-      [patientId],
-    );
-  }
 
-  async addFamilyMember(
-    patientId: number,
-    data: {
-      relation: string;
-      firstName: string;
-      lastName: string;
-      dob?: string;
-      mobile?: string;
-      email?: string;
-    },
-  ) {
-    const result: any = await query(
-      `insert into  family_members (patient_id, relation, first_name, last_name, dob, mobile, email)
-       values (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        patientId,
-        data.relation,
-        data.firstName,
-        data.lastName,
-        data.dob ?? null,
-        data.mobile ?? null,
-        data.email ?? null,
-      ],
-    );
-    console.log(result);
-    return result;
-  }
+
 
   async updateFamilyMember(
     memberId: number,
@@ -158,6 +126,141 @@ export class PatientRepository {
       `delete from family_members where member_id = ? and patient_id = ?`,
       [memberId, patientId],
     );
+  }
+
+  async getInsuranceByPatientId(patientId: number | string) {
+    const rows: any = await query(
+      `
+    SELECT *
+    FROM patient_insurance_details
+    WHERE patient_id = ?
+    LIMIT 1
+    `,
+      [patientId],
+    );
+
+    return rows[0] ?? null;
+  }
+
+  async upsertInsuranceDetails(
+    patientId: number | string,
+    data: {
+      policyNumber: string;
+      policyCompany: string;
+      policyDocumentPath?: string | null;
+    },
+  ) {
+    const existing = await this.getInsuranceByPatientId(patientId);
+
+    if (existing) {
+      await query(
+        `
+      UPDATE patient_insurance_details
+      SET
+        policy_number = ?,
+        policy_company = ?,
+        policy_document_path = ?,
+        updated_at = UTC_TIMESTAMP()
+      WHERE patient_id = ?
+      `,
+        [
+          data.policyNumber,
+          data.policyCompany,
+          data.policyDocumentPath ?? null,
+          patientId,
+        ],
+      );
+
+      return this.getInsuranceByPatientId(patientId);
+    }
+
+    const result: any = await query(
+      `
+    INSERT INTO patient_insurance_details (
+      patient_id,
+      policy_number,
+      policy_company,
+      policy_document_path
+    )
+    VALUES (?, ?, ?, ?)
+    `,
+      [
+        patientId,
+        data.policyNumber,
+        data.policyCompany,
+        data.policyDocumentPath ?? null,
+      ],
+    );
+
+    return result;
+  }
+
+  async deleteInsuranceDetails(patientId: number | string) {
+    return query(
+      `
+    DELETE FROM patient_insurance_details
+    WHERE patient_id = ?
+    `,
+      [patientId],
+    );
+  }
+
+  async countFamilyMembers(patientId: number | string) {
+    const rows: any = await query(
+      `
+    SELECT COUNT(*) AS total
+    FROM family_members
+    WHERE patient_id = ?
+    `,
+      [patientId],
+    );
+
+    return Number(rows[0]?.total || 0);
+  }
+
+  async getFamilyMembers(patientId: number) {
+    return query(
+      "select * from family_members where patient_id = ? order by created_at asc",
+      [patientId],
+    );
+  }
+
+
+  async addFamilyMember(
+    patientId: number | string,
+    data: {
+      relation: string;
+      firstName: string;
+      lastName: string;
+      dob?: string;
+      mobile?: string;
+      email?: string;
+    },
+  ) {
+    const total = await this.countFamilyMembers(patientId);
+    if (total >= 3) {
+      throw new Error("Maximum 3 family members are allowed");
+    }
+
+    const result: any = await query(
+      `
+    insert into family_members
+      (patient_id, relation, first_name, last_name, dob, mobile, email)
+    values
+      (?, ?, ?, ?, ?, ?, ?)
+    `,
+      [
+        patientId,
+        data.relation,
+        data.firstName,
+        data.lastName,
+        data.dob ?? null,
+        data.mobile ?? null,
+        data.email ?? null,
+      ],
+    );
+
+    return result;
   }
 
   async searchDoctors(filters: SearchDoctorsFilters) {

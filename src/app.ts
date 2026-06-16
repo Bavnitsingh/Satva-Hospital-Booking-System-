@@ -10,6 +10,9 @@ import { fileURLToPath } from "url";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
+import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
+import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
+
 
 export function buildApp(): Application {
   const app: Express = express();
@@ -17,11 +20,11 @@ export function buildApp(): Application {
   let __filePath = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filePath);
 
-  //configuring ejs settings ___________________________
+  //configuring ejs settings 
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "views"));
 
-  app.use(express.static(path.join(__dirname, "upload")));
+  app.use(express.static(path.join(__dirname, "uploads")));
   app.use(express.static(path.join(__dirname, "../public")));
 
   // GLOBAL MIDDLEWARE
@@ -43,6 +46,8 @@ export function buildApp(): Application {
   // CREATE FOLDER FOR FILE UPLOADING
   const parentpath = path.dirname(import.meta.dirname);
   const folderpath = path.join(parentpath, "uploads");
+
+  app.use("/uploads", express.static(path.join(parentpath, "uploads")));
 
   if (!fs.existsSync(folderpath)) {
     //uploads folder
@@ -67,10 +72,13 @@ export function buildApp(): Application {
   );
   console.log(path.join(__dirname, "views"));
 
-  //
   app.use(passport.initialize());
   app.use(passport.session());
-  app.use("/patient", new PatientPageRoutes().router);
+  // HANDLES GLOBAL ERROR
+  app.use(errorMiddleware);
+
+
+
 
   //ROUTER
   app.use("/api/v1", buildApiRouter());
@@ -79,8 +87,12 @@ export function buildApp(): Application {
     res.render("index");
   });
 
-  // HANDLES GLOBAL ERROR
-  app.use(errorMiddleware);
+  app.use("/patient", new PatientPageRoutes().router);
+  app.use('/doctor', new DoctorPageRoutes().router);
+
+  app.use("/", new AuthPageRoutes().router);
+
+
 
   return app;
 }

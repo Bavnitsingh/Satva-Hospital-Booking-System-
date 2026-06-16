@@ -27,29 +27,71 @@ export class PatientService {
   }
 
   // profile
-  async getProfile(userId: number) {
-    const patient = await this.repo.getPatientByUserId(userId);
-    if (!patient) throw new Error("Patient not found");
-    return patient;
+async getProfile(userId: number) {
+  const patient = await this.repo.getPatientByUserId(userId);
+  if (!patient) throw new Error("Patient not found");
+
+  const insurance = await this.repo.getInsuranceByPatientId(patient.patient_id);
+  const familyMembers = await this.repo.getFamilyMembers(patient.patient_id);
+
+  return {
+    ...patient,
+    insurance,
+    familyMembers,
+  };
+}
+
+
+
+async updateProfile(userId: number, data: any) {
+  const patientId: any = await this.resolvePatientId(userId);
+
+  const allowed = [
+    "first_name",
+    "last_name",
+    "address_line1",
+    "address_line2",
+    "blood_group",
+    "profile_path",
+    "is_insured",
+    "country_code",
+    "mobile",
+    "dob",
+    "gender",
+  ];
+
+  const filtered = Object.fromEntries(
+    Object.entries(data).filter(([k]) => allowed.includes(k)),
+  );
+
+  const isInsured =
+    filtered.is_insured === true ||
+    filtered.is_insured === "true" ||
+    filtered.is_insured === 1 ||
+    filtered.is_insured === "1";
+
+  filtered.is_insured = isInsured ? 1 : 0;
+
+  await this.repo.updateProfile(patientId, filtered);
+
+  if (isInsured) {
+    const policyNumber = data.policy_number?.trim();
+    const policyCompany = data.policy_company?.trim();
+    const policyDocumentPath = data.policy_document_path || null;
+
+    if (policyNumber && policyCompany) {
+      await this.repo.upsertInsuranceDetails(patientId, {
+        policyNumber,
+        policyCompany,
+        policyDocumentPath,
+      });
+    }
+  } else {
+    await this.repo.deleteInsuranceDetails(patientId);
   }
 
-  async updateProfile(userId: number, data: any) {
-    const patientId: any = await this.resolvePatientId(userId);
-    const allowed = [
-      "first_name",
-      "last_name",
-      "address_line1",
-      "address_line2",
-      "blood_group",
-      "profile_path",
-      "is_insured",
-    ];
-    const filtered = Object.fromEntries(
-      Object.entries(data).filter(([k]) => allowed.includes(k)),
-    );
-    await this.repo.updateProfile(patientId, filtered);
-    return this.repo.getPatientByUserId(userId);
-  }
+  return this.repo.getPatientByUserId(userId);
+}
 
   // Family members
   async getFamilyMembers(userId: number) {

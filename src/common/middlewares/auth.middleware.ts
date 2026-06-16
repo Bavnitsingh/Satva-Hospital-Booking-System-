@@ -31,12 +31,12 @@ export async function authenticate(
 
     // Access token valid
     const payload = verifyToken(accessToken ?? "");
-
     (req as AuthRequest).user = payload;
 
     return next();
 
   } catch (error: any) {
+    console.log(error)
 
     // Token is invalid but NOT expired
     if (error.name !== "TokenExpiredError") {
@@ -51,6 +51,7 @@ export async function authenticate(
     // Access token expired
     const refreshToken = req.cookies.refreshToken;
 
+    console.log(req.cookies.refreshToken)
     if (!refreshToken) {
       res.status(401).json({
         statusCode: 401,
@@ -90,7 +91,7 @@ export async function authenticate(
         role: refreshPayload.role
       });
 
-      console.log("new Access Token is Created")
+    console.log("new Access Token is Created")
       // Send new token back to frontend
       res.setHeader(
         "x-access-token",

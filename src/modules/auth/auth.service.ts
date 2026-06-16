@@ -109,7 +109,6 @@ export class AuthService {
       "PATIENT",
     );
 
-    console.log(data);
     await this.userRepo.createPatient(
       user.user_id,
       data.first_name,
@@ -130,10 +129,11 @@ export class AuthService {
 
   async login(data: any, sessionInfo?: SessionInfo) {
     const user = await this.userRepo.findUserByEmail(data.email);
-
     if (!user) {
       throw new Error("Invalid email or password");
     }
+
+
     const isPasswordValid = await comparePassword(
       data.password,
       user.password_hash,
@@ -180,8 +180,6 @@ export class AuthService {
     }
 
     const canGetOtp = await this.userRepo.canGetOtp(email);
-
-    console.log(canGetOtp);
     if (!canGetOtp) {
       throw new BadRequestException("OTP already sent. Please wait.");
     }
@@ -189,7 +187,6 @@ export class AuthService {
     const otp = crypto.randomInt(100000, 999999).toString();
 
     await this.userRepo.deleteOldOtp(email);
-
     await this.userRepo.saveOtp(otp, email);
 
     return {
@@ -237,5 +234,8 @@ export class AuthService {
   async verifyPassAndCpass(password: String, confirm_password: string) {
     if (password === confirm_password) return true;
     return false;
+  }
+  async logout(userId: number) {
+    await this.userRepo.logout(userId);
   }
 }

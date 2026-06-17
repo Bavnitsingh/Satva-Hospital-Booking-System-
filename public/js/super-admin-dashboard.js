@@ -105,8 +105,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${item.status}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="/api/v1/hospital/view-hospital/${item.id}" class="text-blue-600 hover:text-blue-900 transition-colors mr-3"><i class="fa-solid fa-eye"></i> View</a>
-                            <a href="/api/v1/hospital/edit-hospital/${item.id}" class="text-primary hover:text-primary-dark transition-colors mr-3"><i class="fa-solid fa-pen"></i> Edit</a>
+                            <a href="/hospital/view-hospital/${item.id}" class="text-blue-600 hover:text-blue-900 transition-colors mr-3"><i class="fa-solid fa-eye"></i> View</a>
+                            <a href="/hospital/edit-hospital/${item.id}" class="text-primary hover:text-primary-dark transition-colors mr-3"><i class="fa-solid fa-pen"></i> Edit</a>
                         </td>
                     `;
         } else if (type === "admins") {
@@ -122,8 +122,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${item.status}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="/api/v1/super-admin/view-admin/${item.id}" class="text-blue-600 hover:text-blue-900 transition-colors mr-3"><i class="fa-solid fa-eye"></i> View</a>
-                            <a href="/api/v1/super-admin/edit-admin/${item.id}" class="text-primary hover:text-primary-dark transition-colors mr-3"><i class="fa-solid fa-pen"></i> Edit</a>
+                            <a href="/super-admin/view-admin/${item.id}" class="text-blue-600 hover:text-blue-900 transition-colors mr-3"><i class="fa-solid fa-eye"></i> View</a>
+                            <a href="/super-admin/edit-admin/${item.id}" class="text-primary hover:text-primary-dark transition-colors mr-3"><i class="fa-solid fa-pen"></i> Edit</a>
                         </td>
                     `;
         }
@@ -267,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("logoutBtn").addEventListener("click", () => {
     window.showFlash("Logging out of Super Admin Portal...", "success");
     setTimeout(() => {
-      window.location.href = "/api/v1/super-admin/login";
+      window.location.href = "/super-admin/login";
     }, 1500);
   });
 

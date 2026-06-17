@@ -345,7 +345,7 @@
           const data = await res.json();
           if (res.ok) {
             setFlash(data.message, "success");
-            location.href = "/api/v1/super-admin/dashboard";
+            location.href = "/super-admin/dashboard";
           } else {
             showFlash(data.message, "error");
           }

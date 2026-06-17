@@ -35,7 +35,7 @@
     <!-- Navbar -->
     <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
-            <a href="/api/v1/super-admin/dashboard" class="flex items-center gap-2.5">
+            <a href="/super-admin/dashboard" class="flex items-center gap-2.5">
                 <div class="bg-primary rounded-lg p-1.5">
                     <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -44,7 +44,7 @@
                 <span class="text-xl font-bold text-gray-900 font-display">Satva</span>
             </a>
             <div class="flex items-center gap-4">
-                <a href="/api/v1/super-admin/dashboard" class="text-sm font-semibold text-gray-600 hover:text-primary transition flex items-center gap-2">
+                <a href="/super-admin/dashboard" class="text-sm font-semibold text-gray-600 hover:text-primary transition flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i>
                     Back to Dashboard
                 </a>
@@ -55,7 +55,7 @@
     <!-- Main Content -->
     <main class="flex-1 max-w-3xl w-full mx-auto px-6 py-10">
         <div class="mb-8 flex items-center gap-4">
-            <a href="/api/v1/super-admin/dashboard" class="p-2 rounded-full hover:bg-gray-200 transition text-gray-600">
+            <a href="/super-admin/dashboard" class="p-2 rounded-full hover:bg-gray-200 transition text-gray-600">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
             <div>
@@ -65,7 +65,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-            <form action="/api/v1/super-admin/create-admin" method="POST" class="space-y-6" novalidate>
+            <form action="/super-admin/create-admin" method="POST" class="space-y-6" novalidate>
                 <!-- First and Last Name -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -164,7 +164,7 @@
                 </div>
 
                 <div class="pt-4 flex items-center justify-end gap-4 border-t border-gray-100 mt-6">
-                    <a href="/api/v1/super-admin/dashboard" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Cancel</a>
+                    <a href="/super-admin/dashboard" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Cancel</a>
                     <button type="submit" class="bg-primary hover:bg-primary-dark text-white font-medium py-2.5 px-6 rounded-lg shadow-sm transition flex items-center gap-2">
                         <i class="fa-solid fa-check"></i> Create Admin
                     </button>
@@ -310,7 +310,7 @@
                             }
                             
                             setTimeout(() => {
-                                window.location.href = "/api/v1/super-admin/dashboard";
+                                window.location.href = "/super-admin/dashboard";
                             }, 500);
     
                         } catch (error) {

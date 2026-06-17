@@ -2,11 +2,11 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../common/helpers/catch-async.js";
 import { generalResponse } from "../../common/helpers/general-response.js";
 import { HospitalService } from "./hospital.service.js";
-import { SuperAdminService } from "../super_admin/super.admin.service.js";
+
 
 export class HospitalController {
   private hospitalService = new HospitalService();
-  private superAdminService = new SuperAdminService();
+
 
   getHospitalsList = catchAsync(async (req: Request, res: Response) => {
     try {
@@ -46,9 +46,6 @@ export class HospitalController {
     }
   });
 
-  getCreateHospital = catchAsync(async (req: Request, res: Response) => {
-    return res.render("super_admin/create-hospital");
-  });
 
   postCreateHospital = catchAsync(async (req: Request, res: Response) => {
     try {
@@ -70,19 +67,6 @@ export class HospitalController {
     }
   });
 
-  getEditHospital = catchAsync(async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id as string);
-      const hospital = await this.hospitalService.getHospitalById(id);
-      
-      // Map hospital_id to id for the frontend
-      hospital.id = hospital.hospital_id;
-      
-      return res.render("super_admin/edit-hospital", { hospital });
-    } catch (error) {
-      return res.redirect("/api/v1/super-admin/dashboard");
-    }
-  });
 
   putEditHospital = catchAsync(async (req: Request, res: Response) => {
     try {
@@ -105,16 +89,5 @@ export class HospitalController {
     }
   });
 
-  getViewHospital = catchAsync(async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id as string);
-      const hospital = await this.hospitalService.getHospitalById(id);
-      const admins = await this.superAdminService.getAdminsByHospitalId(id);
-      
-      hospital.id = hospital.hospital_id;
-      return res.render("super_admin/view-hospital", { hospital, admins });
-    } catch (error) {
-      return res.redirect("/api/v1/super-admin/dashboard");
-    }
-  });
+
 }

@@ -13,16 +13,13 @@ import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
 import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
 import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
 
-
-
-
 export function buildApp(): Application {
   const app: Express = express();
 
   let __filePath = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filePath);
 
-  //configuring ejs settings 
+  //configuring ejs settings
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "views"));
 
@@ -76,22 +73,17 @@ export function buildApp(): Application {
   app.use(passport.initialize());
   app.use(passport.session());
 
-
   //ROUTER
 
+  app.use("/patient", new PatientPageRoutes().router);
+  app.use("/doctor", new DoctorPageRoutes().router);
 
-  
+  //ROUTER
+  app.use("/api/v1", buildApiRouter());
+  app.use("/", new AuthPageRoutes().router);
 
-app.use("/patient", new PatientPageRoutes().router);
-app.use('/doctor', new DoctorPageRoutes().router);
-
-  //ROUTER 
-app.use("/api/v1", buildApiRouter())
-app.use("/", new AuthPageRoutes().router);
-  
-// HANDLES GLOBAL ERROR
-  app.use(errorMiddleware)
-  
+  // HANDLES GLOBAL ERROR
+  app.use(errorMiddleware);
 
   return app;
 }

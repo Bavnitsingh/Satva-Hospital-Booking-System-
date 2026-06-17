@@ -59,9 +59,7 @@ export class AppointmentService {
       data.slot_date,
       data.start_time,
     );
-    console.log("taken?",taken);
     if (taken) {
-      console.log("slot taken")
       throw new Error(
         "This slot is no longer available. Please choose another.",
       );
@@ -71,7 +69,6 @@ export class AppointmentService {
       data.doctor_id,
       data.slot_date,
     );
-    console.log("day_schedule",day_schedule);
     if (!day_schedule) {
       throw new Error("Doctor is not available on this date");
     }
@@ -80,10 +77,8 @@ export class AppointmentService {
       data.start_time,
       day_schedule.slot_duration,
     );
-    console.log("end_time",end_time)
 
     const confirmation_no = generateConfirmationNo();
-    console.log("conf no",confirmation_no);
     const appointment_id = await this.repo.createAppointment({
       doctor_id: data.doctor_id,
       patient_id: patient_id,
@@ -95,7 +90,6 @@ export class AppointmentService {
       confirmation_no: confirmation_no,
     });
 
-    console.log("appointment created",appointment_id)
 
     const payment_id = await this.repo.createPayment({
       appointment_id: appointment_id,
@@ -104,7 +98,6 @@ export class AppointmentService {
       status: "SUCCESS",
       transaction_id: `TXN-${Date.now()}`,
     });
-    console.log("payment_created",payment_id)
     await this.repo.updateAppointmentStatus(appointment_id, "CONFIRMED");
 
     await this.repo.logStatusHistory({

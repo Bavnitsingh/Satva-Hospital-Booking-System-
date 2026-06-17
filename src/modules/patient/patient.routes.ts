@@ -66,5 +66,7 @@ export class PatientRoutes implements Routes {
       "/notifications/read-all",
       this.patient.markAllNotificationsRead,
     );
+
+    this.router.delete("/family/:memberId", this.patient.deleteFamilyMember);
   }
 }

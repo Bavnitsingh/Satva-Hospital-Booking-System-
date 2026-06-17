@@ -7,7 +7,7 @@ export enum NotificationStatus {
 export interface INotification {
     notification_id?: number;
 
-    receiver_id: number;
+    user_id: number;
 
     receiver_role:
         | "PATIENT"

@@ -41,6 +41,9 @@ export class AppointmentRepository {
   }
 
   async createPayment(data: IPaymentData): Promise<number> {
+
+    console.log("this is data :", data);
+    
     const result: any = await query(
       `insert into payments (appointment_id, amount, payment_method, status, transaction_id) values (?, ?, ?, ?, ?)`,
       [data.appointmentId, data.amount, data.paymentMethod, data.status, data.transactionId]

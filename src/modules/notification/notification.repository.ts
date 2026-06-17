@@ -4,88 +4,86 @@ import { INotification } from "./notification.interface.js";
 export class NotificationRepository {
 
   async createNotification(
-  data: INotification
-): Promise<{ notification_id: number }> {
+    data: INotification
+  ): Promise<{ notification_id: number }> {
 
-  const sql = `
-    insert into notifications
-    (
-      receiver_id,
-      receiver_role,
-      notification_type,
-      title,
-      notification_message,
-      redirect_url
-    )
-    values (?, ?, ?, ?, ?, ?)
-  `;
+    const sql = `
+      insert into notifications
+      (
+        user_id,
+        notification_type,
+        title,
+        notification_message,
+        redirect_url
+      )
+      values (?, ?, ?, ?, ?)
+    `;
 
-  const result: any = await query(
-    sql,
-    [
-      data.receiver_id,
-      data.receiver_role,
-      data.notification_type,
-      data.title,
-      data.notification_message,
-      data.redirect_url ?? null
-    ]
-  );
+    const result: any = await query(
+      sql,
+      [
+        data.user_id,
+        data.notification_type,
+        data.title,
+        data.notification_message,
+        data.redirect_url ?? null
+      ]
+    );
 
-  return {
-    notification_id: result.insertId
-  };
-}
+    return {
+      notification_id: result.insertId
+    };
+  }
 
   async getINotifications(
-    receiverId: number
+    userId: number
   ): Promise<INotification[]> {
 
     const sql = `
       select *
       from notifications
-      where receiver_id = ?
+      where user_id = ?
       order by created_at desc
     `;
 
     return await query(
       sql,
-      [receiverId]
+      [userId]
     ) as INotification[];
   }
 
   async getUnreadINotifications(
-    receiverId: number
+    userId: number
   ): Promise<INotification[]> {
 
     const sql = `
       select *
       from notifications
-      where receiver_id = ?
+      where user_id = ?
       and is_read = false
       order by created_at desc
     `;
 
     return await query(
       sql,
-      [receiverId]
+      [userId]
     ) as INotification[];
   }
 
   async getUnreadCount(
-    receiverId: number
+    userId: number
   ): Promise<number> {
 
     const sql = `
       select count(*) as count
       from notifications
-      where receiver_id = ?
+      where user_id = ?
       and is_read = false
     `;
 
     const rows = await query(
       sql,
-      [receiverId]
+      [userId]
     ) as { count: number }[];
 
     return rows[0]?.count ?? 0;
@@ -108,19 +106,19 @@ export class NotificationRepository {
   }
 
   async markAllAsRead(
-    receiverId: number
+    userId: number
   ): Promise<void> {
 
     const sql = `
       update notifications
       set is_read = true
-      where receiver_id = ?
+      where user_id = ?
       and is_read = false
     `;
 
     await query(
       sql,
-      [receiverId]
+      [userId]
     );
   }
 

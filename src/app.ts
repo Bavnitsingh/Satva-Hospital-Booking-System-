@@ -13,6 +13,7 @@ import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
 import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
 import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
 import { AppointmentPageRoutes } from "./modules/appointment/appointment.page.routes.js";
+import { notFoundMiddleware } from "./common/middlewares/not-found.middlware.js";
 
 
 
@@ -90,6 +91,8 @@ app.use('/appointment', new AppointmentPageRoutes().router);
 app.use("/api/v1", buildApiRouter())
 app.use("/", new AuthPageRoutes().router);
   
+
+app.use(notFoundMiddleware);
 // HANDLES GLOBAL ERROR
   app.use(errorMiddleware)
   

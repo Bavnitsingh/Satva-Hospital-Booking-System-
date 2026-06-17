@@ -1,11 +1,12 @@
 export interface IBookAppointment {
-  doctor_id: number;
-  slot_date: string;
-  start_time: string;
-  appointment_type: "IN_PERSON" | "TELEMEDICINE";
-  chief_complaint?: string;
+  doctorId: number;
+  slotDate: string;
+  startTime: string;
+  appointmentType: "TELEMEDICINE" | "IN_PERSON";
+  chiefComplaint: string;
+  appointmentFor: string;
   amount: number;
-  payment_method: string;
+  paymentMethod: string;
 }
 
 export interface IRescheduleAppointment {

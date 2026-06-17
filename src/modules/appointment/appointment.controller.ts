@@ -9,8 +9,9 @@ export class AppointmentController {
 
   bookAppointment = catchAsync(async (req: Request, res: Response) => {
     const userId = (req as AuthRequest).user.id;
+    console.log(req.body);
     const result = await this.appointmentService.bookAppointment(userId, req.body);
-
+    console.log(result);
     generalResponse({
       res,
       data: result,

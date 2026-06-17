@@ -12,7 +12,6 @@ import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
 import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
 import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
-import { AppointmentPageRoutes } from "./modules/appointment/appointment.page.routes.js";
 
 
 
@@ -81,10 +80,10 @@ export function buildApp(): Application {
   //ROUTER
 
 
+  
 
 app.use("/patient", new PatientPageRoutes().router);
 app.use('/doctor', new DoctorPageRoutes().router);
-app.use('/appointment', new AppointmentPageRoutes().router);
 
   //ROUTER 
 app.use("/api/v1", buildApiRouter())

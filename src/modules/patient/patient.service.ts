@@ -116,7 +116,7 @@ export class PatientService {
       name: query.name || undefined,
       specialty: query.specialty || undefined,
       gender: query.gender || undefined,
-      hospitalId: query.hospital_id ? Number(query.hospital_id) : undefined,
+      hospital_id: query.hospital_id ? Number(query.hospital_id) : undefined,
       limit: query.limit ? Number(query.limit) : 20,
       offset: query.offset ? Number(query.offset) : 0,
     });

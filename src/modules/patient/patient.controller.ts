@@ -76,6 +76,7 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
       (req as AuthRequest).user.id,
       req.body,
     );
+    console.log(req.body)
     generalResponse({
       res,
       data: result,

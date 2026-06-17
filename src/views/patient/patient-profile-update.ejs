@@ -877,16 +877,13 @@
         .addEventListener("click", async () => {
           const payload = {
             relation: document.getElementById("family_relation").value.trim(),
-            firstName: document
-              .getElementById("family_first_name")
-              .value.trim(),
-            lastName: document.getElementById("family_last_name").value.trim(),
+            first_name: document.getElementById("family_first_name").value.trim(),
+            last_name: document.getElementById("family_last_name").value.trim(),
             dob: document.getElementById("family_dob").value || null,
-            mobile:
-              document.getElementById("family_mobile").value.trim() || null,
+            mobile: document.getElementById("family_mobile").value.trim() || null,
             email: document.getElementById("family_email").value.trim() || null,
           };
-
+          console.log(payload)
           const res = await fetch("/api/v1/patient/family", {
             method: "POST",
             headers: {

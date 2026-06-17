@@ -1,3 +1,4 @@
+import { error } from "console";
 import { z } from "zod";
 
 export const update_patient_profile_schema = z.object({
@@ -27,14 +28,13 @@ export const add_family_member_schema = z.object({
   first_name: z.string().min(2).max(100),
   last_name: z.string().min(2).max(100),
 
-  dob: z.string().date().optional(),
+  dob: z.string().date().nullish(),
 
   mobile: z
     .string()
     .regex(/^[0-9]{10,15}$/)
-    .optional(),
-
-  email: z.string().email().optional(),
+    .nullish(),
+  email: z.string().email().nullish(),
 });
 
 export const update_family_member_schema = add_family_member_schema.partial();

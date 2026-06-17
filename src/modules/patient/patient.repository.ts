@@ -218,9 +218,9 @@ export class PatientRepository {
       relation: string;
       first_name: string;
       last_name: string;
-      dob?: string;
-      mobile?: string;
-      email?: string;
+      dob?: string | null;
+      mobile?: string | null;
+      email?: string | null;
     },
   ) {
     const total = await this.countFamilyMembers(patientId);

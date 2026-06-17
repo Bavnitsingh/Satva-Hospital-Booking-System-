@@ -18,7 +18,7 @@ constructor(){
 }
 
 private init():void{
-
+                        
     // use doctorAuth
     this.router.get('/get-doctor',doctorAuth,this.doctorController.getDoctor)
     this.router.get('/get-appointment',doctorAuth,this.doctorController.getTodaysAppointment)
@@ -32,6 +32,9 @@ private init():void{
     // this.router.post('/post-medical-records',doctorAuth,this.doctorController.postPatientMedicalRecords)
     
     this.router.post("/profile/update",doctorAuth,uploadDoctorProfile.single('profile_image'),this.doctorController.postProfileData)
+    this.router.get("/get-hospital-details",doctorAuth,this.doctorController.getHospitalDetails)
+    this.router.patch("/appointment-status-update",doctorAuth,this.doctorController.updateAppointmentStatus)
+
 } 
 
 

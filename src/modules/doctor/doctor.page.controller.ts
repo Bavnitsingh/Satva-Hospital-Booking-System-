@@ -16,6 +16,9 @@ export class DoctorPageController{
         res.render("doctor/edit-profile",{user:(req as any).user})
     }
 
+    renderDoctorLogin=(req:Request,res:Response)=>{
+        res.render("doctor/doctorLogin")
+    }
 
     
 }

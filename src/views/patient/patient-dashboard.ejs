@@ -229,7 +229,7 @@
         class="grid lg:grid-cols-4 md:grid-cols-2 gap-5 mb-10 animate-fadeUp"
       >
         <a
-          href="/patient/book-appointment"
+          href="/appointment/book"
           class="bg-primary text-white p-6 rounded-2xl card-hover shadow-sm"
         >
           <p class="text-sm opacity-90">Quick Action</p>
@@ -440,7 +440,7 @@
             `${profile.data?.first_name} ${profile.data?.last_name}` || "Patient",
           );
 
-          const appointmentsRes = await fetch("/api/v1/patient/appointments", {
+          const appointmentsRes = await fetch("/api/v1/appointments/patient", {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,

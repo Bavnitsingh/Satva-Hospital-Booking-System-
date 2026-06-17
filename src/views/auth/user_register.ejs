@@ -347,7 +347,7 @@
             </div>
 
             <!-- Google -->
-            <button type="button" onclick="window.location.href='google'"
+            <button type="button" onclick="window.location.href='/api/v1/auth/google'"
               class="w-full flex items-center justify-center gap-2.5 py-3 px-4 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition shadow-sm">
               <svg class="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -674,7 +674,7 @@ document.addEventListener(
       console.log("Form Valid");
       // Fetch api for registration form
       try {
-        const response = await fetch("register", {
+        const response = await fetch("/api/v1/auth/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -702,8 +702,14 @@ document.addEventListener(
 
         alert(data.message || "Registration successful");
 
-        // Redirect to login page
-        window.location.href = "/login";
+        // Auto login and redirect to profile page to complete profile
+        if (data.data && data.data.token) {
+          localStorage.setItem("accessToken", data.data.token);
+          localStorage.setItem("is_profile_updated", "false");
+          window.location.href = "/patient/profile";
+        } else {
+          window.location.href = "/login";
+        }
       } catch (error) {
         console.error("Registration error:", error);
         alert("Something went wrong. Please try again.");

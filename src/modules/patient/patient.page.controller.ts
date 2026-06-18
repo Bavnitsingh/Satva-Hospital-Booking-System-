@@ -25,6 +25,10 @@ export class PatientPageController {
     res.render("patient/my-appointments", { user: (req as any).user });
   };
 
+  renderBookAppointments = (req: Request, res: Response) => {
+    res.render("patient/book-appointment", { user: (req as any).user });
+  };
+
 
   renderNotifications = (req: Request, res: Response) => {
     res.render("patient/notifications", { user: (req as any).user });

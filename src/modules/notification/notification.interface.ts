@@ -9,11 +9,6 @@ export interface INotification {
 
     user_id: number;
 
-    receiver_role:
-        | "PATIENT"
-        | "DOCTOR"
-        | "ADMIN";
-
     notification_type: NotificationType;
 
     title: string;

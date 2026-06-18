@@ -23,7 +23,7 @@ type SearchDoctorsFilters = {
   name?: string | undefined;
   specialty?: string | undefined;
   gender?: string | undefined;
-  hospitalId?: number | undefined;
+  hospital_id?: number | undefined;
   limit?: number | undefined;
   offset?: number | undefined;
 };
@@ -256,7 +256,7 @@ export class PatientRepository {
     const name = filters.name?.trim();
     const specialty = filters.specialty?.trim();
     const gender = filters.gender?.trim();
-    const hospitalId = filters.hospitalId;
+    const hospital_id = filters.hospital_id;
     const limit = Number.isFinite(filters.limit)
       ? Math.max(1, Math.min(filters.limit as number, 50))
       : 20;
@@ -285,9 +285,9 @@ export class PatientRepository {
       params.push(gender.toUpperCase());
     }
 
-    if (hospitalId) {
+    if (hospital_id) {
       conditions.push("d.hospital_id = ?");
-      params.push(hospitalId);
+      params.push(hospital_id);
     }
 
     const whereClause = conditions.join(" AND ");
@@ -449,5 +449,19 @@ export class PatientRepository {
     );
 
     return result.insertId;
+  }
+
+  async getPaymentHistory(patientId: number) {
+    return query(
+      `select
+        p.payment_id, p.amount, p.payment_method, p.status, p.transaction_id,
+        a.appointment_id, a.slot_date, a.start_time, a.end_time,
+        a.appointment_type, a.appointment_status, a.chief_complaint
+        from payments p
+        join appointments a on p.appointment_id = a.appointment_id
+        where a.patient_id = ?
+        order by p.created_at desc`,
+      [patientId],
+    );
   }
 }

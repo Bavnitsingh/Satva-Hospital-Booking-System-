@@ -13,7 +13,6 @@ export class PatientPageRoutes implements Routes {
 
   private init(): void {
     // this.router.use(authenticate, isPatient);
-
     this.router.get("/dashboard", this.page.renderDashboard);
     this.router.get("/profile", this.page.renderProfile);
     this.router.get("/doctors/:doctorId", this.page.renderDoctorProfile);
@@ -22,6 +21,9 @@ export class PatientPageRoutes implements Routes {
     this.router.get("/payments", this.page.renderPayments);
     this.router.get("/records/:recordId", this.page.renderRecordDetails);
     this.router.get("/records", this.page.renderRecords);
-    this.router.get("/my-appointments",this.page.renderMyAppointments)
+    this.router.get("/my-appointments",this.page.renderMyAppointments);
+    this.router.get("/book-appointment",this.page.renderBookAppointments)
+
+
   }
 }

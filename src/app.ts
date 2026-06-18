@@ -12,7 +12,7 @@ import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
 import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
 import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
-import { AppointmentPageRoutes } from "./modules/appointment/appointment.page.routes.js";
+
 import { notFoundMiddleware } from "./common/middlewares/not-found.middlware.js";
 
 
@@ -24,7 +24,7 @@ export function buildApp(): Application {
   let __filePath = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filePath);
 
-  //configuring ejs settings 
+  //configuring ejs settings
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "views"));
 
@@ -78,14 +78,13 @@ export function buildApp(): Application {
   app.use(passport.initialize());
   app.use(passport.session());
 
-
   //ROUTER
 
 
 
 app.use("/patient", new PatientPageRoutes().router);
 app.use('/doctor', new DoctorPageRoutes().router);
-app.use('/appointment', new AppointmentPageRoutes().router);
+
 
   //ROUTER 
 app.use("/api/v1", buildApiRouter())

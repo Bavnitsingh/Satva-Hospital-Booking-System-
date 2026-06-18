@@ -11,7 +11,7 @@ import e from "express";
 // }
 
 export interface IDoctorSchedule {
-  doctor_id: number;
+  
   working_date: Date;
   working_from: string;
   working_to: string;
@@ -25,7 +25,6 @@ export interface IDoctorNotification {
 }
 
 export interface IDoctorLeave {
-  doctor_id: number;
   from_date: Date;
   to_date: Date;
   reason: string;

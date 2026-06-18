@@ -4,7 +4,7 @@ import { generalResponse } from "../../common/helpers/general-response.js"
 import { DoctorService } from "./doctor.service.js"
 
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js"
-import { IDoctorSchedule } from "./doctor.interface.js"
+import { IDoctorLeave, IDoctorSchedule } from "./doctor.interface.js"
 
 import { BadRequestException, InternalServerException, NotFoundException } from "../../common/helpers/http-exception.js"
 
@@ -36,7 +36,7 @@ getTodaysAppointment=catchAsync(async(req:Request,res:Response)=>{
 
 getDoctorDashboard=catchAsync(async(req:Request,res:Response)=>{
     const user_id:number=(req as AuthRequest).user.id
-    console.log('here')
+  
     const result=await this.doctorService.getDoctorDashboardData(user_id)
     
     generalResponse({res,data:[result],message:'Successfully Fetched DashboardData',statusCode:200})
@@ -47,20 +47,21 @@ getWeeklySchedule=catchAsync(async(req:Request,res:Response)=>{
 
     const user_id:number=(req as AuthRequest).user.id
     const result =await this.doctorService.getWeeklySchedule(user_id)
-    
+   
     generalResponse({res,data:[result],message:'Weekly Schedule Fetched Successfully',statusCode:200})
 
 })
 
 postWeeklySchedule=catchAsync(async(req:Request,res:Response)=>{
 
-  
-    const data:IDoctorSchedule[]=req.body.schedules
-   
-    const result= await Promise.all(data.map(d=>this.doctorService.setWeeklySchedule(d)))
-    if(!result){
-        throw new InternalServerException('Error while inserting schedule')
+    const user_id:number=(req as AuthRequest).user.id
+    const data:IDoctorSchedule=req.body
+
+    if(!data){
+        throw new BadRequestException('Data is Empty')
     }
+
+    const result= await this.doctorService.setWeeklySchedule(data,user_id)
 
     generalResponse({res,data:[],message:'Successfully Inserted Data',statusCode:201})
 
@@ -154,6 +155,29 @@ updateAppointmentStatus=catchAsync(async(req:Request,res:Response)=>{
     generalResponse({res,data:[],message:'Successfully Updated',statusCode:200})
     
 
+})
+
+postLeaves=catchAsync(async(req:Request,res:Response)=>{
+
+
+    const user_id=(req as AuthRequest).user.id
+    
+    const data:IDoctorLeave =req.body
+    
+
+    const result =await this.doctorService.setLeaves(data,user_id)
+
+    generalResponse({res,data:[],message:'Successfully Applied For Leave',statusCode:201})
+})
+
+deleteLeaves=catchAsync(async(req:Request,res:Response)=>{
+
+    const {leave_id}=req.body
+    
+    const result=await this.doctorService.deleteLeave(Number(leave_id))
+    
+
+    generalResponse({res,data:[],message:'Successfully Cancelled Leave',statusCode:201})
 })
 
 }

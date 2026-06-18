@@ -78,21 +78,29 @@ export class DoctorService {
       doctor_id,
       start_date,
     );
+    const doctorLeavesSchedule=await this.doctorRepo.findDoctorLeavesByDoctorId(doctor_id)
 
-    return { weekScheduleList };
+    return { weekScheduleList ,doctorLeavesSchedule};
   }
 
-  async setWeeklySchedule(data: IDoctorSchedule) {
+  async setWeeklySchedule(data: IDoctorSchedule,user_id:number) {
     if (!data) {
       throw new NotFoundException("Data is empty");
     }
+    const doctor_id=await this.getDoctorId(user_id)
 
-    const result = await this.doctorRepo.insertORUpdateDoctorSchedule(data);
+    const result = await this.doctorRepo.insertORUpdateDoctorSchedule(data,doctor_id);
     return { result };
   }
 
-  async setLeaves(data: IDoctorLeave) {
-    const result = await this.doctorRepo.insertDoctorLeaves(data);
+  async setLeaves(data: IDoctorLeave,user_id:number) {
+    const doctor_id:number=await this.getDoctorId(user_id)
+
+    const checkISLeaveExistsBetween:boolean=await this.doctorRepo.checkLeaveExistBetween(data.from_date,data.to_date,doctor_id)
+    if(checkISLeaveExistsBetween){
+      throw new BadRequestException('Your start date or end date is already in your past applied leaves. Cancel that leaves')
+    }
+    const result = await this.doctorRepo.insertDoctorLeaves(data,doctor_id);
 
     return { result };
   }
@@ -238,5 +246,14 @@ export class DoctorService {
     const isUpdated=await this.doctorRepo.setAppointmentStatus(appointment_id,appointment_status)
     return {isUpdated}
 
+  }
+
+
+
+  async deleteLeave(leave_id:number){
+
+
+    const result =await this.doctorRepo.cancelLeave(leave_id)
+    return {result }
   }
 }

@@ -38,49 +38,49 @@ export interface IAppointment {
 }
 
 export interface ICreateAppointmentData {
-  doctorId: number;
-  patientId: number;
-  slotDate: string;
-  startTime: string;
-  endTime: string;
-  appointmentType: "IN_PERSON" | "TELEMEDICINE";
-  chiefComplaint?: string | undefined;
-  confirmationNo: string;
+  doctor_id: number;
+  patient_id: number;
+  slot_date: string;
+  start_time: string;
+  end_time: string;
+  appointment_type: "IN_PERSON" | "TELEMEDICINE";
+  chief_complaint?: string | undefined;
+  confirmation_no: string;
 }
 
 export interface IPaymentData {
-  appointmentId: number;
+  appointment_id: number;
   amount: number;
-  paymentMethod: string;
+  payment_method: string;
   status: "SUCCESS" | "PENDING" | "FAILED" | "REFUNDED";
-  transactionId: string;
+  transaction_id: string;
 }
 
 export interface IStatusHistoryData {
-  appointmentId: number;
-  oldStatus: string | null;
-  newStatus: string;
-  changedByUserId: number;
+  appointment_id: number;
+  old_status: string | null;
+  new_status: string;
+  changed_by_user_id: number;
   remarks?: string;
 }
 
 export interface INotificationData {
-  userId: number;
+  user_id: number;
   title: string;
   message: string;
 }
 
 export interface IAvailableSlotsResponse {
   available: boolean;
-  doctorId?: number;
+  doctor_id?: number;
   date?: string;
-  dayName?: string;
-  slotDurationMinutes?: number;
-  workingFrom?: string;
-  workingTo?: string;
-  totalSlots?: number;
-  bookedCount?: number;
-  availableSlots?: string[];
+  day_name?: string;
+  slot_duration_minutes?: number;
+  working_from?: string;
+  working_to?: string;
+  total_slots?: number;
+  booked_count?: number;
+  available_slots?: string[];
   slots?: string[];
   reason?: string;
 }

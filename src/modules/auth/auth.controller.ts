@@ -3,6 +3,7 @@ import { catchAsync } from "../../common/helpers/catch-async.js";
 import { generalResponse } from "../../common/helpers/general-response.js";
 import { AuthService } from "./auth.service.js";
 import { HttpException } from "../../common/helpers/http-exception.js";
+import { country } from "../../common/countryCodes.js";
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js";
 
 export class AuthController {
@@ -11,7 +12,7 @@ export class AuthController {
   //SERVING STATIC PAGES
 
   login = catchAsync(async (req: Request, res: Response) => {
-  
+
     const { refreshToken, ...data } = await this.authService.login(req.body);
 
     res.cookie("refreshToken", refreshToken, {
@@ -60,32 +61,32 @@ export class AuthController {
     });
   });
 
-sendOtp = catchAsync(async (req: Request, res: Response) => {
-  const { email } = req.body;
+  sendOtp = catchAsync(async (req: Request, res: Response) => {
+    const { email } = req.body;
 
-  if (!email) {
+    if (!email) {
+      generalResponse({
+        res,
+        data: null,
+        message: "Email is required",
+        statusCode: 400,
+      });
+      return;
+    }
+
+    const otpResult: any = await this.authService.getOtp(email);
+
+    req.session.email = email;
+    req.session.isEmailVerified = true;
+    req.session.user_id = otpResult.data.user_id;
+
     generalResponse({
       res,
       data: null,
-      message: "Email is required",
-      statusCode: 400,
+      message: "OTP sent successfully",
+      statusCode: 200,
     });
-    return;
-  }
-
-  const otpResult: any = await this.authService.getOtp(email);
-
-  req.session.email = email;
-  req.session.isEmailVerified = true;
-  req.session.user_id = otpResult.data.user_id;
-
-  generalResponse({
-    res,
-    data: null,
-    message: "OTP sent successfully",
-    statusCode: 200,
   });
-});
 
   verifyOtp = async (email: string, otp: string) => {
     let response = await this.authService.verifyOtp(email, otp);
@@ -101,12 +102,24 @@ sendOtp = catchAsync(async (req: Request, res: Response) => {
 
   resetPassword = async (req: Request, res: Response) => {
     try {
-      let { otp, newPassword } = req.body;
+      let { otp, newPassword, confirm_password } = req.body;
 
       let user_id = req.session.user_id as number;
-
       let email = req.session.email as string;
+      let isPassValid = await this.authService.verifyPassAndCpass(
+        newPassword,
+        confirm_password,
+      );
+      if (!isPassValid) {
+        return generalResponse({
+          res,
+          data: null,
+          message: "Password do not match",
+          statusCode: 400,
+        });
+      }
       let response = await this.verifyOtp(email, otp);
+
       if (response) {
         let isReset = await this.authService.resetPassword(
           newPassword,
@@ -126,8 +139,8 @@ sendOtp = catchAsync(async (req: Request, res: Response) => {
           return generalResponse({
             res,
             data: null,
-            message: "password hasbeen changed Successfully!!",
-            statusCode: 200,
+            message: "Password not updated!!",
+            statusCode: 400,
           });
         }
       } else {
@@ -153,10 +166,13 @@ sendOtp = catchAsync(async (req: Request, res: Response) => {
     }
   };
 
+  getCountryCodes = async (req: Request, res: Response) => {
+    return res.json(country);
+  };
   logout = catchAsync(async (req: Request, res: Response) => {
     await this.authService.logout((req as AuthRequest).user.id);
 
-    req.session?.destroy(() => {});
+    req.session?.destroy(() => { });
 
     generalResponse({
       res,

@@ -131,14 +131,14 @@ export class AuthService {
     const user = await this.userRepo.findUserByEmail(data.email);
     if (!user) {
       throw new Error("Invalid email or password");
-    } 
-    
-   
+    }
+
+
     const isPasswordValid = await comparePassword(
       data.password,
       user.password_hash,
     );
- 
+
     if (!isPasswordValid) {
       throw new Error("Invalid email or password");
     }
@@ -231,6 +231,10 @@ export class AuthService {
     return await this.userRepo.getLatestOtp(email);
   }
 
+  async verifyPassAndCpass(password: String, confirm_password: string) {
+    if (password === confirm_password) return true;
+    return false;
+  }
   async logout(userId: number) {
     await this.userRepo.logout(userId);
   }

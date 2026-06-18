@@ -25,7 +25,6 @@ export class PatientRoutes implements Routes {
   }
 
   private init(): void {
-
     // patient routes require authentication + PATIENT role
     this.router.use(authenticate, isPatient);
 
@@ -43,10 +42,10 @@ export class PatientRoutes implements Routes {
     this.router.get("/doctors", validateRequestQuery(search_doctors_schema), this.patient.searchDoctors);
     this.router.get("/doctors/:doctorId", this.patient.getDoctorDetail);
 
-    // Payments 
+    // Payments
     this.router.get("/payments", this.patient.getPaymentHistory);
 
-    // Medical records 
+    // Medical records
     this.router.get("/records", this.patient.getMedicalHistory);
     this.router.get("/records/:recordId", this.patient.getMedicalRecord);
 
@@ -61,5 +60,6 @@ export class PatientRoutes implements Routes {
       this.patient.markAllNotificationsRead,
     );
 
+    this.router.delete("/family/:memberId", this.patient.deleteFamilyMember);
   }
 }

@@ -96,6 +96,8 @@ export class DoctorService {
   async setLeaves(data: IDoctorLeave,user_id:number) {
     const doctor_id:number=await this.getDoctorId(user_id)
 
+    if(data.from_date){}
+
     const checkISLeaveExistsBetween:boolean=await this.doctorRepo.checkLeaveExistBetween(data.from_date,data.to_date,doctor_id)
     if(checkISLeaveExistsBetween){
       throw new BadRequestException('Your start date or end date is already in your past applied leaves. Cancel that leaves')

@@ -61,6 +61,9 @@ export function buildApp(): Application {
     const doctor_profile = path.join(folderpath, "doctor_profile");
     fs.mkdirSync(doctor_profile);
     // Add logic below for creating new folder
+    const medical_records=path.join(folderpath,"medical_records")
+    fs.mkdirSync(medical_records)
+
     console.log("Folder Created Successfully ");
   }
 

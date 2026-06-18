@@ -77,7 +77,9 @@ getPatientList=catchAsync(async(req:Request,res:Response)=>{
 })
 
 postPatientMedicalRecords=catchAsync(async(req:Request,res:Response)=>{
-    const {patient_id,doctor_id,appointment_id,diagnosis,examination_notes,}=req.body
+    const {patient_id,doctor_id,appointment_id,diagnosis,examination_notes}=req.body
+
+    console.log(req.body,req.files)
 
     //pending will work when frontend integrated 
 

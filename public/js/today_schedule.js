@@ -1,31 +1,39 @@
 const accessToken = window.localStorage.getItem('accessToken')
 
+async function viewMedicalRecords(btn,appointment_id){
+  localStorage.setItem("appointment_id",appointment_id)
+
+  window.location.href=window.location.origin+'/doctor/view-medical-records'
+
+ }
+
 async function updateInProgress(btn, appointment_id) {
 
-    btn.setAttribute('class','border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition')
-    bt
+    
 
     const NEXT_STATUS = 'COMPLETED';
     const payload = { appointment_id: appointment_id, appointment_status: NEXT_STATUS };
 
-    // try {
-    //     const result = await fetch("/api/v1/doctor/appointment-status-update", {
-    //         method: 'PATCH',
-    //         headers: {
-    //             'Authorization': `Bearer ${accessToken}`,
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify(payload)
-    //     });
+    try {
+        const result = await fetch("/api/v1/doctor/appointment-status-update", {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
 
-    //     if (!result.ok) throw new Error(`HTTP ${result.status}`);
+        if (!result.ok) throw new Error(`HTTP ${result.status}`);
+        btn.setAttribute('class','border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition')
+    btn.innerText='View Record'
+    btn.onclick=()=>{viewMedicalRecords(btn,appointment_id)}
+        const response = await result.json();
+        console.log(response);.00
 
-    //     const response = await result.json();
-    //     console.log(response);
-
-    // } catch (err) {
-    //     console.error('Failed to update appointment:', err);
-    // }
+    } catch (err) {
+        console.error('Failed to update appointment:', err);
+    }
 }
 
 
@@ -61,6 +69,7 @@ async function updateInProgress(btn, appointment_id) {
         NO_SHOW: { cls: 'bg-red-50 text-red-600', label: 'No Show' },
         CANCELLED: { cls: 'bg-rose-50 text-rose-600', label: 'Cancelled' },
         RESCHEDULED: { cls: 'bg-violet-50 text-violet-600', label: 'Rescheduled' },
+        CHECKED_IN: { cls: 'bg-blue-50 text-blue-600', label: 'Upcoming' }
     };
 
 
@@ -115,11 +124,11 @@ async function updateInProgress(btn, appointment_id) {
         }
         if (status === 'COMPLETED') {
             return `
-        <button id="appt-${appointment_id}" class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition">
+        <button id="appt-${appointment_id}"  onclick="viewMedicalRecords(this,${appointment_id})" class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition">
           View Record
         </button>`;
         }
-        if (status === 'CONFIRMED') {
+        if (status === 'CONFIRMED' || status==="CHECKED_IN") {
             const disabled = !isConsultationTime(start_time, end_time);
 
             return `

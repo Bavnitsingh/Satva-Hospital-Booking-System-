@@ -123,8 +123,7 @@ export class DoctorRepo {
       `    
 select 
 	COUNT(a.appointment_status)-SUM(CASE WHEN a.appointment_status='CANCELLED' THEN 1 WHEN a.appointment_status='RESCHEDULED' THEN 1 ELSE 0 END) as 'TOTAL APPOINTMENT',
-    COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' THEN 1 END) - 
-    COUNT(CASE WHEN a.appointment_status = 'COMPLETED' THEN 1 END) AS 'UPCOMING',
+    COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' OR a.appointment_status='CHECKED_IN' THEN 1 END) AS 'UPCOMING',
     COUNT(CASE WHEN a.appointment_status = 'CANCELLED' THEN 1 END) AS 'CANCELLED',
     COUNT(CASE WHEN a.appointment_status = 'RESCHEDULED' THEN 1 END) AS 'RESCHEDULED'
  from appointments a inner join doctors d on a.doctor_id=d.doctor_id and a.slot_date=current_date where d.doctor_id=?;`,

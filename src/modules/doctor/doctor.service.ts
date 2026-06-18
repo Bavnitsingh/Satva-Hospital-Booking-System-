@@ -1,5 +1,6 @@
 
 import {
+  AppointmentStatus,
   IDoctorDetails,
   IDoctorLeave,
   IDoctorNotification,
@@ -11,11 +12,14 @@ import {
 } from "./doctor.interface.js";
 import { DoctorRepo } from "./doctor.repository.js";
 import {
+  BadRequestException,
   NotFoundException,
  
 } from "../../common/helpers/http-exception.js";
 import { getNextWeekStartingDay } from "./utils/doctor.utilts.js";
 import fs from 'fs'
+import { Console } from "winston/lib/winston/transports/index.js";
+import { ResultSetHeader } from "mysql2";
 
 
 
@@ -204,5 +208,35 @@ export class DoctorService {
 
     const hospital_details=await this.doctorRepo.getHosptialDetails(user_id)
     return {hospital_details}
+  }
+
+  async updateAppointmentStatus(user_id:number,appointment_id:number,appointment_status:string){
+
+  if(!appointment_status || appointment_status==='' || appointment_status==undefined){
+    throw new BadRequestException('Appointment Status not found')
+  }
+
+  if(!appointment_id || appointment_id===undefined){
+    throw new BadRequestException("Appointment Id Not Found")
+  }
+
+    if(!(appointment_status in AppointmentStatus)){
+      throw new BadRequestException('Status type does not exists')
+    }
+        
+    const doctor_id=await this.getDoctorId(user_id)
+    
+
+    if(appointment_status==AppointmentStatus.IN_PROGRESS){
+      // check if there is still doctor is taking consultation
+      const {progress_status}=await this.doctorRepo.getInProgressStatus(doctor_id)
+      if(progress_status){
+        throw new BadRequestException("Please Complete the Existing Consultation or Click the Button to Complete")
+      }
+    }
+    
+    const isUpdated=await this.doctorRepo.setAppointmentStatus(appointment_id,appointment_status)
+    return {isUpdated}
+
   }
 }

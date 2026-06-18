@@ -12,7 +12,7 @@ import {
   IPrescriptionItems,
   IPrescriptions,
 } from "./doctor.interface.js";
-import { QueryResult, RowDataPacket } from "mysql2";
+import { QueryResult, ResultSetHeader, RowDataPacket } from "mysql2";
 
 export class DoctorRepo {
   async findDoctorByUserID(user_id: number) {
@@ -69,9 +69,9 @@ export class DoctorRepo {
   async findDoctorAppointments(doctor_id: number, slot_date: string) {
     const rows: any = await query(
       `
-    with cte as(select a.appointment_id,a.slot_date,a.start_time,
-    a.end_time,a.appointment_type,a.appointment_status,a.chief_complaint,
-    a.confirmation_no,a.created_at,concat(p.first_name,p.last_name) as 'patient name',p.patient_id 
+    with cte as(select a.appointment_id,a.slot_date,SUBSTRING(a.start_time,1,5) as start_time,
+    SUBSTRING(a.end_time,1,5) as end_time,a.appointment_type,a.appointment_status,a.chief_complaint,
+    a.confirmation_no,a.created_at,CONCAT(p.first_name,' ',p.last_name) as 'patient_name',timestampdiff(year,p.dob,current_date) as age,p.patient_id 
     from appointments a 
     inner join patients p on a.patient_id=p.patient_id 
     where a.doctor_id=? and slot_date=?)
@@ -80,7 +80,7 @@ export class DoctorRepo {
     else ''
     end as link
     from cte c left join telemedicine_sessions ts on c.appointment_id=ts.appointment_id 
-    order by  c.created_at desc;`,
+    order by  c.start_time; `,
       [doctor_id, slot_date],
     );
 
@@ -122,11 +122,11 @@ export class DoctorRepo {
     const rows: any = await query(
       `    
 select 
-	count(case when a.appointment_status = 'CONFIRMED' then 1 end) as 'TOTAL APPOINTMENT',
-    count(case when a.appointment_status = 'CONFIRMED' then 1 end) - 
-    count(case when a.appointment_status = 'COMPLETED' then 1 end) as 'UPCOMING',
-    count(case when a.appointment_status = 'CANCELLED' then 1 end) as 'CANCELLED',
-    count(case when a.appointment_status = 'RESCHEDULED' then 1 end) as 'RESCHEDULED'
+	COUNT(a.appointment_status)-SUM(CASE WHEN a.appointment_status='CANCELLED' THEN 1 WHEN a.appointment_status='RESCHEDULED' THEN 1 ELSE 0 END) as 'TOTAL APPOINTMENT',
+    COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' THEN 1 END) - 
+    COUNT(CASE WHEN a.appointment_status = 'COMPLETED' THEN 1 END) AS 'UPCOMING',
+    COUNT(CASE WHEN a.appointment_status = 'CANCELLED' THEN 1 END) AS 'CANCELLED',
+    COUNT(CASE WHEN a.appointment_status = 'RESCHEDULED' THEN 1 END) AS 'RESCHEDULED'
  from appointments a inner join doctors d on a.doctor_id=d.doctor_id and a.slot_date=current_date where d.doctor_id=?;`,
       [doctor_id],
     );
@@ -410,13 +410,24 @@ select
   }
 
 async getFileDetails(doctor_id:number){
-  const rows:RowDataPacket[]=await query(`select profile_path from doctors where doctor_id=?`,[doctor_id]) as RowDataPacket[]
+  const rows:RowDataPacket[]=await query(`Select profile_path from doctors where doctor_id=?`,[doctor_id]) as RowDataPacket[]
   return rows[0]
 }
 
 async getHosptialDetails(user_id:number){
-  const rows=await query(`select d.doctor_id, d.hospital_id,h.hospital_name from hospitals h inner join doctors d on d.hospital_id=h.hospital_id where d.user_id=?`,[user_id]) as RowDataPacket[]
+  const rows=await query(`Select d.doctor_id, d.hospital_id,h.hospital_name from hospitals h inner join doctors d on d.hospital_id=h.hospital_id where d.user_id=?`,[user_id]) as RowDataPacket[]
   return rows[0]
+}
+
+async getInProgressStatus(doctor_id:number):Promise<{progress_status:number}>{
+
+  const rows=await query(`Select count(*) as progress_status from appointments where doctor_id=? and appointment_status='IN_PROGRESS'`,[doctor_id]) as RowDataPacket[]
+  return {progress_status:rows[0]?.progress_status??0}
+}
+
+async setAppointmentStatus(appointment_id:number,appointment_status:string){
+  const result =await query('Update appointments set appointment_status=? where appointment_id=?',[appointment_status,appointment_id]) as ResultSetHeader
+  return result 
 }
 
 }

@@ -53,7 +53,7 @@ export class AppointmentService {
     if (new Date(data.slot_date) > max_date) {
       throw new Error("Cannot book more than 60 days in advance");
     }
-
+    
     const taken = await this.repo.isSlotTaken(
       data.doctor_id,
       data.slot_date,
@@ -108,11 +108,11 @@ export class AppointmentService {
       remarks: "Payment successful",
     });
 
-    await this.repo.createNotification({
-      user_id: user_id,
-      title: "APPOINTMENT_SCHEDULED",
-      message: `Your appointment has been scheduled successfully for ${data.slot_date} at ${data.start_time}.`,
-    });
+    // await this.repo.createNotification({
+    //   user_id: user_id,
+    //   title: "APPOINTMENT_SCHEDULED",
+    //   message: `Your appointment has been scheduled successfully for ${data.slot_date} at ${data.start_time}.`,
+    // });
 
     return {
       appointment_id,
@@ -148,7 +148,7 @@ export class AppointmentService {
     if (diff_ms < 4 * 60 * 60 * 1000) {
       throw new Error("Cannot reschedule within 4 hours of the appointment");
     }
-
+    console.log(data)
     // Check new slot availability
     const taken = await this.repo.isSlotTaken(
       appt.doctor_id,
@@ -176,11 +176,11 @@ export class AppointmentService {
       end_time: end_time,
     });
 
-    await this.repo.createNotification({
-      user_id: user_id,
-      title: "APPOINTMENT_RESCHEDULED",
-      message: `Your appointment has been rescheduled successfully to ${data.slot_date} at ${data.start_time}.`,
-    });
+    // await this.repo.createNotification({
+    //   user_id: user_id,
+    //   title: "APPOINTMENT_RESCHEDULED",
+    //   message: `Your appointment has been rescheduled successfully to ${data.slot_date} at ${data.start_time}.`,
+    // });
 
     await this.repo.logStatusHistory({
       appointment_id: appointment_id,
@@ -232,11 +232,11 @@ export class AppointmentService {
       remarks: reason ?? "Cancelled by patient",
     });
 
-    await this.repo.createNotification({
-      user_id: user_id,
-      title: "APPOINTMENT_CANCELLED",
-      message: `Your appointment has been cancelled successfully.`,
-    });
+    // await this.repo.createNotification({
+    //   user_id: user_id,
+    //   title: "APPOINTMENT_CANCELLED",
+    //   message: `Your appointment has been cancelled successfully.`,
+    // });
 
     return {
       appointment_id,

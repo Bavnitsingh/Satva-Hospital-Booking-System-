@@ -61,9 +61,9 @@ export class AppointmentController {
   getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
     const doctorId = Number(req.query.doctorId);
     const date = req.query.date as string;
-    
+    console.log(doctorId,date)
     const result = await this.appointmentService.getAvailableSlots(doctorId, date);
-    
+    console.log(result)
     generalResponse({ res, data: result, message: "Available slots retrieved successfully", statusCode: 200 });
   });
 

@@ -31,9 +31,6 @@ export async function authenticate(
 
     // Access token valid
     const payload = verifyToken(accessToken ?? "");
-
-    console.log("this is token --------------------------------",accessToken);
-
     (req as AuthRequest).user = payload;
 
     return next();
@@ -94,7 +91,7 @@ export async function authenticate(
         role: refreshPayload.role
       });
 
-      console.log("new Access Token is Created")
+    console.log("new Access Token is Created")
       // Send new token back to frontend
       res.setHeader(
         "x-access-token",

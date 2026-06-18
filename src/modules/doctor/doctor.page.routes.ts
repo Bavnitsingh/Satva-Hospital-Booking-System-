@@ -17,6 +17,7 @@ private init():void{
     this.router.get("/dashboard",this.page.renderDashboard)
     this.router.get("/profile",this.page.renderProfile)
     this.router.get('/profile/edit',this.page.renderEditProfile)
+    this.router.get("/login",this.page.renderDoctorLogin)
 
 }
  

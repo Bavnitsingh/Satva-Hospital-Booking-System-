@@ -17,6 +17,7 @@ export class AppointmentRepository {
       `select appointment_id from appointments where doctor_id = ? and slot_date = ? and start_time = ? and appointment_status not in ('CANCELLED', 'REJECTED')`,
       [doctor_id, slot_date, start_time]
     );
+
     return result.length > 0;
   }
 

@@ -1140,6 +1140,8 @@
               },
               body: formData,
             });
+
+            
           } else {
             response = await fetch("/api/v1/appointments", {
               method: "POST",
@@ -1153,7 +1155,7 @@
         
           const json = await response.json();
           if (!response.ok) throw new Error(json.message || "Booking failed");
-
+          console.log(json)
           state.bookingResponse = json.data || json;
           el("confNo").textContent =
             state.bookingResponse.confirmation_no ||

@@ -137,36 +137,27 @@ export class UserRepository {
     );
   }
 
-  async createDoctor(data: any) {
-    const result = await query(
-      `
-        insert into doctors (
-            user_id,
-            hospital_id,
-            first_name,
-            last_name,
-            gender,
-            experience_years,
-            consultation_fee,
-            bio,
-            created_at,
-            updated_at
-        )
-        values (?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, current_timestamp)
-        `,
-      [
-        data.user_id,
-        data.hospital_id,
-        data.first_name,
-        data.last_name,
-        data.gender,
-        data.experience_years,
-        data.consultation_fee,
-        data.bio,
-      ],
-    );
-    return result;
-  }
+
+async createDoctor(data: any) {
+  const result:any = await query(
+    `INSERT INTO doctors 
+      (user_id, hospital_id, first_name, last_name, gender, experience_years, consultation_fee, bio)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      data.user_id, data.hospital_id, data.first_name, data.last_name,
+      data.gender,  data.experience_years, data.consultation_fee, data.bio
+    ]
+  );
+
+    const insertId = result[0]?.insertId ?? result.insertId;
+  // fetch and return the created doctor so doctor_id is available
+  const rows:any = await query(
+    `SELECT * FROM doctors WHERE doctor_id = ?`,
+    [insertId]
+  );
+
+  return rows[0]; // { doctor_id, user_id, hospital_id, ... }
+}
 
   async createAdmin(data: any) {
     const result: any = await query(
@@ -355,4 +346,29 @@ export class UserRepository {
   async logout(userId: number) {
     return query(`delete from user_sessions where user_id = ?`, [userId]);
   }
+
+
+async createStaff(data: any) {
+  const result:any = await query(
+    `INSERT INTO staff 
+      (user_id, hospital_id, first_name, last_name, gender, staff_role,contact_number,dob,address_line1,address_line2)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?,?,?)`,
+    [
+      data.user_id, data.hospital_id, data.first_name, data.last_name,
+      data.gender,  data.staff_role, data.contact_number, data.dob,data.address_line1,data.address_line2 ?? ''
+    ]
+  );
+
+    const insertId = result[0]?.insertId ?? result.insertId;
+  // fetch and return the created doctor so doctor_id is available
+  const rows:any = await query(
+    `SELECT * FROM staff WHERE staff_id = ?`,
+    [insertId]
+  );
+
+  return rows[0]; // { staff_id, user_id, hospital_id, ... }
+}
+
+
+
 }

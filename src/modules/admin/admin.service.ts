@@ -13,6 +13,8 @@ export class AdminService{
         return doctors;
      } 
 
+
+     
      async addDoctor(data: {
     firstName:       string;
     lastName:        string;

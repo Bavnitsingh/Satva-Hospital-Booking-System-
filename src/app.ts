@@ -11,6 +11,7 @@ import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
 import { AdminPageRoutes } from "./modules/admin/admin.page.routes.js";
+import { StaffPageRoutes } from "./modules/staff/staff.page.routes.js";
 
 
 
@@ -76,6 +77,8 @@ app.use(passport.session());
 app.use("/patient", new PatientPageRoutes().router);
 
 app.use('/admin', new AdminPageRoutes().router);
+
+app.use('/staff',new StaffPageRoutes().router)
 
 
   //ROUTER 

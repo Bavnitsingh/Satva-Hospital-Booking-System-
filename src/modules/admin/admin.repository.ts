@@ -104,7 +104,6 @@ WHERE d.hospital_id  = ? `,
   return doctor;
 }
 
-// admin.repo.ts
 async editDoctor(doctor_id: number, data: any) {
   await query(
     `UPDATE doctors

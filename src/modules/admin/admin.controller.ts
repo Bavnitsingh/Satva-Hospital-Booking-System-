@@ -11,13 +11,19 @@ export class AdminController{
     private adminService = new AdminService();
     private authService = new AuthService();
  
+private async getHospitalIdFromReq(req: Request): Promise<number> {
+    const user_id    = (req as AuthRequest).user.id;
+    console.log(user_id)
+    const hospital_id = await this.adminService.getHospitalId(user_id);
+    if (!hospital_id) throw new Error('Hospital not found for this admin');
+    return hospital_id;
+  }
+
+
     fetchDoctors = catchAsync(async (req:Request,res:Response)=>{
-         const user_id = (req as AuthRequest).user.id;
-        const hospital_id = await this.adminService.getHospitalId(user_id);
-           
-        if(hospital_id===undefined){
-            throw new Error("Hospital Id required!")
-        }
+       const hospital_id = await this.getHospitalIdFromReq(req);
+           console.log(hospital_id)
+       
         const doctors = await this.adminService.fetchDoctors(Number(hospital_id));
         generalResponse({
             res,
@@ -30,9 +36,8 @@ export class AdminController{
 
 
     fetchPatients = catchAsync(async (req: Request, res: Response) => {
-        const user_id = (req as AuthRequest).user.id;
-        const hospitalId = await this.adminService.getHospitalId(user_id);
-        const patients = await this.adminService.fetchPatients(hospitalId);
+        const hospital_id = await this.getHospitalIdFromReq(req);
+        const patients = await this.adminService.fetchPatients(hospital_id);
     generalResponse({ res,
          data: patients, 
          message: "Patients fetched successfully",
@@ -53,8 +58,8 @@ export class AdminController{
       qualifications,
     } = req.body;
 
-    const user_id    = (req as AuthRequest).user.id;
-    const hospitalId = await this.adminService.getHospitalId(user_id);
+           const hospitalId = await this.getHospitalIdFromReq(req);
+
 
     const result = await this.adminService.addDoctor({
       firstName, lastName, email, password,
@@ -80,8 +85,7 @@ addStaff = catchAsync(async(req:Request,res:Response)=>{
       gender, dob, staff_role, contact_number,address_line1,address_line2
       
     } = req.body;
-    const user_id    = (req as AuthRequest).user.id;
-    const hospitalId = await this.adminService.getHospitalId(user_id);
+ const hospitalId = await this.getHospitalIdFromReq(req);
 
   const result = await this.authService.registerStaff({
       firstName, lastName, email, password,
@@ -111,7 +115,6 @@ addStaff = catchAsync(async(req:Request,res:Response)=>{
         })
     })
 
-  // admin.controller.ts
 
 editDoctor = catchAsync(async (req: Request, res: Response) => {
   const doctor_id = Number(req.params.doctorId);
@@ -129,8 +132,7 @@ editDoctor = catchAsync(async (req: Request, res: Response) => {
     // Just call addAuditLog method and give payload in parameters
     
    fetchAppointments = catchAsync(async(req:Request,res:Response)=>{
- const user_id = (req as AuthRequest).user.id;
-        const hospital_id = await this.adminService.getHospitalId(user_id);
+ const hospital_id = await this.getHospitalIdFromReq(req);
     const appointments = await this.adminService.fetchAppointmentsByHospitalId(hospital_id);
 
     generalResponse({
@@ -142,8 +144,7 @@ editDoctor = catchAsync(async (req: Request, res: Response) => {
     })
 
     fetchAuditLogs = catchAsync(async(req:Request,res:Response)=>{
-        const user_id = (req as AuthRequest).user.id;
-        const hospital_id = await this.adminService.getHospitalId(user_id);
+         const hospital_id = await this.getHospitalIdFromReq(req);
         const logs = await this.adminService.fetchAuditLogs(hospital_id);
         generalResponse({
             res,
@@ -194,8 +195,7 @@ editDoctor = catchAsync(async (req: Request, res: Response) => {
     })
 
 fetchHospitalDetails = catchAsync(async(req:Request,res:Response)=>{
- const user_id = (req as AuthRequest).user.id;
- const hospital_id = await this.adminService.getHospitalId(user_id);
+ const hospital_id = await this.getHospitalIdFromReq(req);
  const hospital = await this.adminService.fetchHospitalDetails(hospital_id);
  generalResponse({
     res,
@@ -206,8 +206,8 @@ fetchHospitalDetails = catchAsync(async(req:Request,res:Response)=>{
 })
 
 updateHospitalSettings = catchAsync(async(req:Request,res:Response)=>{
-    const user_id = (req as AuthRequest).user.id;
- const hospital_id = await this.adminService.getHospitalId(user_id);
+   const hospital_id = await this.getHospitalIdFromReq(req);
+
  const {hospital_name,email,address_line1,address_line2,contact_number} = req.body;
  const payload:Hospital = {hospital_name,email,address_line1,address_line2,contact_number};
  const hospital = await this.adminService.updateSettings(hospital_id,payload);
@@ -221,8 +221,8 @@ updateHospitalSettings = catchAsync(async(req:Request,res:Response)=>{
 
 
 fetchStatsOfHospital = catchAsync(async (req: Request, res: Response) =>  {
-  const user_id = (req as AuthRequest).user.id;
-  const hospital_id = await this.adminService.getHospitalId(user_id);
+   const hospital_id = await this.getHospitalIdFromReq(req);
+
   const statsArray:any = await this.adminService.fetchStats(hospital_id);
   
   // 1. Safely extract the single stats object from the database array result
@@ -281,8 +281,8 @@ fetchAppointment = catchAsync(async(req:Request,res:Response)=>{
 
 
 fetchStaff = catchAsync(async(req:Request,res:Response)=>{
- const user_id = (req as AuthRequest).user.id;
-  const hospital_id = await this.adminService.getHospitalId(user_id);
+ const hospital_id = await this.getHospitalIdFromReq(req);
+
 
 const staff = await this.adminService.fetchStaff(hospital_id);
 generalResponse({

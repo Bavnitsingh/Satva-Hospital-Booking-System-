@@ -5,6 +5,7 @@ import { PatientRoutes } from "../modules/patient/patient.routes.js";
 import { AdminRoutes } from "../modules/admin/admin.routes.js";
 import { PatientPageRoutes } from "../modules/patient/patient.page.routes.js";
 import { DoctorRoutes } from "../modules/doctor/doctor.routes.js";
+import { StaffRoutes } from "../modules/staff/staff.routes.js";
 
 
 export function buildApiRouter():Router{
@@ -17,7 +18,8 @@ const routes:Routes[]=[
     new PatientRoutes(),
     new AdminRoutes(),
     new PatientPageRoutes(),
-    new DoctorRoutes()
+    new DoctorRoutes(),
+    new StaffRoutes()
 
 ]
 

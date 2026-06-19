@@ -14,6 +14,9 @@ import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
 import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
 import { SuperAdminPageRoutes } from "./modules/super_admin/super.admin.page.routes.js";
 import { HospitalPageRoutes } from "./modules/hospital/hospital.page.routes.js";
+import { AdminPageRoutes } from "./modules/admin/admin.page.routes.js";
+import { StaffPageRoutes } from "./modules/staff/staff.page.routes.js";
+
 
 
 export function buildApp(): Application {
@@ -80,6 +83,10 @@ export function buildApp(): Application {
   app.use(passport.initialize());
   app.use(passport.session());
   // HANDLES GLOBAL ERROR
+
+app.use('/admin', new AdminPageRoutes().router);
+
+app.use('/staff',new StaffPageRoutes().router)
 
 
 

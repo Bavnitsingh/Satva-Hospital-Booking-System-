@@ -7,6 +7,7 @@
     <title>Satva - Medical Records</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="module">
       import { checkJwt } from "/js/check-jwt.js";
 
@@ -41,7 +42,7 @@
   <body class="bg-bg-page min-h-screen font-sans">
     <!-- Header -->
 
-    <%- include('../partials/header', { title: 'my-records' }) %>
+    <%- include('../partials/patient-header', { title: 'my-records' }) %>
 
 
     <main class="max-w-7xl mx-auto px-6 py-10">
@@ -81,10 +82,8 @@
 
     <script>
       const token = localStorage.getItem("accessToken");
-      const username = localStorage.getItem("username");
 
-      document.getElementById("patientName").textContent = username;
-      document.getElementById("user_img").src = `https://ui-avatars.com/api/?name=${username}&background=10A37F&color=fff`
+   
       async function loadRecords() {
         try {
           const response = await fetch("/api/v1/patient/records", {
@@ -186,13 +185,7 @@
                                           View Details
                                           </button>
 
-                                          <button 
-                                          class="px-4 py-2 rounded-xl bg-zinc-100 text-primary hover:bg-primary-light"
-                                          onclick="downloadRecord(${record.record_id})"
-                                          class="text-primary"
-                                          >
-                                          Download
-                                          </button>
+
 
                                           </div>
 

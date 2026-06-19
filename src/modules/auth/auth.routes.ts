@@ -15,14 +15,13 @@ export class AuthRoutes implements Routes {
   }
 
   private initializationRoutes(): void {
-
     //SERVING STATIC PAGES
 
     this.router.post("/register-doctor", this.authController.registerDoctor);
     this.router.post("/register-admin", this.authController.registerAdmin);
     this.router.post("/register", this.authController.register);
     this.router.post("/login", this.authController.login);
-  
+
     this.router.post("/sendOtp", this.authController.sendOtp);
     this.router.post("/reset-password", this.authController.resetPassword);
     this.router.post("/send-otp", this.authController.sendOtp);
@@ -36,6 +35,8 @@ export class AuthRoutes implements Routes {
 
       ]
     }))
+    this.router.get('/country', this.authController.getCountryCodes);
+
 
     this.router.get('/google/callback', passport.authenticate('google', {
       failureRedirect: '/login'
@@ -52,7 +53,7 @@ export class AuthRoutes implements Routes {
     });
 
 
-    this.router.post("/logout", authenticate,this.authController.logout);
+    this.router.post("/logout", authenticate, this.authController.logout);
 
   }
 }

@@ -12,6 +12,9 @@ import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
 import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
 import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
+import { SuperAdminPageRoutes } from "./modules/super_admin/super.admin.page.routes.js";
+import { HospitalPageRoutes } from "./modules/hospital/hospital.page.routes.js";
+
 
 export function buildApp(): Application {
   const app: Express = express();
@@ -37,6 +40,8 @@ export function buildApp(): Application {
     }),
   );
   app.use(express.urlencoded({ extended: true }));
+
+  app.use(express.static("public"));
   app.use(cookieParser());
   app.use(express.static("public"));
 
@@ -56,6 +61,9 @@ export function buildApp(): Application {
     const doctor_profile = path.join(folderpath, "doctor_profile");
     fs.mkdirSync(doctor_profile);
     // Add logic below for creating new folder
+    const medical_records=path.join(folderpath,"medical_records")
+    fs.mkdirSync(medical_records)
+
     console.log("Folder Created Successfully ");
   }
 
@@ -69,18 +77,28 @@ export function buildApp(): Application {
   );
   console.log(path.join(__dirname, "views"));
 
-  //
   app.use(passport.initialize());
   app.use(passport.session());
+  // HANDLES GLOBAL ERROR
 
-  //ROUTER
 
-  app.use("/patient", new PatientPageRoutes().router);
-  app.use("/doctor", new DoctorPageRoutes().router);
+
 
   //ROUTER
   app.use("/api/v1", buildApiRouter());
+
+  app.get("/", (req, res) => {
+    res.render("index");
+  });
   app.use("/", new AuthPageRoutes().router);
+  app.use("/patient", new PatientPageRoutes().router);
+  app.use('/doctor', new DoctorPageRoutes().router);
+  app.use('/super-admin', new SuperAdminPageRoutes().router);
+  app.use('/hospital', new HospitalPageRoutes().router);
+
+
+
+
 
   // HANDLES GLOBAL ERROR
   app.use(errorMiddleware);

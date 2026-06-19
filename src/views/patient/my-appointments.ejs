@@ -77,7 +77,7 @@
 
   <body class="bg-bg-page text-gray-800 min-h-screen flex flex-col">
 
-    <%- include('../partials/header', { title: 'my-appointments' }) %>
+    <%- include('../partials/patient-header', { title: 'my-appointments' }) %>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
       <div class="mb-8">
@@ -284,8 +284,6 @@
       const token = localStorage.getItem("accessToken");
       const username = localStorage.getItem("username");
 
-      document.getElementById("patientName").textContent = username;
-      document.getElementById("user_img").src = `https://ui-avatars.com/api/?name=${username}&background=10A37F&color=fff`;
 
       const state = {
         appointments: [],

@@ -19,7 +19,7 @@
         </a>
 
         <nav class="hidden md:flex items-center gap-8">
-          <a href="/patient/dashboard" class="text-primary font-semibold">
+          <a href="/patient/dashboard" class="hover:text-primary">
             Dashboard
           </a>
 
@@ -27,7 +27,7 @@
             Doctors
           </a>
 
-          <a href="/patient/appointments" class="hover:text-primary">
+          <a href="/patient/my-appointments" class="hover:text-primary">
             Appointments
           </a>
 
@@ -50,22 +50,60 @@
 
           <div class="flex items-center gap-2">
             <img
-              src="<%='https://ui-avatars.com/api/?name=Patient' %>"
+              id="userAvatar"
+              src="https://ui-avatars.com/api/?name=Patient"
               class="w-10 h-10 rounded-full object-cover"
             />
 
             <div>
-              <p class="text-sm font-semibold">
+              <p id="userName" class="text-sm font-semibold">
                 Patient
               </p>
 
-              <p class="text-xs text-gray-500">
+              <p id="userRole" class="text-xs text-gray-500">
                 Patient
               </p>
             </div>
+              <button id="logoutBtn" class="bg-red-500 px-3 py-1 rounded-md">Logout</button>
           </div>
         </div>
 
       </div>
     </div>
   </header>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+  const profile = JSON.parse(localStorage.getItem("user") || "{}");
+    console.log(profile)
+  const patient = profile?.data;
+
+  if (!patient) return;
+
+  const fullName =
+    `${patient.first_name || ""} ${patient.last_name || ""}`.trim();
+
+  const userName = document.getElementById("userName");
+  const userRole = document.getElementById("userRole");
+  const userAvatar = document.getElementById("userAvatar");
+
+  if (userName) userName.textContent = fullName || "Patient";
+  if (userRole) userRole.textContent = "Patient";
+
+  if (userAvatar) {
+    userAvatar.src = patient.profile_path
+      ? `/${patient.profile_path}`
+      : `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || "Patient")}`;
+  }
+});
+</script>
+    <script type="module">
+      import { logout } from "/js/logout.js";
+      const logout_btn = document.getElementById("logoutBtn");
+      logout_btn.addEventListener("click", async function (e) {
+        e.preventDefault();
+        await logout();
+        
+      });
+    </script>

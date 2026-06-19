@@ -93,7 +93,7 @@
   </head>
   <body class="bg-[#f0faf6] text-gray-800 min-h-screen flex flex-col">
 
-    <%- include('../partials/header', { title: 'profile' }) %>
+    <%- include('../partials/patient-header', { title: 'profile' }) %>
 
     
 
@@ -825,9 +825,7 @@
 
         const p = json.data;
         const username = `${p.first_name || 'New'} ${p.last_name || 'User'}`;
-        document.getElementById("patientName").textContent = username;
         document.getElementById("first_name").value = p.first_name || "";
-        document.getElementById("user_img").src = `https://ui-avatars.com/api/?name=${username}&background=10A37F&color=fff`
         document.getElementById("last_name").value = p.last_name || "";
         document.getElementById("email").value = p.email || "";
         document.getElementById("country_code").value = p.country_code || "";

@@ -1,3 +1,4 @@
+import { Filters } from "../admin/interfaces/filters.interface.js";
 import { StaffRepository } from "./staff.repository.js";
 
 export class StaffService{
@@ -24,10 +25,31 @@ export class StaffService{
     return stats;
   }
 
-    async fetchAppointmentsByHospitalId(hospital_id:number){
-    const appointments = await this.staffRepo.fetchAppointments(hospital_id);
-    return appointments;
-  }
+   
+async fetchAppointments(hospital_id: number, query: {
+  date?:      string;
+  doctor_id?: string;
+  status?:    string;
+  page?:      string;
+  limit?:     string;
+}) {
+  const filters:Filters = {
+    date:      query.date,
+    doctor_id: query.doctor_id ? Number(query.doctor_id) : undefined,
+    status:    query.status,
+    page:      Number(query.page)  || 1,
+    limit:     Number(query.limit) || 10,
+  };
+
+  const { rows, total } = await this.staffRepo.fetchAppointments(hospital_id, filters);
+
+  return {
+    data:  rows,
+    total: Number(total),
+    page:  filters.page,
+    limit: filters.limit,
+  };
+}
   async fetchAppointment(appointment_id:number){
     const appointment = await this.staffRepo.fetchAppointmentDetails(appointment_id);
     return appointment;

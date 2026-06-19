@@ -1,4 +1,5 @@
 import { query } from "../../database/connection.js";
+import { Filters } from "../admin/interfaces/filters.interface.js";
 
 
 export class StaffRepository{
@@ -51,21 +52,67 @@ WHERE d.hospital_id = ?;
       `,[hospital_id]) ;
       return stats;
     } 
-     async fetchAppointments(hospital_id:number){
-    const rows = await query(`SELECT 
-    a.appointment_id,
-    CONCAT(d.first_name, ' ', d.last_name) AS doctor_name,
-    a.start_time,
-    a.appointment_type,
-    a.appointment_status,
-    CONCAT(p.first_name, ' ', p.last_name) AS patient_name
-FROM appointments a 
-INNER JOIN doctors d ON a.doctor_id = d.doctor_id 
-LEFT JOIN patients p ON a.patient_id = p.patient_id
+     // staff.repo.ts
 
-WHERE d.hospital_id = ? order by a.start_time ; `,[hospital_id]);
- return rows;
-  };
+// staff.repo.ts
+
+async fetchAppointments(hospital_id: number, filters: Filters) {
+  const { date, doctor_id, status, page, limit } = filters;
+  const offset = (page - 1) * limit;
+
+  const conditions: string[] = ['d.hospital_id = ?'];
+  const params: any[]        = [hospital_id];
+
+  if (date) {
+    conditions.push('a.slot_date = ?');
+    params.push(date);
+  } else {
+    conditions.push('a.slot_date = CURDATE()');
+  }
+
+  if (doctor_id) {
+    conditions.push('a.doctor_id = ?');
+    params.push(doctor_id);
+  }
+
+  if (status) {
+    conditions.push('a.appointment_status = ?');
+    params.push(status);
+  }
+
+  const WHERE = `WHERE ${conditions.join(' AND ')}`;
+
+  // ✅ LIMIT and OFFSET interpolated directly as numbers — NOT as ? placeholders
+  const safeLimit  = Number(limit)  || 10;
+  const safeOffset = Number(offset) || 0;
+
+  const rows = await query(
+    `SELECT
+       a.appointment_id, a.doctor_id,
+       CONCAT(d.first_name, ' ', d.last_name) AS doctor_name,
+       a.slot_date, a.start_time, a.end_time,
+       a.appointment_type, a.appointment_status, a.confirmation_no,
+       a.patient_id,
+       CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+     FROM appointments a
+     INNER JOIN doctors  d ON a.doctor_id  = d.doctor_id
+     LEFT  JOIN patients p ON a.patient_id = p.patient_id
+     ${WHERE}
+     ORDER BY a.start_time ASC
+     LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+    params
+  );
+
+  const totalRows = await query(
+    `SELECT COUNT(*) AS total
+     FROM appointments a
+     INNER JOIN doctors d ON a.doctor_id = d.doctor_id
+     ${WHERE}`,
+    params
+  );
+
+  return { rows, total: totalRows[0]?.total ?? 0 };
+}
  async fetchAppointmentDetails(appointment_id:number){
       const appointment = await query(`SELECT 
     a.appointment_id,
@@ -150,7 +197,7 @@ async findAppointmentByConfirmationNo(confirmation_no: string) {
   return rows[0] ?? null;
 }
 
-async findAppointmentById(appointment_id: number) {
+async findAppointmentById(appointment_id: number) {   
   const rows:any = await query(
     `SELECT
        a.*,

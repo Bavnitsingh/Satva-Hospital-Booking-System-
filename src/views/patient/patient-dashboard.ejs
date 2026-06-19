@@ -158,7 +158,7 @@
 
               <span id="notificationCount"
                 class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                3
+
               </span>
             </button>
 
@@ -255,7 +255,7 @@
         </svg>
         <p class="text-gray-500 mt-3">Notifications</p>
         <h3 id="notificationCountDashboard" class="text-3xl font-bold mt-2 text-dark">
-          
+
         </h3>
       </div>
     </section>
@@ -507,7 +507,7 @@
 
           const notifications = await notificationsRes.json();
           console.log(notifications);
-          document.getElementById("notificationCount").textContent =
+          document.getElementById("notificationCountDashboard").textContent =
             notifications.data?.length || 0;
         } catch (err) {
           console.error("Dashboard Error:", err);

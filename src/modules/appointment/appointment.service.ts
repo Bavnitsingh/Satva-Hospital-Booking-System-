@@ -121,6 +121,20 @@ export class AppointmentService {
         "Your appointment has been booked successfully.",
     });
 
+
+    let doctor_user_id = await this.repo.getUserIdByDoctorId(data.doctor_id);
+
+
+    if (doctor_user_id) {
+      await this.notificationService.createNotification({
+        user_id: doctor_user_id,
+        notification_type: NotificationType.APPOINTMENT_BOOKED,
+        title: "New Appointment",
+        notification_message:
+          `A new appointment has been booked.`,
+        redirect_url: `/doctor/appointments/${appointment_id}`
+      });
+    }
     return {
       appointment_id,
       payment_id,
@@ -183,11 +197,29 @@ export class AppointmentService {
       end_time: end_time,
     });
 
-    // await this.repo.createNotification({
-    //   user_id: user_id,
-    //   title: "APPOINTMENT_RESCHEDULED",
-    //   message: `Your appointment has been rescheduled successfully to ${data.slot_date} at ${data.start_time}.`,
-    // });
+    //this is for appointment rescheduled
+    await this.notificationService.createNotification({
+      user_id: user_id,
+      notification_type: NotificationType.APPOINTMENT_RESCHEDULED,
+      title: "Appointment Rescheduled",
+      notification_message:
+        `Your appointment has been rescheduled.`,
+      redirect_url: `/appointments/${appointment_id}`
+    });
+
+
+    let doctor_user_id = await this.repo.getUserIdByDoctorId(appt.doctor_id);
+
+    if (doctor_user_id) {
+      await this.notificationService.createNotification({
+        user_id: doctor_user_id,
+        notification_type: NotificationType.APPOINTMENT_RESCHEDULED,
+        title: "Appointment Rescheduled",
+        notification_message:
+          `Your appointment has been rescheduled.`,
+        redirect_url: `/doctor/appointments/${appointment_id}`
+      });
+    }
 
     await this.repo.logStatusHistory({
       appointment_id: appointment_id,
@@ -239,11 +271,30 @@ export class AppointmentService {
       remarks: reason ?? "Cancelled by patient",
     });
 
-    // await this.repo.createNotification({
-    //   user_id: user_id,
-    //   title: "APPOINTMENT_CANCELLED",
-    //   message: `Your appointment has been cancelled successfully.`,
-    // });
+    //this is for cancelling the appointment
+    await this.notificationService.createNotification({
+      user_id: user_id,
+      notification_type: NotificationType.APPOINTMENT_CANCELLED,
+      title: "Appointment Cancelled",
+      notification_message:
+        `Your appointment has been cancelled.`,
+      redirect_url: `/appointments/${appointment_id}`
+    });
+
+    let doctor_user_id = await this.repo.getUserIdByDoctorId(appt.doctor_id);
+
+
+    //this is for doctor
+    if (doctor_user_id) {
+      await this.notificationService.createNotification({
+        user_id: doctor_user_id,
+        notification_type: NotificationType.APPOINTMENT_CANCELLED,
+        title: "Appointment Cancelled",
+        notification_message:
+          `Appointment has been cancelled.`,
+        redirect_url: `/doctor/appointments/${appointment_id}`
+      });
+    }
 
     return {
       appointment_id,

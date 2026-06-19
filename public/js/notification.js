@@ -25,9 +25,6 @@ async function updateNotificationCount() {
   const unreadCount =
     await fetchUnreadCount();
 
-
-
-  console.log(unreadCount, "this is undreadcount")
   notificationCount.innerText =
     unreadCount;
 
@@ -199,23 +196,56 @@ function attachMarkReadEvents() {
 
 markAllReadBtn.addEventListener(
   "click",
-  () => {
+  async () => {
 
-    notifications.forEach(
-      notification =>
-        notification.is_read = true
-    );
+    try {
 
-    // Later call API:
-    // await fetch("/api/v1/notifications/read-all", {
-    //     method: "PATCH"
-    // });
+      const token =
+        localStorage.getItem("accessToken");
 
-    renderNotifications();
+      const response =
+        await fetch(
+          "/api/v1/notifications/read-all",
+          {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+
+      console.log()
+      if (!response.ok) {
+
+        throw new Error(
+          "Failed to mark all notifications as read"
+        );
+
+      }
+
+      notifications.forEach(
+        notification => {
+          notification.is_read = true;
+        }
+      );
+
+      renderNotifications();
+
+      updateNotificationCount();
+
+    }
+    catch (error) {
+
+      console.error(
+        "Error marking all notifications as read:",
+        error
+      );
+
+    }
 
   }
 );
-
 
 notificationBtn.addEventListener(
   "click",

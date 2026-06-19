@@ -12,6 +12,11 @@ export class AppointmentRepository {
     return result.length ? result[0].doctor_id : null;
   }
 
+  async getUserIdByDoctorId(doctor_id: number): Promise<number | null> {
+    const result: any = await query(`select user_id from doctors where doctor_id = ?`, [doctor_id]);
+    return result.length ? result[0].user_id : null;
+  }
+
   async isSlotTaken(doctor_id: number, slot_date: string, start_time: string): Promise<boolean> {
     const result: any = await query(
       `select appointment_id from appointments where doctor_id = ? and slot_date = ? and start_time = ? and appointment_status not in ('CANCELLED', 'REJECTED')`,

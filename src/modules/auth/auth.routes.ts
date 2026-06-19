@@ -22,9 +22,8 @@ export class AuthRoutes implements Routes {
     this.router.post("/register-admin", this.authController.registerAdmin);
     this.router.post("/register", this.authController.register);
     this.router.post("/login", this.authController.login);
-  
     this.router.post("/sendOtp", this.authController.sendOtp);
-    this.router.post("/reset-password", this.authController.resetPassword);
+    this.router.post("/reset-password", this.authController.resetPassword);      
     this.router.post("/send-otp", this.authController.sendOtp);
     this.router.get('/google', passport.authenticate('google', {
       scope: [

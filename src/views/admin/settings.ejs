@@ -140,12 +140,6 @@
             class="text-sm text-gray-500 border border-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-50 transition"
           >
             Reset
-          </button>
-          <p id="save-success" class="hidden text-sm text-green-600 flex items-center gap-1.5 ml-auto">
-            <i class="ti ti-circle-check text-base"></i>
-            Settings saved successfully
-          </p>
-          <p id="save-error" class="hidden text-sm text-red-500 ml-auto"></p>
         </div>
 
       </div>
@@ -185,8 +179,6 @@
 
     function resetForm() {
       if (hospitalData) populateForm(hospitalData);
-      document.getElementById('save-success').classList.add('hidden');
-      document.getElementById('save-error').classList.add('hidden');
     }
 
     // ─── LOAD ────────────────────────────────────────
@@ -229,11 +221,7 @@
     // ─── SAVE ────────────────────────────────────────
     async function saveSettings() {
       const saveBtn    = document.getElementById('save-btn');
-      const successEl  = document.getElementById('save-success');
-      const errorEl    = document.getElementById('save-error');
 
-      successEl.classList.add('hidden');
-      errorEl.classList.add('hidden');
       saveBtn.disabled  = true;
       saveBtn.innerHTML = '<i class="ti ti-loader-2 animate-spin text-base"></i> Saving...';
 
@@ -263,12 +251,10 @@
         const json   = await res.json();
         hospitalData = { ...hospitalData, ...payload, ...(json.data ?? {}) };
 
-        successEl.classList.remove('hidden');
-        setTimeout(() => successEl.classList.add('hidden'), 3000);
+        showFlash('Settings saved successfully', 'success');
 
       } catch (err) {
-        errorEl.textContent = err.message;
-        errorEl.classList.remove('hidden');
+        showFlash(err.message, 'error');
         console.error(err);
       } finally {
         saveBtn.disabled  = false;
@@ -282,5 +268,6 @@
   <script src="/js/tabs.js"></script>
   <script src="/js/stats.js"></script>
 
+<%- include('../error_flash.ejs') %>
 </body>
 </html>

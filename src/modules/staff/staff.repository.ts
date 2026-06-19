@@ -53,7 +53,8 @@ async fetchDoctorsByHospitalId(
   const rows = await query(
     `SELECT
        d.*,
-       u.email
+       u.email,
+       d.profile_path
      FROM doctors d
      JOIN users u ON d.user_id = u.user_id
      ${WHERE}

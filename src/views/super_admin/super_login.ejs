@@ -284,6 +284,8 @@
               location.href = "/super-admin/dashboard";
             }
             else if (role == "ADMIN") {
+              localStorage.setItem('accessToken',data.data.accessToken)
+              localStorage.setItem('role',role)
               location.href = "/admin/doctors";
             }
 

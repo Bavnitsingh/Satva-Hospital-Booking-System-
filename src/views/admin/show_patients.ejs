@@ -172,54 +172,50 @@ function calculateAge(dob) {
       document.getElementById('next-btn').disabled = currentPage * PAGE_SIZE >= totalRecords;
       document.getElementById('pagination').classList.remove('hidden');
     }
+async function loadPatients() {
+  const search = document.getElementById('search-input').value.trim();
+  showState('loading-state');
+  document.getElementById('pagination').classList.add('hidden');
 
-    async function loadPatients() {
-      const search = document.getElementById('search-input').value.trim();
-      showState('loading-state');
-      document.getElementById('pagination').classList.add('hidden');
+  try {
+    const url = new URL(`${API_BASE_URL}/fetchpatients`);
+    url.searchParams.set('page', currentPage);
+    url.searchParams.set('limit', PAGE_SIZE);
+    if (search) url.searchParams.set('search', search);
 
-      try {
-        const url = new URL(`${API_BASE_URL}/fetchpatients`);
-        url.searchParams.set('page', currentPage);
-        url.searchParams.set('limit', PAGE_SIZE);
-        if (search) url.searchParams.set('search', search);
-
-        const accessToken = localStorage.getItem('accessToken')
-        const res = await fetch(url.toString(), {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            // Uncomment and set your auth header if needed:
-            Authorization: `Bearer ${accessToken}`,
-          }
-        });
-console.log(url)
-        if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
-
-        const json = await res.json();
-
-        // Support both { data: [], total: N } and a plain array response
-        const patients = Array.isArray(json) ? json : (json.data ?? []);
-        totalRecords = json.total ?? patients.length;
-
-        // Update Active Patients stat card
-        document.getElementById('stat-patients').textContent = totalRecords.toLocaleString();
-
-        if (patients.length === 0) {
-          showState('empty-state');
-          return;
-        }
-
-        showState(null);
-        renderRows(patients);
-        updatePagination();
-
-      } catch (err) {
-        showState('error-state');
-        document.getElementById('error-message').textContent = err.message;
-        console.error('Failed to fetch patients:', err);
+    const accessToken = localStorage.getItem('accessToken');
+    const res = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
       }
+    });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
+
+    const json = await res.json();
+
+    // ✅ unwrap double-nested response
+    const payload  = json.data ?? json;
+    const patients = payload.data ?? [];
+    totalRecords   = payload.total ?? patients.length;
+
+    if (patients.length === 0) {
+      showState('empty-state');
+      return;
     }
+
+    showState(null);
+    renderRows(patients);
+    updatePagination();
+
+  } catch (err) {
+    showState('error-state');
+    document.getElementById('error-message').textContent = err.message;
+    console.error('Failed to fetch patients:', err);
+  }
+}
 
     function changePage(delta) {
       currentPage += delta;

@@ -4,31 +4,135 @@ import { Hospital } from "./interfaces/hospital.interface.js";
 
 export class AdminRepository{
 
-    async fetchDoctorsByHospitalId(hospital_id:number){
-        const rows = await query(
-            `
-            select * from doctors where hospital_id=? 
-            `,[hospital_id]
-        );
-         return rows ;
-    }
+   async fetchDoctorsByHospitalId(
+  hospital_id: number,
+  filters: {
+    search?:         string | undefined;
+    specialty_id?:   number | undefined;
+    is_deactivated?: boolean | undefined;
+    page:            number;
+    limit:           number;
+  }
+) {
+  const { search, specialty_id, is_deactivated, page, limit } = filters;
+  const offset = (page - 1) * limit;
+
+  const conditions: string[] = ['d.hospital_id = ?'];
+  const params: any[]        = [hospital_id];
+
+  if (search) {
+    conditions.push('(d.first_name LIKE ? OR d.last_name LIKE ?)');
+    params.push(`%${search}%`, `%${search}%`);
+  }
+
+  if (specialty_id) {
+    conditions.push(`d.doctor_id IN (
+      SELECT doctor_id FROM doctor_specialties WHERE specialty_id = ?
+    )`);
+    params.push(specialty_id);
+  }
+
+  if (is_deactivated !== undefined) {
+    conditions.push('d.is_deactivated = ?');
+    params.push(is_deactivated ? 1 : 0);
+  }
+
+  const WHERE = `WHERE ${conditions.join(' AND ')}`;
+
+  // ✅ LIMIT and OFFSET interpolated directly as numbers — NOT as ? placeholders
+  const safeLimit  = Number(limit)  || 10;
+  const safeOffset = Number(offset) || 0;
+
+  const rows = await query(
+    `SELECT
+       d.*,
+       u.email,
+       d.profile_path
+     FROM doctors d
+     JOIN users u ON d.user_id = u.user_id
+     ${WHERE}
+     ORDER BY d.first_name ASC
+     LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+    params
+  );
+
+  const totalRows:any = await query(
+    `SELECT COUNT(*) AS total
+     FROM doctors d
+     ${WHERE}`,
+    params
+  );
+
+  return { rows, total: totalRows[0]?.total ?? 0 };
+}
 
     async fetchHospitalIdFromAdminId(user_id:number){
         const rows:any = await query(`select hospital_id from admins where user_id= ?`,[user_id]);
         return rows[0];
     }
 
-    async fetchPatientsByHospital(hospital_id: number) {
-    const rows= await query(
-      `SELECT DISTINCT p.*
-FROM patients p
-JOIN appointments a  ON p.patient_id  = a.patient_id
-JOIN doctors d       ON a.doctor_id   = d.doctor_id
-WHERE d.hospital_id  = ? `, 
-      [hospital_id]
-    );
-    return rows;
+   // staff.repo.ts (or admin.repo.ts)
+
+async fetchPatientsByHospital(
+  hospital_id: number,
+  filters: {
+    search?:     string | undefined;
+    gender?:     string | undefined;
+    is_insured?: boolean | undefined;
+    page:        number;
+    limit:       number;
   }
+) {
+  const { search, gender, is_insured, page, limit } = filters;
+  const offset = (page - 1) * limit;
+
+  const conditions: string[] = ['d.hospital_id = ?'];
+  const params: any[]        = [hospital_id];
+
+  if (search) {
+    conditions.push('(p.first_name LIKE ? OR p.last_name LIKE ? OR p.mobile LIKE ?)');
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+  }
+
+  if (gender) {
+    conditions.push('p.gender = ?');
+    params.push(gender);
+  }
+
+  if (is_insured !== undefined) {
+    conditions.push('p.is_insured = ?');
+    params.push(is_insured ? 1 : 0);
+  }
+
+  const WHERE = `WHERE ${conditions.join(' AND ')}`;
+
+  // ✅ LIMIT and OFFSET interpolated directly as numbers — NOT as ? placeholders
+  const safeLimit  = Number(limit)  || 10;
+  const safeOffset = Number(offset) || 0;
+
+  const rows = await query(
+    `SELECT DISTINCT
+       p.*
+     FROM patients p
+     JOIN appointments a ON p.patient_id = a.patient_id
+     JOIN doctors      d ON a.doctor_id  = d.doctor_id
+     ${WHERE}
+     ORDER BY p.first_name ASC
+     LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+    params
+  );
+
+  const totalRows: any = await query(
+    `SELECT COUNT(DISTINCT p.patient_id) AS total
+     FROM patients p
+     JOIN appointments a ON p.patient_id = a.patient_id
+     JOIN doctors      d ON a.doctor_id  = d.doctor_id
+     ${WHERE}`,
+    params
+  );
+
+  return { rows, total: totalRows[0]?.total ?? 0 };
+}
 
   async insertDoctorQualifications(
   doctor_id: number,

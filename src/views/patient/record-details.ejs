@@ -7,7 +7,11 @@
     <title>Satva - Medical Record Details</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import { checkJwt } from "/js/check-jwt.js";
 
+      checkJwt();
+    </script>
     <script>
       tailwind.config = {
         theme: {
@@ -89,7 +93,7 @@
     <%- include('../partials/footer') %>
 
     <script>
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
 
       const recordId = "<%= recordId %>";
 
@@ -322,7 +326,7 @@
       import { downloadMedicalRecord } from "/js/download-record.js";
 
       window.downloadRecord = async function (recordId) {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("accessToken");
 
         const response = await fetch(`/api/v1/patient/records/${recordId}`, {
           headers: {

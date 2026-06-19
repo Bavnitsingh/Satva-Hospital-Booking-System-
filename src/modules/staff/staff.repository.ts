@@ -9,10 +9,68 @@ export class StaffRepository{
         return rows[0];
     }
 
-    async fetchDoctorsByHospitalId(hospital_id:number){
-const rows : any = await query(`select * from doctors where hospital_id = ?`,[hospital_id]);
-return rows;
-    }
+  // staff.repo.ts
+
+async fetchDoctorsByHospitalId(
+  hospital_id: number,
+  filters: {
+    search?:         string | undefined;
+    specialty_id?:   number | undefined;
+    is_deactivated?: boolean | undefined;
+    page:            number;
+    limit:           number;
+  }
+) {
+  const { search, specialty_id, is_deactivated, page, limit } = filters;
+  const offset = (page - 1) * limit;
+
+  const conditions: string[] = ['d.hospital_id = ?'];
+  const params: any[]        = [hospital_id];
+
+  if (search) {
+    conditions.push('(d.first_name LIKE ? OR d.last_name LIKE ?)');
+    params.push(`%${search}%`, `%${search}%`);
+  }
+
+  if (specialty_id) {
+    conditions.push(`d.doctor_id IN (
+      SELECT doctor_id FROM doctor_specialties WHERE specialty_id = ?
+    )`);
+    params.push(specialty_id);
+  }
+
+  if (is_deactivated !== undefined) {
+    conditions.push('d.is_deactivated = ?');
+    params.push(is_deactivated ? 1 : 0);
+  }
+
+  const WHERE = `WHERE ${conditions.join(' AND ')}`;
+
+  // ✅ LIMIT and OFFSET interpolated directly as numbers — NOT as ? placeholders
+  const safeLimit  = Number(limit)  || 10;
+  const safeOffset = Number(offset) || 0;
+
+  const rows = await query(
+    `SELECT
+       d.*,
+       u.email
+     FROM doctors d
+     JOIN users u ON d.user_id = u.user_id
+     ${WHERE}
+     ORDER BY d.first_name ASC
+     LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+    params
+  );
+
+  const totalRows:any = await query(
+    `SELECT COUNT(*) AS total
+     FROM doctors d
+     ${WHERE}`,
+    params
+  );
+
+  return { rows, total: totalRows[0]?.total ?? 0 };
+}
 
       async fetchPatientsByHospital(hospital_id: number) {
     const rows= await query(
@@ -52,7 +110,7 @@ WHERE d.hospital_id = ?;
       `,[hospital_id]) ;
       return stats;
     } 
-     // staff.repo.ts
+     
 
 // staff.repo.ts
 
@@ -103,7 +161,7 @@ async fetchAppointments(hospital_id: number, filters: Filters) {
     params
   );
 
-  const totalRows = await query(
+  const totalRows:any = await query(
     `SELECT COUNT(*) AS total
      FROM appointments a
      INNER JOIN doctors d ON a.doctor_id = d.doctor_id

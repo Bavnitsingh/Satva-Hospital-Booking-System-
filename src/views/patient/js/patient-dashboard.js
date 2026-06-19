@@ -1,8 +1,8 @@
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("accessToken");
+
 
 async function loadDashboard() {
   try {
-
     const profileRes = await fetch("/api/v1/patient/profile", {
       method: "GET",
       headers: {
@@ -11,8 +11,10 @@ async function loadDashboard() {
       }
     });
 
+    console.log("hii this is token")
     const profile = await profileRes.json();
-    console.log(profile);
+       console.log("hii this is token")
+;
 
     if (profile.data) {
       document.getElementById("bloodGroup").textContent =
@@ -32,7 +34,7 @@ async function loadDashboard() {
     localStorage.setItem("username",profile.data.first_name)
 
     const appointmentsRes = await fetch(
-      "/api/v1/patient/appointments",
+      "/api/v1/appointments/patient",
       {
         method: "GET",
         headers: {
@@ -115,4 +117,3 @@ console.log(app_date);
 }
 
 document.addEventListener("DOMContentLoaded", loadDashboard);
-loadDashboard();

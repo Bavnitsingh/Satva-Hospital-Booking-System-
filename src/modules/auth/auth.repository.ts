@@ -49,33 +49,61 @@ export class UserRepository {
   }
 
   async findUserById(user_id: number) {
-    const result: any = await query('Select * from users where user_id=?', [user_id])
+    const result: any = await query("select * from users where user_id=?", [
+      user_id,
+    ]);
 
-    return result[0]
+    return result[0];
   }
 
-
-  async createGoogleUser(email: string, passwordHash: string, google_sub: string) {
-    const result: any = await query(`Insert into users(email,password_hash,role,google_sub) values(?,?,'PATIENT',?)`, [email, passwordHash, google_sub])
+  async createGoogleUser(
+    email: string,
+    passwordHash: string,
+    google_sub: string,
+    firstName: string = '',
+    lastName: string = ''
+  ) {
+    const result: any = await query(
+      `insert into users(email,password_hash,role,google_sub) values(?,?,'PATIENT',?)`,
+      [email, passwordHash, google_sub],
+    );
 
     const userId = result.insertId;
 
-    const rows: any = await query(`SELECT * FROM users where user_id=?`, [userId])
+    // Create a base patient record to avoid "Patient not found" errors
+    await query(
+      `insert into patients (user_id, first_name, last_name, country_code, mobile, dob, gender) values (?, ?, ?, '', '', '2000-01-01', 'MALE')`,
+      [userId, firstName, lastName]
+    );
 
-    return rows[0]
+    const rows: any = await query(`select * from users where user_id=?`, [
+      userId,
+    ]);
+
+    return rows[0];
   }
 
+  async ensurePatientExists(userId: number, firstName: string, lastName: string) {
+    const existing: any = await query(`select patient_id from patients where user_id = ?`, [userId]);
+    if (!existing.length) {
+      await query(
+        `insert into patients (user_id, first_name, last_name, country_code, mobile, dob, gender) values (?, ?, ?, '', '', '2000-01-01', 'MALE')`,
+        [userId, firstName, lastName]
+      );
+    }
+  }
 
   async createPatient(
     userId: number,
     first_name: string,
-    last_ame: string,
+    last_name: string,
     country_code: string,
     mobile: string,
     dob: string,
     gender: string,
   ) {
 
+   
     const result: any = await query(
       `
         insert into patients(
@@ -91,7 +119,7 @@ export class UserRepository {
             ?, ?, ?, ?, ?, ?, ?
         )
         `,
-      [userId, first_name, last_ame, country_code, mobile, dob, gender],
+      [userId, first_name, last_name, country_code, mobile, dob, gender],
     );
 
     return result;
@@ -101,11 +129,11 @@ export class UserRepository {
     await query(
       `
         update users
-        set last_login_at = UTC_TIMESTAMP(),
-        updated_at = UTC_TIMESTAMP()
+        set last_login_at = utc_timestamp(),
+        updated_at = utc_timestamp()
         where user_id = ?
         `,
-      [userId]
+      [userId],
     );
   }
 
@@ -150,10 +178,6 @@ async createDoctor(data: any) {
     return result;
   }
 
-
-
-
-
   async updatePassword(password: string, user_id: number) {
     const sql = `
         update users
@@ -165,7 +189,6 @@ async createDoctor(data: any) {
   }
 
   async deleteOldOtp(email: string) {
-
     let user: any = await this.findUserByEmail(email);
 
     if (!user) return false;
@@ -178,12 +201,11 @@ async createDoctor(data: any) {
   }
 
   async saveOtp(otp: string, email: string) {
-
     let user: any = await this.findUserByEmail(email);
 
-    if (!user) return false
+    if (!user) return false;
     const sql = `
-            INSERT INTO otp_verifications
+            insert into otp_verifications
             (
                
                 user_id,
@@ -192,13 +214,13 @@ async createDoctor(data: any) {
                 expires_at,
                 created_at
             )
-            VALUES
+            values
             (
                 ?,
                 ?,
                  'PASSWORD_RESET' ,
-                NOW() + INTERVAL 2 MINUTE,
-                NOW()
+                now() + interval 2 minute,
+                now()
             )
         `;
 
@@ -218,20 +240,14 @@ async createDoctor(data: any) {
       and expires_at > now()
   `;
 
-    const rows: any = await query(sql, [
-      user.user_id,
-      otp
-    ]);
+    const rows: any = await query(sql, [user.user_id, otp]);
 
     return rows[0] || null;
   }
 
   async canGetOtp(email: string) {
-
     let user: any = await this.findUserByEmail(email);
 
-
-    console.log("hii this is user")
 
     const sql = `
             select *
@@ -243,7 +259,6 @@ async createDoctor(data: any) {
 
     const rows: any = await query(sql, [user.user_id]);
 
-    console.log(rows)
     return rows.length === 0;
   }
 
@@ -281,53 +296,56 @@ async createDoctor(data: any) {
     refreshToken: string,
     deviceInfo: string,
     ipAddress: string,
-    auth_provider: string
+    auth_provider: string,
   ) {
+    // Delete existing sessions for the user
+    await query(
+      `delete from user_sessions where user_id = ?`,
+      [userId]
+    );
+
+    // Insert the new session
     const sql = `
-  INSERT INTO user_sessions
-  (
-    user_id,
-    refresh_token,
-    expires_at,
-    device_info,
-    ip_address,
-    auth_provider
-  )
-  VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 15 DAY), ?, ?, ?)
-`;
+    insert into user_sessions
+    (
+      user_id,
+      refresh_token,
+      expires_at,
+      device_info,
+      ip_address,
+      auth_provider
+    )
+    values (?, ?, date_add(utc_timestamp(), interval 15 day), ?, ?, ?)
+  `;
 
     await query(sql, [
       userId,
       refreshToken,
       deviceInfo,
       ipAddress,
-      auth_provider
+      auth_provider,
     ]);
   }
 
-
   async findSessionByRefreshToken(
-    refreshToken: string
+    refreshToken: string,
   ): Promise<UserSession | null> {
-
     const sql = `
-    SELECT *
-    FROM user_sessions
-    WHERE refresh_token = ?
-      AND expires_at > UTC_TIMESTAMP()
-    LIMIT 1
+    select *
+    from user_sessions
+    where refresh_token = ?
+      and expires_at > utc_timestamp()
+    limit 1
   `;
 
-    const sessions: any = await query(
-      sql,
-      [refreshToken]
-    );
+    const sessions: any = await query(sql, [refreshToken]);
 
-    return sessions.length > 0
-      ? sessions[0]
-      : null;
+    return sessions.length > 0 ? sessions[0] : null;
   }
 
+  async logout(userId: number) {
+    return query(`delete from user_sessions where user_id = ?`, [userId]);
+  }
 
 
 async createStaff(data: any) {

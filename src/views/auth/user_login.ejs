@@ -150,12 +150,12 @@
         <!-- Desktop Buttons -->
         <div class="hidden md:flex items-center gap-3">
           <a
-            href="login-page"
+            href="/login"
             class="text-sm font-medium text-gray-700 hover:text-primary px-4 py-2"
             >Login</a
           >
           <a
-            href="register-page"
+            href="/register"
             class="text-sm font-semibold bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-primary-dark transition"
             >Register</a
           >
@@ -430,7 +430,7 @@
               <!-- Google -->
               <button
                 type="button"
-                onclick="window.location.href='google'"
+                onclick="window.location.href = '/api/v1/auth/google'"
                 class="w-full flex items-center justify-center gap-2.5 py-3 px-4 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition shadow-sm"
               >
                 <svg
@@ -462,7 +462,7 @@
               <p class="text-sm text-gray-500 text-center">
                 Don't have an account?
                 <a
-                  href="register-page"
+                  href="/register"
                   class="text-primary font-semibold hover:underline ml-1"
                   >Create one →</a
                 >
@@ -611,6 +611,31 @@
 
     <!--! Validation Script  -->
     <script>
+      // Google Auth Token Handler
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+      if (urlToken) {
+        localStorage.setItem("accessToken", urlToken);
+        localStorage.removeItem("is_profile_updated");
+        window.history.replaceState({}, document.title, "/login");
+        
+        // Immediately check profile status to prevent flashing the dashboard
+        fetch("/api/v1/patient/profile", {
+          headers: { "Authorization": `Bearer ${urlToken}` }
+        }).then(res => res.json()).then(profile => {
+          if (profile.data && profile.data.isProfileUpdated === false) {
+            localStorage.setItem("is_profile_updated", "false");
+            window.location.href = "/patient/profile";
+          } else {
+            localStorage.setItem("is_profile_updated", "true");
+            window.location.href = "/patient/dashboard";
+          }
+        }).catch(() => {
+          localStorage.setItem("is_profile_updated", "false");
+          window.location.href = "/patient/profile";
+        });
+      }
+
       const loginForm = document.getElementById("loginform");
       const email = document.getElementById("email");
       const password = document.getElementById("password");
@@ -618,7 +643,7 @@
       const emailError = document.getElementById("emailError");
       const passwordError = document.getElementById("passwordError");
 
-      loginForm.addEventListener("submit",async (e) => {
+      loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         let isValid = true;
 
@@ -668,35 +693,44 @@
         if (!isValid) {
           e.preventDefault();
         } else {
-           try {
-    const response = await fetch("login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        email: email.value.trim(),
-        password: password.value,
-      }),
-    });
+          try {
+            const response = await fetch("/api/v1/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                email: email.value.trim(),
+                password: password.value,
+              }),
+            });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.message);
-      return;
-    }
-
-
-  
-    localStorage.setItem("accessToken", data.data.accessToken);
-
-    window.location.href = "/api/v1/patient/dashboard";
-  } catch (error) {
-    console.error(error);
-    alert("Something went wrong");
-  }
+            const resp = await response.json();
+            if (!response.ok) {
+              alert(data.message);
+              return;
+            }
+            console.log(resp)
+            const data = resp.data;
+            const user = data.user;
+            const role = user.role;
+            const token = data.accessToken;
+          //   // const user = resp.data.user;
+          //   console.log(data);
+            localStorage.setItem("accessToken", token);
+            if(role === 'PATIENT'){
+              localStorage.setItem("role", role);
+              window.location.href = "/patient/dashboard";
+            }else if(role === 'DOCTOR'){{
+              localStorage.setItem("role", role);
+              window.location.href = "/doctor/dashboard";
+            }
+          }
+          } catch (error) {
+            console.error(error);
+            alert("Something went wrong");
+          }
         }
       });
     </script>

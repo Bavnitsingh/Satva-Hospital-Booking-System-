@@ -4,38 +4,71 @@ import { generalResponse } from "../../common/helpers/general-response.js";
 import { PatientService } from "./patient.service.js";
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js";
 import logger from "../../common/logger.js";
+import {
+  IBookAppointment,
+  ISearchDoctorsQuery,
+  IUpdatePatientProfile,
+} from "./types/patient.js";
 
 export class PatientController {
   private service = new PatientService();
 
-
-// for static file serving
-  showDashboard = catchAsync(async (req: Request, res: Response) => {
- res.render("patient_dashboard")
-});
-
-
   // Profile
   getProfile = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.getProfile((req as AuthRequest).user.id);
-    logger.info(result);
-    generalResponse({ res, data: result, message: "Profile fetched" });
+    let result: any = null;
+    try {
+      result = await this.service.getProfile((req as AuthRequest).user.id);
+    } catch (e) {
+      // Patient record might be missing, ignore to allow profile update check
+    }
+    const isProfileUpdated = !!(result?.mobile?.trim() && result?.address_line1?.trim());
+    generalResponse({
+      res,
+      data: { ...result, isProfileUpdated },
+      message: "Profile fetched",
+      statusCode: 200,
+    });
   });
 
-  updateProfile = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.updateProfile(
-      (req as AuthRequest).user.id,
-      req.body,
-    );
-    generalResponse({ res, data: result, message: "Profile updated" });
+updateProfile = catchAsync(async (req: Request, res: Response) => {
+  const files = req.files as any;
+  const body = req.body as IUpdatePatientProfile;
+
+  const profileImage = files?.profile_upload?.[0];
+  const policyDocument = files?.policy_document?.[0];
+
+  if (profileImage) {
+    body.profile_path = profileImage.path;
+  }
+
+  if (policyDocument) {
+    body.policy_document_path = policyDocument.path;
+  }
+
+  const result = await this.service.updateProfile(
+    (req as AuthRequest).user.id,
+    body,
+  );
+
+  generalResponse({
+    res,
+    data: result,
+    message: "Profile updated",
+    statusCode: 200,
   });
+});
 
   // Family
   getFamilyMembers = catchAsync(async (req: Request, res: Response) => {
     const result = await this.service.getFamilyMembers(
       (req as AuthRequest).user.id,
     );
-    generalResponse({ res, data: result, message: "Family members fetched" });
+    generalResponse({
+      res,
+      data: result,
+      message: "Family members fetched",
+      statusCode: 200,
+    });
   });
 
   addFamilyMember = catchAsync(async (req: Request, res: Response) => {
@@ -57,7 +90,12 @@ export class PatientController {
       Number(req.params.memberId),
       req.body,
     );
-    generalResponse({ res, data: result, message: "Family member updated" });
+    generalResponse({
+      res,
+      data: result,
+      message: "Family member updated",
+      statusCode: 200,
+    });
   });
 
   deleteFamilyMember = catchAsync(async (req: Request, res: Response) => {
@@ -65,61 +103,36 @@ export class PatientController {
       (req as AuthRequest).user.id,
       Number(req.params.memberId),
     );
-    generalResponse({ res, data: null, message: "Family member removed" });
+    generalResponse({
+      res,
+      data: null,
+      message: "Family member removed",
+      statusCode: 200,
+    });
   });
 
   // Doctor search
   searchDoctors = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.searchDoctors(req.query as any);
-    generalResponse({ res, data: result, message: "Doctors fetched" });
+    const query = (req as any).validatedQuery as ISearchDoctorsQuery;
+    const result = await this.service.searchDoctors(query);
+    generalResponse({
+      res,
+      data: result,
+      message: "Doctors fetched",
+      statusCode: 200,
+    });
   });
 
   getDoctorDetail = catchAsync(async (req: Request, res: Response) => {
     const result = await this.service.getDoctorDetail(
       Number(req.params.doctorId),
     );
-    generalResponse({ res, data: result, message: "Doctor fetched" });
-  });
-
-  // Appointments
-  getAppointments = catchAsync(async (req: Request, res: Response) => {
-    const { status } = req.query as { status?: string };
-    const result = await this.service.getAppointments(
-      (req as AuthRequest).user.id,
-      status,
-    );
-    generalResponse({ res, data: result, message: "Appointments fetched" });
-  });
-
-  bookAppointment = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.bookAppointment(
-      (req as AuthRequest).user.id,
-      req.body,
-    );
     generalResponse({
       res,
       data: result,
-      message: "Appointment booked",
-      statusCode: 201,
+      message: "Doctor fetched",
+      statusCode: 200,
     });
-  });
-
-  rescheduleAppointment = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.rescheduleAppointment(
-      (req as AuthRequest).user.id,
-      Number(req.params.appointmentId),
-      req.body,
-    );
-    generalResponse({ res, data: result, message: "Appointment rescheduled" });
-  });
-
-  cancelAppointment = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.cancelAppointment(
-      (req as AuthRequest).user.id,
-      Number(req.params.appointmentId),
-      req.body.reason,
-    );
-    generalResponse({ res, data: result, message: "Appointment cancelled" });
   });
 
   // Payments
@@ -128,7 +141,12 @@ export class PatientController {
     const result = await this.service.getPaymentHistory(
       (req as AuthRequest).user.id,
     );
-    generalResponse({ res, data: result, message: "Payment history fetched" });
+    generalResponse({
+      res,
+      data: result,
+      message: "Payment history fetched",
+      statusCode: 200,
+    });
   });
 
   // Medical records
@@ -136,7 +154,12 @@ export class PatientController {
     const result = await this.service.getMedicalHistory(
       (req as AuthRequest).user.id,
     );
-    generalResponse({ res, data: result, message: "Medical history fetched" });
+    generalResponse({
+      res,
+      data: result,
+      message: "Medical history fetched",
+      statusCode: 200,
+    });
   });
 
   getMedicalRecord = catchAsync(async (req: Request, res: Response) => {
@@ -144,17 +167,28 @@ export class PatientController {
       (req as AuthRequest).user.id,
       Number(req.params.recordId),
     );
-    generalResponse({ res, data: result, message: "Medical record fetched" });
+    generalResponse({
+      res,
+      data: result,
+      message: "Medical record fetched",
+      statusCode: 200,
+    });
   });
 
   // Notifications
   getNotifications = catchAsync(async (req: Request, res: Response) => {
-    const unreadOnly = req.query.unread === "true";
+    const { unread } = (req as any).validatedQuery as { unread?: string };
+    const unreadOnly = unread === "true";
     const result = await this.service.getNotifications(
       (req as AuthRequest).user.id,
       unreadOnly,
     );
-    generalResponse({ res, data: result, message: "Notifications fetched" });
+    generalResponse({
+      res,
+      data: result,
+      message: "Notifications fetched",
+      statusCode: 200,
+    });
   });
 
   markNotificationRead = catchAsync(async (req: Request, res: Response) => {
@@ -166,6 +200,7 @@ export class PatientController {
       res,
       data: null,
       message: "Notification marked as read",
+      statusCode: 200,
     });
   });
 
@@ -175,46 +210,7 @@ export class PatientController {
       res,
       data: null,
       message: "All notifications marked as read",
+      statusCode: 200,
     });
   });
-
-  getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
-    const { doctorId, date } = req.query as { doctorId: string; date: string };
-    if (!doctorId || !date)
-      throw new Error("doctorId and date (YYYY-MM-DD) are required");
-    const result = await this.service.getAvailableSlots(Number(doctorId), date);
-    generalResponse({ res, data: result, message: "Available slots" });
-  });
-
-
-
-
-
-
-// showProfile=catchAsync(async(req:Request,res:Response)=>{
-
-// const result= await this.patientService.showProfile(Number(req.params.user_id))
-
-// generalResponse({res,data:result,message:'Profile Fetched Successfully',statusCode:200})
-// })
-
-// updateProfile=catchAsync(async(req:Request,res:Response)=>{
-
-//     const result=await this.patientService.updateProfile(req.body,Number(req.params.user_id))
-
-//     generalResponse({res,data:[],message:'Profile Update Successfully',statusCode:200})
-// })
-
-
-
-// updateProfilePicture=catchAsync(async(req:Request,res:Response)=>{
-
-//     const destination=req.file?.destination || 'uploads/patient_profile/default.png'
-
-//     const result =await this.patientService.updatePatientProfile(Number(req.params.user_id),destination)
-
-//     generalResponse({res,data:[],message:'Profile Image successfully',statusCode:201})
-
-// })
-
 }

@@ -3,7 +3,8 @@ import { Routes } from "../../common/interfaces/routes.interfaces.js";
 import { StaffController } from "./staff.controller.js";
 import { AdminController } from "../admin/admin.controller.js";
 import { staffAuth } from "../../common/middlewares/auth.middleware.js";
-
+import { validateRequestBody } from "../../common/middlewares/validation.middleware.js";
+import { paymentStatusSchema } from "./validators/staff.validators.js";
 
 export class StaffRoutes implements Routes {
   path: string = "/staff";
@@ -26,7 +27,7 @@ export class StaffRoutes implements Routes {
         this.router.get('/patients/:patientId',this.staffController.fetchPatientDetails);
 this.router.get('/appointments/confirm/:confirmation_no',  this.staffController.getAppointmentByConfirmationNo);
 this.router.put('/appointments/:appointment_id/checkin',   this.staffController.checkInPatient);
-this.router.put('/appointments/:appointment_id/payment',  this.staffController.markPaymentDone);
+this.router.put('/appointments/:appointment_id/payment', validateRequestBody(paymentStatusSchema), this.staffController.markPaymentDone);
 this.router.put('/appointments/:appointment_id/noshow', this.staffController.markNoShow);
 
 

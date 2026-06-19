@@ -305,11 +305,11 @@
         throw new Error(json.message ?? `Error ${res.status}`);
       }
 
-      alert('Doctor registered successfully!');
+      setFlash('Doctor registered successfully!', 'success');
       window.location.href = 'http://localhost:3333/admin/doctors';
 
     } catch (err) {
-      alert(`Failed to register doctor: ${err.message}`);
+      showFlash(`Failed to register doctor: ${err.message}`, 'error');
       console.error(err);
     } finally {
       submitBtn.disabled = false;
@@ -377,5 +377,6 @@ loadSpecialties();
 
 </script>
 
+<%- include('../error_flash.ejs') %>
 </body>
 </html>

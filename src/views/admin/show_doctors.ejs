@@ -278,13 +278,13 @@
         doctorRecord.is_deactivated = targetStatus;
         filterDoctors();
       } else {
-        alert(resData.message || 'Error occurred while updating physician access rights.');
+        showFlash(resData.message || 'Error occurred while updating physician access rights.', 'error');
         btn.disabled = false;
         btn.style.opacity = '1';
       }
     } catch (error) {
       console.error('Network Error:', error);
-      alert('Cannot deactivate the doctor...Some problem has come.');
+      showFlash('Cannot deactivate the doctor...Some problem has come.', 'error');
       btn.disabled = false;
       btn.style.opacity = '1';
     }
@@ -297,5 +297,6 @@
 <script src="/js/stats.js"></script>
 <script src="/js/tabs.js"></script>
 
+<%- include('../error_flash.ejs') %>
 </body>
 </html>

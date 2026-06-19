@@ -346,7 +346,7 @@
             </div>
 
             <!-- Google -->
-            <button type="button" onclick="window.location.href = 'google'"
+            <button type="button" onclick="window.location.href='/api/v1/auth/google'"
               class="w-full flex items-center justify-center gap-2.5 py-3 px-4 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition shadow-sm">
               <svg class="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -575,11 +575,144 @@
         document.getElementById(errorId).textContent = message;
         document.getElementById(errorId).classList.remove("hidden");
 
-        if (input) {
-          input.classList.add("border-red-500");
+      if (input) {
+        input.classList.add("border-red-500");
+      }
+
+      isValid = false;
+    }
+
+    // First Name
+    if (!firstName.value.trim()) {
+      showError(firstName, "first_name_error", "First name is required");
+    }
+
+    // Last Name
+    if (!lastName.value.trim()) {
+      showError(lastName, "last_name_error", "Last name is required");
+    }
+
+    // Email
+    if (!email.value.trim()) {
+      showError(email, "email_error", "Email is required");
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+      showError(email, "email_error", "Please enter a valid email address");
+    }
+
+    // Country Code
+    if (!countryCode.value) {
+      showError(
+        countryCode,
+        "country_code_error",
+        "Please select a country code",
+      );
+    }
+
+    // Phone Number
+    if (!phone.value.trim()) {
+      showError(phone, "phone_error", "Phone number is required");
+    } else if (!/^[0-9]{6,15}$/.test(phone.value.trim())) {
+      showError(phone, "phone_error", "Please enter a valid phone number");
+    }
+
+    // Date of Birth
+    if (!dob.value) {
+      showError(dob, "dob_error", "Date of birth is required");
+    }
+
+    // Gender
+    if (!gender.value) {
+      showError(gender, "gender_error", "Please select your gender");
+    }
+
+    // Password
+    if (!password.value) {
+      showError(password, "password_error", "Password is required");
+    } else if (password.value.length < 8) {
+      showError(
+        password,
+        "password_error",
+        "Password must be at least 8 characters",
+      );
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#?!@$%^&*-]).{8,}$/.test(
+        password.value,
+      )
+    ) {
+      showError(
+        password,
+        "password_error",
+        "Password must contain uppercase, lowercase, number and special character",
+      );
+    }
+
+    // Confirm Password
+    if (!confirmPassword.value) {
+      showError(
+        confirmPassword,
+        "confirm_password_error",
+        "Please confirm your password",
+      );
+    } else if (password.value !== confirmPassword.value) {
+      showError(
+        confirmPassword,
+        "confirm_password_error",
+        "Passwords do not match",
+      );
+    }
+
+    // Terms
+    if (!terms.checked) {
+      showError(
+        null,
+        "terms_error",
+        "You must accept the Terms & Privacy Policy",
+      );
+    }
+
+    if (isValid) {
+      console.log("Form Valid");
+      // Fetch api for registration form
+      try {
+        const response = await fetch("/api/v1/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            first_name: firstName.value.trim(),
+            last_name: lastName.value.trim(),
+            email: email.value.trim(),
+            country_code: countryCode.value,
+            phone: phone.value.trim(),
+            dob: dob.value,
+            gender: gender.value,
+            password: password.value,
+            confirm_password: confirmPassword.value,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.message || "Registration failed");
+          return;
         }
 
-        isValid = false;
+        alert(data.message || "Registration successful");
+
+        // Auto login and redirect to profile page to complete profile
+        if (data.data && data.data.token) {
+          localStorage.setItem("accessToken", data.data.token);
+          localStorage.setItem("is_profile_updated", "false");
+          window.location.href = "/patient/profile";
+        } else {
+          window.location.href = "/login";
+        }
+      } catch (error) {
+        console.error("Registration error:", error);
+        alert("Something went wrong. Please try again.");
       }
 
       // First Name
@@ -710,6 +843,7 @@
           showFlash("Something went wrong. Please try again.", "error")
         }
       }
+    }
     });
   </script>
 

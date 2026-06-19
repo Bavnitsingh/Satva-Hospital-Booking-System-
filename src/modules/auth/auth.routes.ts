@@ -3,6 +3,7 @@ import { Routes } from "../../common/interfaces/routes.interfaces.js";
 import { AuthController } from "./auth.controller.js";
 import passport from './utils/googleauth.js'
 import { authenticate } from "../../common/middlewares/auth.middleware.js";
+import { sign } from "./utils/jwt.js";
 
 export class AuthRoutes implements Routes {
   path: string = "/auth";
@@ -38,13 +39,18 @@ export class AuthRoutes implements Routes {
 
 
     this.router.get('/google/callback', passport.authenticate('google', {
-      scope: ['profile',
-        'email',
-        // 'https://www.googleapis.com/auth/user.phonenumbers.read'
-      ],
-      successRedirect: '/api/v1/patient/dashboard'
-    }
-    ))
+      failureRedirect: '/login'
+    }), (req, res) => {
+      const user = req.user as any;
+      const token = sign({
+        id: user.user_id,
+        email: user.email,
+        role: user.role,
+      });
+      
+      // Redirect to login page with the token to be intercepted by frontend
+      res.redirect(`/login?token=${token}`);
+    });
 
 
     this.router.post("/logout", authenticate, this.authController.logout);

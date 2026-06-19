@@ -169,6 +169,7 @@ export class AuthController {
   getCountryCodes = async (req: Request, res: Response) => {
     return res.json(country);
   };
+
   logout = catchAsync(async (req: Request, res: Response) => {
     await this.authService.logout((req as AuthRequest).user.id);
 
@@ -177,6 +178,21 @@ export class AuthController {
     generalResponse({
       res,
       message: "Logged out successfully",
+  }
+
+)})
+
+
+registerStaff = catchAsync(async (req: Request, res: Response) => {
+
+    const result = await this.authService.registerStaff(req.body);
+
+
+    generalResponse({
+      res,
+      data: result,
+      message: "Staff Registration Successful",
+      statusCode: 201,
     });
   });
 }

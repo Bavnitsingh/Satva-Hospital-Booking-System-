@@ -1,5 +1,6 @@
 
 import {
+  AppointmentStatus,
   IDoctorDetails,
   IDoctorLeave,
   IDoctorNotification,
@@ -11,11 +12,14 @@ import {
 } from "./doctor.interface.js";
 import { DoctorRepo } from "./doctor.repository.js";
 import {
+  BadRequestException,
   NotFoundException,
  
 } from "../../common/helpers/http-exception.js";
 import { getNextWeekStartingDay } from "./utils/doctor.utilts.js";
 import fs from 'fs'
+import { Console } from "winston/lib/winston/transports/index.js";
+import { ResultSetHeader } from "mysql2";
 
 
 
@@ -74,21 +78,31 @@ export class DoctorService {
       doctor_id,
       start_date,
     );
+    const doctorLeavesSchedule=await this.doctorRepo.findDoctorLeavesByDoctorId(doctor_id)
 
-    return { weekScheduleList };
+    return { weekScheduleList ,doctorLeavesSchedule};
   }
 
-  async setWeeklySchedule(data: IDoctorSchedule) {
+  async setWeeklySchedule(data: IDoctorSchedule,user_id:number) {
     if (!data) {
       throw new NotFoundException("Data is empty");
     }
+    const doctor_id=await this.getDoctorId(user_id)
 
-    const result = await this.doctorRepo.insertORUpdateDoctorSchedule(data);
+    const result = await this.doctorRepo.insertORUpdateDoctorSchedule(data,doctor_id);
     return { result };
   }
 
-  async setLeaves(data: IDoctorLeave) {
-    const result = await this.doctorRepo.insertDoctorLeaves(data);
+  async setLeaves(data: IDoctorLeave,user_id:number) {
+    const doctor_id:number=await this.getDoctorId(user_id)
+
+    if(data.from_date){}
+
+    const checkISLeaveExistsBetween:boolean=await this.doctorRepo.checkLeaveExistBetween(data.from_date,data.to_date,doctor_id)
+    if(checkISLeaveExistsBetween){
+      throw new BadRequestException('Your start date or end date is already in your past applied leaves. Cancel that leaves')
+    }
+    const result = await this.doctorRepo.insertDoctorLeaves(data,doctor_id);
 
     return { result };
   }
@@ -204,5 +218,44 @@ export class DoctorService {
 
     const hospital_details=await this.doctorRepo.getHosptialDetails(user_id)
     return {hospital_details}
+  }
+
+  async updateAppointmentStatus(user_id:number,appointment_id:number,appointment_status:string){
+
+  if(!appointment_status || appointment_status==='' || appointment_status==undefined){
+    throw new BadRequestException('Appointment Status not found')
+  }
+
+  if(!appointment_id || appointment_id===undefined){
+    throw new BadRequestException("Appointment Id Not Found")
+  }
+
+    if(!(appointment_status in AppointmentStatus)){
+      throw new BadRequestException('Status type does not exists')
+    }
+        
+    const doctor_id=await this.getDoctorId(user_id)
+    
+
+    if(appointment_status==AppointmentStatus.IN_PROGRESS){
+      // check if there is still doctor is taking consultation
+      const {progress_status}=await this.doctorRepo.getInProgressStatus(doctor_id)
+      if(progress_status){
+        throw new BadRequestException("Please Complete the Existing Consultation or Click the Button to Complete")
+      }
+    }
+    
+    const isUpdated=await this.doctorRepo.setAppointmentStatus(appointment_id,appointment_status)
+    return {isUpdated}
+
+  }
+
+
+
+  async deleteLeave(leave_id:number){
+
+
+    const result =await this.doctorRepo.cancelLeave(leave_id)
+    return {result }
   }
 }

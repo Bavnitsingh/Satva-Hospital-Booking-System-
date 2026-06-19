@@ -1,10 +1,8 @@
-<%
-  // ── today_schedule.ejs ──────────────────────────────────────────────
-  // Expected: appointments[] each having:
-  //   { time, period, patient_name, age, status, reason, type }
-  // status: 'upcoming' | 'completed' | 'in_progress'
-  // type  : 'in_person' | 'telemedicine'
-%>
+<!-- today_schedule.html -->
+<!-- Expects appointments[] injected via window.todayAppts before today_schedule.js loads -->
+<!-- Each item: { time, period, patient_name, age, status, reason, type } -->
+<!-- status: 'upcoming' | 'completed' | 'in_progress' -->
+<!-- type  : 'in_person' | 'telemedicine' -->
 
 <div id="tab-today" class="tab-panel hidden">
 
@@ -14,7 +12,7 @@
       <p class="text-base font-semibold text-gray-900" id="today-date-label"></p>
       <p class="text-sm text-gray-500 mt-0.5" id="today-count-label"></p>
     </div>
-    <!-- Optional legend -->
+   
     <div class="hidden sm:flex items-center gap-4 text-xs text-gray-500">
       <span class="flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span> Upcoming
@@ -25,125 +23,28 @@
       <span class="flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Completed
       </span>
+      <span class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span> No Show
+      </span>
+      <span class="flex items-center gap-1.5">
+  <span class="w-2 h-2 rounded-full bg-rose-400 inline-block"></span> Cancelled
+</span>
+<span class="flex items-center gap-1.5">
+  <span class="w-2 h-2 rounded-full bg-violet-400 inline-block"></span> Rescheduled
+</span>
     </div>
   </div>
 
-  <!-- Appointment cards -->
-  <div class="space-y-3" id="today-appointments-list">
+  <!-- Appointment cards (populated by today_schedule.js) -->
+  <div class="space-y-3" id="today-appointments-list"></div>
 
-    <%
-      // ─── SAMPLE DATA (replace with your real server-side variable) ───
-      const todayAppts = typeof appointments !== 'undefined' ? appointments : [
-        { time:'9',  period:'AM', patient_name:'Sarah Johnson',   age:38, status:'upcoming',    reason:'Annual checkup',             type:'in_person'    },
-        { time:'9',  period:'AM', patient_name:'Robert Brown',    age:52, status:'upcoming',    reason:'Chest pain follow-up',       type:'in_person'    },
-        { time:'10', period:'AM', patient_name:'Maria Garcia',    age:45, status:'completed',   reason:'Blood pressure consultation',type:'telemedicine' },
-        { time:'10', period:'AM', patient_name:'David Lee',       age:61, status:'in_progress', reason:'Post-surgery checkup',       type:'in_person'    },
-        { time:'11', period:'AM', patient_name:'Jennifer White',  age:29, status:'upcoming',    reason:'Preventive care consultation',type:'telemedicine'},
-        { time:'2',  period:'PM', patient_name:'Thomas Anderson', age:55, status:'upcoming',    reason:'Diabetes management',        type:'in_person'    },
-      ];
-    %>
-
-    <% todayAppts.forEach(function(appt) { %>
-
-      <%
-        // Badge colours
-        let badgeCls = '', badgeLabel = '';
-        if (appt.status === 'upcoming')     { badgeCls = 'bg-blue-50 text-blue-600';    badgeLabel = 'Upcoming';     }
-        if (appt.status === 'in_progress')  { badgeCls = 'bg-amber-50 text-amber-600';  badgeLabel = 'In Progress';  }
-        if (appt.status === 'completed')    { badgeCls = 'bg-emerald-50 text-emerald-600'; badgeLabel = 'Completed'; }
-
-        // Type icon path
-        const isTelemedicine = appt.type === 'telemedicine';
-      %>
-
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-4">
-
-        <!-- Time column -->
-        <div class="flex-shrink-0 w-14 text-center">
-          <p class="text-xl font-bold text-teal-600 leading-none"><%= appt.time %></p>
-          <p class="text-xs text-gray-400 mt-0.5 uppercase tracking-wide"><%= appt.period %></p>
-        </div>
-
-        <!-- Divider -->
-        <div class="flex-shrink-0 w-px h-10 bg-gray-100"></div>
-
-        <!-- Patient info -->
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <p class="font-semibold text-gray-900 text-sm"><%= appt.patient_name %></p>
-            <span class="text-xs text-gray-400">Age: <%= appt.age %></span>
-            <span class="text-xs font-medium px-2 py-0.5 rounded-full <%= badgeCls %>"><%= badgeLabel %></span>
-          </div>
-          <p class="text-xs text-gray-500 mt-0.5 truncate"><%= appt.reason %></p>
-          <div class="flex items-center gap-1 mt-1">
-            <% if (isTelemedicine) { %>
-              <!-- Telemedicine icon -->
-              <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-              </svg>
-              <span class="text-xs text-gray-400">Telemedicine</span>
-            <% } else { %>
-              <!-- In-person icon -->
-              <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 4h10M5 11h14M5 19h14a2 2 0 002-2v-5H3v5a2 2 0 002 2z"/>
-              </svg>
-              <span class="text-xs text-gray-400">In-Person</span>
-            <% } %>
-          </div>
-        </div>
-
-        <!-- Action buttons -->
-        <div class="flex-shrink-0 flex items-center gap-2">
-          <% if (appt.status === 'upcoming') { %>
-            <button class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition whitespace-nowrap">
-              Start Consultation
-            </button>
-            <button class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition">
-              Reschedule
-            </button>
-          <% } else if (appt.status === 'in_progress') { %>
-            <button class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-              </svg>
-              Complete
-            </button>
-          <% } else if (appt.status === 'completed') { %>
-            <button class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition">
-              View Record
-            </button>
-          <% } %>
-        </div>
-
-      </div>
-
-    <% }); %>
-
-    <!-- Empty state -->
-    <% if (!todayAppts || todayAppts.length === 0) { %>
-      <div class="py-16 flex flex-col items-center gap-3 text-gray-400">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5"/>
-        </svg>
-        <p class="text-sm">No appointments scheduled for today.</p>
-      </div>
-    <% } %>
-
-  </div><!-- /today-appointments-list -->
+  <!-- Empty state (shown by JS when list is empty) -->
+  <div id="today-empty-state" class="hidden py-16 flex flex-col items-center gap-3 text-gray-400">
+    <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5" />
+    </svg>
+    <p class="text-sm">No appointments scheduled for today.</p>
+  </div>
 
 </div><!-- /tab-today -->
-
-<script>
-  (function () {
-    const now   = new Date();
-    const opts  = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const label = now.toLocaleDateString('en-US', opts);
-    const el    = document.getElementById('today-date-label');
-    if (el) el.textContent = label;
-
-    // count from rendered cards — adjust if you push count from server
-    const cards = document.querySelectorAll('#today-appointments-list > div.bg-white');
-    const cntEl = document.getElementById('today-count-label');
-    if (cntEl) cntEl.textContent = cards.length + ' appointment' + (cards.length !== 1 ? 's' : '') + ' scheduled';
-  })();
-</script>

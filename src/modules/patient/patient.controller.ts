@@ -4,23 +4,27 @@ import { generalResponse } from "../../common/helpers/general-response.js";
 import { PatientService } from "./patient.service.js";
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js";
 import logger from "../../common/logger.js";
+import {
+  IBookAppointment,
+  ISearchDoctorsQuery,
+  IUpdatePatientProfile,
+} from "./types/patient.js";
 
 export class PatientController {
   private service = new PatientService();
 
-
-// for static file serving
-  showDashboard = catchAsync(async (req: Request, res: Response) => {
- res.render("patient/patient-dashboard")
-});
-
-
   // Profile
   getProfile = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.getProfile((req as AuthRequest).user.id);
+    let result: any = null;
+    try {
+      result = await this.service.getProfile((req as AuthRequest).user.id);
+    } catch (e) {
+      // Patient record might be missing, ignore to allow profile update check
+    }
+    const isProfileUpdated = !!(result?.mobile?.trim() && result?.address_line1?.trim());
     generalResponse({
       res,
-      data: result,
+      data: { ...result, isProfileUpdated },
       message: "Profile fetched",
       statusCode: 200,
     });
@@ -28,7 +32,7 @@ export class PatientController {
 
 updateProfile = catchAsync(async (req: Request, res: Response) => {
   const files = req.files as any;
-  const body = req.body;
+  const body = req.body as IUpdatePatientProfile;
 
   const profileImage = files?.profile_upload?.[0];
   const policyDocument = files?.policy_document?.[0];
@@ -109,7 +113,8 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
 
   // Doctor search
   searchDoctors = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.searchDoctors(req.query as any);
+    const query = (req as any).validatedQuery as ISearchDoctorsQuery;
+    const result = await this.service.searchDoctors(query);
     generalResponse({
       res,
       data: result,
@@ -126,62 +131,6 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
       res,
       data: result,
       message: "Doctor fetched",
-      statusCode: 200,
-    });
-  });
-
-  // Appointments
-  getAppointments = catchAsync(async (req: Request, res: Response) => {
-    const { status } = req.query as { status?: string };
-    const result = await this.service.getAppointments(
-      (req as AuthRequest).user.id,
-      status,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Appointments fetched",
-      statusCode: 200,
-    });
-  });
-
-  bookAppointment = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.bookAppointment(
-      (req as AuthRequest).user.id,
-      req.body,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Appointment booked",
-      statusCode: 201,
-    });
-  });
-
-  rescheduleAppointment = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.rescheduleAppointment(
-      (req as AuthRequest).user.id,
-      Number(req.params.appointmentId),
-      req.body,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Appointment rescheduled",
-      statusCode: 200,
-    });
-  });
-
-  cancelAppointment = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.cancelAppointment(
-      (req as AuthRequest).user.id,
-      Number(req.params.appointmentId),
-      req.body.reason,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Appointment cancelled",
       statusCode: 200,
     });
   });
@@ -228,7 +177,8 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
 
   // Notifications
   getNotifications = catchAsync(async (req: Request, res: Response) => {
-    const unreadOnly = req.query.unread === "true";
+    const { unread } = (req as any).validatedQuery as { unread?: string };
+    const unreadOnly = unread === "true";
     const result = await this.service.getNotifications(
       (req as AuthRequest).user.id,
       unreadOnly,
@@ -263,41 +213,4 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
       statusCode: 200,
     });
   });
-
-  getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
-    const { doctorId, date } = req.query as { doctorId: string; date: string };
-    if (!doctorId || !date)
-      throw new Error("doctorId and date (YYYY-MM-DD) are required");
-    const result = await this.service.getAvailableSlots(Number(doctorId), date);
-    generalResponse({
-      res,
-      data: result,
-      message: "Available slots",
-      statusCode: 200,
-    });
-  });
-
-  // showProfile=catchAsync(async(req:Request,res:Response)=>{
-
-  // const result= await this.patientService.showProfile(Number(req.params.user_id))
-
-  // generalResponse({res,data:result,message:'Profile Fetched Successfully',statusCode:200})
-  // })
-
-  // updateProfile=catchAsync(async(req:Request,res:Response)=>{
-
-  //     const result=await this.patientService.updateProfile(req.body,Number(req.params.user_id))
-
-  //     generalResponse({res,data:[],message:'Profile Update Successfully',statusCode:200})
-  // })
-
-  // updateProfilePicture=catchAsync(async(req:Request,res:Response)=>{
-
-  //     const destination=req.file?.destination || 'uploads/patient_profile/default.png'
-
-  //     const result =await this.patientService.updatePatientProfile(Number(req.params.user_id),destination)
-
-  //     generalResponse({res,data:[],message:'Profile Image successfully',statusCode:201})
-
-  // })
 }

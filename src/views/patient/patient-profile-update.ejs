@@ -940,7 +940,7 @@
         }
 
         const p = json.data;
-        const username = `${p.first_name} ${p.last_name}`;
+        const username = `${p.first_name || 'New'} ${p.last_name || 'User'}`;
         document.getElementById("patientName").textContent = username;
         document.getElementById("first_name").value = p.first_name || "";
         document.getElementById("user_img").src = `https://ui-avatars.com/api/?name=${username}&background=10A37F&color=fff`
@@ -957,8 +957,8 @@
           ? `/${p.profile_path}`
           : `https://ui-avatars.com/api/?name=${p.first_name}`;
 
-          console.log(p.insurance.policy_document_path)
-          if(p.insurance.policy_document_path){
+          console.log(p.insurance?.policy_document_path)
+          if(p.insurance?.policy_document_path){
             document.getElementById("policy_doc_status").textContent = p.insurance.policy_document_path;
             document.getElementById("policy_doc_status").classList.remove("hidden");
             document.getElementById("policy_document").classList.add("hidden");
@@ -1053,8 +1053,9 @@
             return;
           }
 
-          alert("Profile updated successfully");
-          await loadProfileData();
+          localStorage.setItem('is_profile_updated', 'true');
+          alert("Profile updated successfully. Redirecting to your dashboard.");
+          window.location.href = '/patient/dashboard';
         });
 
       document.getElementById("dob").max = new Date()

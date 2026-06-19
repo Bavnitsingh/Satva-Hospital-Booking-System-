@@ -21,16 +21,24 @@ passport.use(
         }
         const email = profile.emails[0].value;
 
-        
+        console.log(accessToken)
         req.session.googleToken=accessToken
         let user = await userRepo.findUserByEmail(email);
        
         if (!user) {
           const sub = profile._json.sub;
           const passwordHashed = await getHashedPassword(sub);
-          user = await userRepo.createGoogleUser(email, passwordHashed, sub);
+          const firstName = profile.name?.givenName || profile.displayName || '';
+          const lastName = profile.name?.familyName || '';
+          user = await userRepo.createGoogleUser(email, passwordHashed, sub, firstName, lastName);
+        } else {
+          if (user.role === 'PATIENT') {
+            const firstName = profile.name?.givenName || profile.displayName || '';
+            const lastName = profile.name?.familyName || '';
+            await userRepo.ensurePatientExists(user.user_id, firstName, lastName);
+          }
         }
-          
+        req.user = user;
 
         
         return cb(null, user);

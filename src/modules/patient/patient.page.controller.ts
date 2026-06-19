@@ -20,6 +20,15 @@ export class PatientPageController {
   renderBookAppointment = (req: Request, res: Response) => {
     res.render("patient/book-appointment", { user: (req as any).user });
   };
+  
+  renderMyAppointments = (req: Request, res: Response) => {
+    res.render("patient/my-appointments", { user: (req as any).user });
+  };
+
+  renderBookAppointments = (req: Request, res: Response) => {
+    res.render("patient/book-appointment", { user: (req as any).user });
+  };
+
 
   renderNotifications = (req: Request, res: Response) => {
     res.render("patient/notifications", { user: (req as any).user });
@@ -37,8 +46,5 @@ export class PatientPageController {
       user: (req as any).user,
       recordId: req.params.recordId,
     });
-  };
-  renderPatientAppointments = (req: Request, res: Response) => {
-    res.render("patient/my-appointments", { user: (req as any).user });
   };
 }

@@ -14,6 +14,9 @@ import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
 import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
 import { SuperAdminPageRoutes } from "./modules/super_admin/super.admin.page.routes.js";
 import { HospitalPageRoutes } from "./modules/hospital/hospital.page.routes.js";
+import { AdminPageRoutes } from "./modules/admin/admin.page.routes.js";
+import { StaffPageRoutes } from "./modules/staff/staff.page.routes.js";
+
 
 
 export function buildApp(): Application {
@@ -22,7 +25,7 @@ export function buildApp(): Application {
   let __filePath = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filePath);
 
-  //configuring ejs settings 
+  //configuring ejs settings
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "views"));
 
@@ -61,6 +64,9 @@ export function buildApp(): Application {
     const doctor_profile = path.join(folderpath, "doctor_profile");
     fs.mkdirSync(doctor_profile);
     // Add logic below for creating new folder
+    const medical_records=path.join(folderpath,"medical_records")
+    fs.mkdirSync(medical_records)
+
     console.log("Folder Created Successfully ");
   }
 
@@ -77,7 +83,10 @@ export function buildApp(): Application {
   app.use(passport.initialize());
   app.use(passport.session());
   // HANDLES GLOBAL ERROR
-  app.use(errorMiddleware);
+
+app.use('/admin', new AdminPageRoutes().router);
+
+app.use('/staff',new StaffPageRoutes().router)
 
 
 
@@ -88,15 +97,18 @@ export function buildApp(): Application {
   app.get("/", (req, res) => {
     res.render("index");
   });
-
+  app.use("/", new AuthPageRoutes().router);
   app.use("/patient", new PatientPageRoutes().router);
   app.use('/doctor', new DoctorPageRoutes().router);
   app.use('/super-admin', new SuperAdminPageRoutes().router);
   app.use('/hospital', new HospitalPageRoutes().router);
 
-  app.use("/", new AuthPageRoutes().router);
 
 
+
+
+  // HANDLES GLOBAL ERROR
+  app.use(errorMiddleware);
 
   return app;
 }

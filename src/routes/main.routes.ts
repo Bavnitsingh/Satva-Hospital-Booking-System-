@@ -3,12 +3,12 @@ import { AuthRoutes } from "../modules/auth/auth.routes.js";
 import { Routes } from "../common/interfaces/routes.interfaces.js";
 import { PatientRoutes } from "../modules/patient/patient.routes.js";
 import { AdminRoutes } from "../modules/admin/admin.routes.js";
-import { PatientPageRoutes } from "../modules/patient/patient.page.routes.js";
 import { DoctorRoutes } from "../modules/doctor/doctor.routes.js";
 import { SuperAdminRoutes } from "../modules/super_admin/super.admin.routes.js";
 import { HospitalRoutes } from "../modules/hospital/hospital.routes.js";
 import { TelemedicineRoutes } from "../modules/telemedicine/telemedicine.routes.js";
-import { AuthPageRoutes } from "../modules/auth/auth.page.routes.js";
+import { AppointmentRoutes } from "../modules/appointment/appointment.routes.js";
+import { StaffRoutes } from "../modules/staff/staff.routes.js";
 
 export function buildApiRouter(): Router {
   const router = Router();
@@ -18,12 +18,13 @@ export function buildApiRouter(): Router {
     new AuthRoutes(),
     new PatientRoutes(),
     new AdminRoutes(),
-    new PatientPageRoutes(),
     new DoctorRoutes(),
     new SuperAdminRoutes(),
     new HospitalRoutes(),
     new TelemedicineRoutes(),
-    new DoctorRoutes(),
+    new AppointmentRoutes(),
+    new StaffRoutes()
+
   ];
 
   router.get("/", (req, res) => {

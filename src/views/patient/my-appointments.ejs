@@ -466,9 +466,16 @@
             const avatar =
               (appt.doctor_first_name || "D").charAt(0) +
               (appt.doctor_last_name || "D").charAt(0);
-            const canMutate = ["CONFIRMED", "PAYMENT_PENDING"].includes(
-              appt.appointment_status,
+
+            const appointmentDateTime = new Date(
+              `${appt.slot_date}T${appt.start_time}`
             );
+
+            const isPastAppointment = appointmentDateTime < new Date();
+
+            const canMutate =
+              ["CONFIRMED", "PAYMENT_PENDING"].includes(appt.appointment_status) &&
+              !isPastAppointment;
 
             return `
           <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-5 sm:p-6 card-hover">
@@ -590,7 +597,7 @@
       `;
 
         try {
-          const res = await fetch("/api/v1/patient/appointments", {
+          const res = await fetch("/api/v1/appointments/patient", {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
@@ -645,7 +652,7 @@
 
         try {
           const res = await fetch(
-            `/api/v1/patient/appointments/${state.cancelAppointmentId}/cancel`,
+            `/api/v1/appointments/${state.cancelAppointmentId}/cancel`,
             {
               method: "PATCH",
               headers: {

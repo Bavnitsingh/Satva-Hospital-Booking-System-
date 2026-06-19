@@ -86,7 +86,7 @@
               Doctors
             </a>
             <a
-              href="/patient/my-appointments"
+              href="/appointment/my-appointments"
               class="nav-link text-gray-600 hover:text-primary transition"
             >
               Appointments
@@ -368,7 +368,7 @@ const doctorId =
   window.location.pathname.split("/").pop();
 const bookAppointmentBtn = document.getElementById("bookAppointmentBtn");
 bookAppointmentBtn.addEventListener("click",()=>{
-  window.location.href = `/patient/book-appointment`;
+  window.location.href = `/appointment/book/${doctorId}`;
 })
 
 
@@ -431,9 +431,6 @@ async function loadDoctor() {
       `https://ui-avatars.com/api/?name=${encodeURIComponent(
         `${doctor.first_name} ${doctor.last_name}`
       )}&background=10A37F&color=fff`;
-
-    document.getElementById("bookAppointmentBtn").href =
-      `/patient/book-appointment/${doctor.doctor_id}`;
 
   } catch (error) {
     console.error(error);

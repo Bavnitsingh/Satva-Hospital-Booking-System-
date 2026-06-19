@@ -164,7 +164,7 @@ select
     const result: any = await query(
       `
         
-        insert into medical_records(appointment_id_,
+        insert into medical_records(appointment_id,
         doctor_id,patient_id,diagnosis,examination_notes)
         values(?,?,?,?,?)
         `,
@@ -177,17 +177,17 @@ select
       ],
     );
 
-    return result[0];
+    return result.insertId;
   }
 
-  async insertMedicalRecordsAttactments(data: IMedicalAttachments) {
-    const result: any = await query(
+  async insertMedicalRecordsAttactments(data:any) {
+    const result: any = await query2(
       `
-        insert into medical_record_attachment
+        insert into medical_record_attachments
         (record_id,file_name,file_path)
-        values(?,?,?)
+        values ?
         `,
-      [data.record_id, data.file_name, data.file_path],
+      [data],
     );
 
     return result[0];
@@ -215,27 +215,20 @@ select
   }
 
   async insertPrescription(data: IPrescriptions) {
-    const result: any = await query(
+    const result: ResultSetHeader = await query(
       `insert into prescriptions(record_id,notes) 
         values(?,?)`,
       [data.record_id, data.notes],
-    );
+    ) as ResultSetHeader;
 
-    return result[0];
+    return result.insertId;
   }
 
-  async insertPrescriptionItems(data: IPrescriptionItems) {
-    const result: any = await query(
+  async insertPrescriptionItems(data:(string|number)[][]) {
+    const result: any = await query2(
       `insert into prescription_items(prescription_id,medicine_name,dosage,
-        frequency,duration,instruction)values(?,?,?,?,?,?)`,
-      [
-        data.prescription_id,
-        data.medicine_name,
-        data.dosage,
-        data.frequency,
-        data.duration,
-        data.instructions,
-      ],
+        frequency,duration,instructions) values ?`,
+      [data],
     );
 
     return result[0];
@@ -420,7 +413,7 @@ async getHosptialDetails(user_id:number){
 
 async getInProgressStatus(doctor_id:number):Promise<{progress_status:number}>{
 
-  const rows=await query(`Select count(*) as progress_status from appointments where doctor_id=? and appointment_status='IN_PROGRESS'`,[doctor_id]) as RowDataPacket[]
+  const rows=await query(`Select count(*) as progress_status from appointments where doctor_id=? and appointment_status='IN_PROGRESS and slot_date=current_date'`,[doctor_id]) as RowDataPacket[]
   return {progress_status:rows[0]?.progress_status??0}
 }
 
@@ -462,6 +455,13 @@ WHERE doctor_id = ?
     return false 
    }
    return result[0].isExist?true:false
+}
+
+async getPatientAndDoctorIdByAppointmentId(appointment_id:number){
+  const rows =await query(`select patient_id,doctor_id from appointments where appointment_id=?`,[appointment_id]) as RowDataPacket
+
+  return rows[0]
+
 }
 
 }

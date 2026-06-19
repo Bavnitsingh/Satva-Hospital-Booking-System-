@@ -39,7 +39,7 @@ export interface IMedicalRecords {
 }
 
 export interface IMedicalAttachments {
-  record_id: number;
+  record_id:number,
   file_name: string;
   file_path: string;
 }
@@ -59,7 +59,7 @@ export interface IPrescriptions {
 }
 
 export interface IPrescriptionItems {
-  prescription_id: number;
+  prescription_id?:number
   medicine_name: string;
   dosage: string;
   frequency: string;
@@ -86,4 +86,12 @@ export enum AppointmentStatus {
   CANCELLED = "CANCELLED",
   RESCHEDULED = "RESCHEDULED",
   NO_SHOW = "NO_SHOW",
+}
+
+export interface IDoctorRecordsFill{
+  appointment_id:number,
+   examination_notes: string,
+  diagnosis:string,
+  prescription_items:IPrescriptionItems[],
+  notes:string
 }

@@ -115,6 +115,8 @@ export async function authenticate(
     }
   }
 }
+
+
 // Role-based auth
 export function isPatient(req: Request, res: Response, next: NextFunction): void {
   const user = (req as AuthRequest).user;

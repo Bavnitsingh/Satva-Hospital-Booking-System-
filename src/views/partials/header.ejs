@@ -59,3 +59,12 @@
       </div>
     </div>
 </header>
+
+
+    <script type="module" src="">
+            const logout_btn = document.getElementById("logoutBtn");
+          logout_btn.addEventListener("click", async function (e) {
+            e.preventDefault();
+            await logout();
+          });
+    </script>

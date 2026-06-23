@@ -175,7 +175,7 @@
             />
           </svg>
           <p class="text-gray-500 mt-3">Notifications</p>
-          <h3 id="notificationCount" class="text-3xl font-bold mt-2 text-dark">
+          <h3 id="notificationCountDashboard" class="text-3xl font-bold mt-2 text-dark">
             0
           </h3>
         </div>
@@ -412,7 +412,7 @@
           }
 
           const notificationsRes = await fetch(
-            "/api/v1/patient/notifications",
+            "/api/v1/notifications/unread/count",
             {
               method: "GET",
               headers: {
@@ -424,8 +424,8 @@
 
           const notifications = await notificationsRes.json();
           console.log(notifications);
-          document.getElementById("notificationCount").textContent =
-            notifications.data?.length || 0;
+          document.getElementById("notificationCountDashboard").textContent =
+            notifications.data?.count || 0;
         } catch (err) {
           console.error("Dashboard Error:", err);
           if(err.message == "Unauthorized"){

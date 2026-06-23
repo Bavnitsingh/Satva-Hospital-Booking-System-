@@ -132,7 +132,7 @@ export class PatientService {
 
   async getPaymentHistory(userId: number) {
     const patientId = await this.resolvePatientId(userId);
-    return this.repo.getPaymentHistory(patientId);
+    // return this.repo.getPaymentHistory(patientId);
   }
 
   // Medical records
@@ -156,20 +156,5 @@ export class PatientService {
     const record = await this.repo.getMedicalRecordById(recordId, patientId);
     if (!record) throw new Error("Record not found");
     return record;
-  }
-
-  // Notifications
-  async getNotifications(userId: number, unreadOnly: boolean) {
-    return this.repo.getNotifications(userId, unreadOnly);
-  }
-
-  async markNotificationRead(userId: number, notificationId: number) {
-    const patientId = await this.resolvePatientId(userId);
-    return this.repo.markNotificationRead(notificationId, patientId);
-  }
-
-  async markAllNotificationsRead(userId: number) {
-    const patientId = await this.resolvePatientId(userId);
-    return this.repo.markAllNotificationsRead(patientId);
   }
 }

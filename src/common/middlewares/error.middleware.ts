@@ -10,7 +10,7 @@ export function errorMiddleware(
     res:Response,
     _next:NextFunction,
 ):void{
-    
+    console.log(error)
     const statusCode=error instanceof HttpException?error.statusCode:HttpStatus.INTERNAL_SERVER_ERROR;
     const message=error.message || 'Internal server Error';
 

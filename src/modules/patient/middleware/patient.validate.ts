@@ -16,6 +16,7 @@ export const validate_query =
   (schema: ZodSchema) => (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.query);
     if (!result.success) {
+      console.log("hii result is not succss")
       return res.status(400).json({ errors: result.error.flatten() });
     }
     (req as any).validatedQuery = result.data;

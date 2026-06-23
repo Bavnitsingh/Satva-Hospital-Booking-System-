@@ -1,3 +1,4 @@
+import { RowDataPacket } from "mysql2";
 import { query } from "../../database/connection.js";
 import { ICreateAppointmentData, IPaymentData, IStatusHistoryData, INotificationData } from "./appointment.interface.js";
 
@@ -10,6 +11,11 @@ export class AppointmentRepository {
   async getDoctorIdByUserId(user_id: number): Promise<number | null> {
     const result: any = await query(`select doctor_id from doctors where user_id = ?`, [user_id]);
     return result.length ? result[0].doctor_id : null;
+  }
+
+  async getUserIdByDoctorId(doctor_id : number) : Promise<number | null>{
+    const result = await query(`select user_id from doctors where doctor_id = ?`,[doctor_id]) as RowDataPacket;
+    return result.length ? result[0].user_id as number: null;
   }
 
   async isSlotTaken(doctor_id: number, slot_date: string, start_time: string): Promise<boolean> {
@@ -38,6 +44,9 @@ export class AppointmentRepository {
   }
 
   async createPayment(data: IPaymentData): Promise<number> {
+
+    console.log("this is data :", data);
+    
     const result: any = await query(
       `insert into payments (appointment_id, amount, payment_method, status, transaction_id) values (?, ?, ?, ?, ?)`,
       [data.appointment_id, data.amount, data.payment_method, data.status, data.transaction_id]

@@ -19,6 +19,11 @@ import { StaffPageRoutes } from "./modules/staff/staff.page.routes.js";
 
 
 
+import { notFoundMiddleware } from "./common/middlewares/not-found.middlware.js";
+
+
+
+
 export function buildApp(): Application {
   const app: Express = express();
 
@@ -97,9 +102,7 @@ app.use('/staff',new StaffPageRoutes().router)
   app.get("/", (req, res) => {
     res.render("index");
   });
-  app.use("/", new AuthPageRoutes().router);
-  app.use("/patient", new PatientPageRoutes().router);
-  app.use('/doctor', new DoctorPageRoutes().router);
+
   app.use('/super-admin', new SuperAdminPageRoutes().router);
   app.use('/hospital', new HospitalPageRoutes().router);
 
@@ -107,8 +110,18 @@ app.use('/staff',new StaffPageRoutes().router)
 
 
 
-  // HANDLES GLOBAL ERROR
-  app.use(errorMiddleware);
+app.use("/patient", new PatientPageRoutes().router);
+app.use('/doctor', new DoctorPageRoutes().router);
+
+
+  //ROUTER 
+app.use("/", new AuthPageRoutes().router);
+  
+
+app.use(notFoundMiddleware);
+// HANDLES GLOBAL ERROR
+  app.use(errorMiddleware)
+  
 
   return app;
 }

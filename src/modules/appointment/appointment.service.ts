@@ -5,9 +5,14 @@ import {
   IRescheduleAppointment,
   IAvailableSlotsResponse,
 } from "./appointment.interface.js";
+import { NotificationService } from "../notification/notification.services.js";
+import { NotificationType } from "../notification/notification.interface.js";
+import { DoctorService } from "../doctor/doctor.service.js";
 
 export class AppointmentService {
   private repo = new AppointmentRepository();
+  private doctorService = new DoctorService();
+  private notificationService = new NotificationService();
 
   private async resolvePatientId(user_id: number): Promise<number> {
     const id = await this.repo.getPatientIdByUserId(user_id);
@@ -53,7 +58,7 @@ export class AppointmentService {
     if (new Date(data.slot_date) > max_date) {
       throw new Error("Cannot book more than 60 days in advance");
     }
-    
+
     const taken = await this.repo.isSlotTaken(
       data.doctor_id,
       data.slot_date,
@@ -108,12 +113,30 @@ export class AppointmentService {
       remarks: "Payment successful",
     });
 
-    // await this.repo.createNotification({
-    //   user_id: user_id,
-    //   title: "APPOINTMENT_SCHEDULED",
-    //   message: `Your appointment has been scheduled successfully for ${data.slot_date} at ${data.start_time}.`,
-    // });
 
+    // this is for creating and storing the notification in db
+    await this.notificationService.createNotification({
+      user_id: user_id,
+      notification_type: NotificationType.APPOINTMENT_BOOKED,
+      title: "Appointment Confirmed",
+      notification_message:
+        "Your appointment has been booked successfully.",
+    });
+
+
+    let doctor_user_id = await this.repo.getUserIdByDoctorId(data.doctor_id);
+
+
+    if (doctor_user_id) {
+      await this.notificationService.createNotification({
+        user_id: doctor_user_id,
+        notification_type: NotificationType.APPOINTMENT_BOOKED,
+        title: "New Appointment",
+        notification_message:
+          `A new appointment has been booked.`,
+        redirect_url: `/doctor/appointments/${appointment_id}`
+      });
+    }
     return {
       appointment_id,
       payment_id,
@@ -148,7 +171,7 @@ export class AppointmentService {
     if (diff_ms < 4 * 60 * 60 * 1000) {
       throw new Error("Cannot reschedule within 4 hours of the appointment");
     }
-    console.log(data)
+
     // Check new slot availability
     const taken = await this.repo.isSlotTaken(
       appt.doctor_id,
@@ -176,11 +199,29 @@ export class AppointmentService {
       end_time: end_time,
     });
 
-    // await this.repo.createNotification({
-    //   user_id: user_id,
-    //   title: "APPOINTMENT_RESCHEDULED",
-    //   message: `Your appointment has been rescheduled successfully to ${data.slot_date} at ${data.start_time}.`,
-    // });
+    //this is for appointment rescheduled
+    await this.notificationService.createNotification({
+      user_id: user_id,
+      notification_type: NotificationType.APPOINTMENT_RESCHEDULED,
+      title: "Appointment Rescheduled",
+      notification_message:
+        `Your appointment has been rescheduled.`,
+      redirect_url: `/appointments/${appointment_id}`
+    });
+
+
+    let doctor_user_id = await this.repo.getUserIdByDoctorId(appt.doctor_id);
+
+    if (doctor_user_id) {
+      await this.notificationService.createNotification({
+        user_id: doctor_user_id,
+        notification_type: NotificationType.APPOINTMENT_RESCHEDULED,
+        title: "Appointment Rescheduled",
+        notification_message:
+          `Your appointment has been rescheduled.`,
+        redirect_url: `/doctor/appointments/${appointment_id}`
+      });
+    }
 
     await this.repo.logStatusHistory({
       appointment_id: appointment_id,
@@ -232,11 +273,30 @@ export class AppointmentService {
       remarks: reason ?? "Cancelled by patient",
     });
 
-    // await this.repo.createNotification({
-    //   user_id: user_id,
-    //   title: "APPOINTMENT_CANCELLED",
-    //   message: `Your appointment has been cancelled successfully.`,
-    // });
+    //this is for cancelling the appointment
+    await this.notificationService.createNotification({
+      user_id: user_id,
+      notification_type: NotificationType.APPOINTMENT_CANCELLED,
+      title: "Appointment Cancelled",
+      notification_message:
+        `Your appointment has been cancelled.`,
+      redirect_url: `/appointments/${appointment_id}`
+    });
+
+    let doctor_user_id = await this.repo.getUserIdByDoctorId(appt.doctor_id);
+
+
+    //this is for doctor
+    if (doctor_user_id) {
+      await this.notificationService.createNotification({
+        user_id: doctor_user_id,
+        notification_type: NotificationType.APPOINTMENT_CANCELLED,
+        title: "Appointment Cancelled",
+        notification_message:
+          `Appointment has been cancelled.`,
+        redirect_url: `/doctor/appointments/${appointment_id}`
+      });
+    }
 
     return {
       appointment_id,
@@ -347,7 +407,7 @@ export class AppointmentService {
   // Doctor specific methods
   async getDoctorTodaysAppointments(user_id: number) {
     const doctor_id = await this.resolveDoctorId(user_id);
-    const date:any = new Date().toISOString().split("T")[0];
+    const date: any = new Date().toISOString().split("T")[0];
     const appointment_list = await this.repo.findDoctorAppointments(
       doctor_id,
       date,

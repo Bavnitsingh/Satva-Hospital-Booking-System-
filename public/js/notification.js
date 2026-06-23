@@ -25,31 +25,25 @@ async function updateNotificationCount() {
   const unreadCount =
     await fetchUnreadCount();
 
-  notificationCount.innerText =
-    unreadCount;
-
-  notificationCountDashboard.innerText =
-    unreadCount;
-
-  if (unreadCount === 0) {
-
-    notificationCount.classList.add(
-      "hidden"
-    );
-
+  if (notificationCount) {
+    notificationCount.innerText = unreadCount;
+    if (Number(unreadCount) === 0) {
+      notificationCount.classList.add("hidden");
+    } else {
+      notificationCount.classList.remove("hidden");
+    }
   }
-  else {
 
-    notificationCount.classList.remove(
-      "hidden"
-    );
-
+  if (notificationCountDashboard) {
+    notificationCountDashboard.innerText = unreadCount;
   }
 
 }
 updateNotificationCount();
 
 function renderNotifications() {
+
+  if (!notificationList) return;
 
   notificationList.innerHTML = "";
 
@@ -64,51 +58,52 @@ function renderNotifications() {
     return;
   }
 
-  notifications.forEach(notification => {
+  // MySQL returns is_read as 1/0 integers — cast to number for reliable check
+  const unreadNotifications = notifications
+    .filter(n => Number(n.is_read) === 0)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    const div =
-      document.createElement("div");
+  const readNotifications = notifications
+    .filter(n => Number(n.is_read) === 1)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    div.className = `
-            p-4 border-b
-            ${notification.is_read
-        ? "bg-white"
-        : "bg-blue-50"}
-        `;
+  const addSectionHeader = (text) => {
+    const header = document.createElement("div");
+    header.className = "px-4 py-2 bg-gray-100 text-sm font-semibold text-gray-700";
+    header.textContent = text;
+    notificationList.appendChild(header);
+  };
 
+  const renderCard = (notification) => {
+    const isRead = Number(notification.is_read) === 1;
+    const div = document.createElement("div");
+    div.className = `p-4 border-b transition hover:bg-gray-50 ${isRead ? "bg-white" : "bg-blue-50"}`;
     div.innerHTML = `
-            <div class="flex justify-between items-start">
-
-                <div>
-                    <h4 class="font-medium text-gray-800">
-                        ${notification.title}
-                    </h4>
-
-                    <p class="text-sm text-gray-600 mt-1">
-                        ${notification.notification_message}
-                    </p>
-                </div>
-
-                ${!notification.is_read
-        ?
-        `
-                    <button
-                        class="mark-read-btn text-xs text-primary hover:underline"
-                        data-id="${notification.notification_id}"
-                    >
-                        Mark as read
-                    </button>
-                    `
-        :
-        ""
-      }
-
-            </div>
-        `;
-
+      <div class="flex justify-between gap-4">
+        <div>
+          <h4 class="font-medium text-gray-800">${notification.title}</h4>
+          <p class="text-sm text-gray-600 mt-1">${notification.notification_message}</p>
+          <p class="text-xs text-gray-400 mt-2">${new Date(notification.created_at).toLocaleString()}</p>
+        </div>
+        ${!isRead ? `
+          <button class="mark-read-btn text-xs text-primary hover:underline shrink-0" data-id="${notification.notification_id}">
+            Mark as read
+          </button>
+        ` : ""}
+      </div>
+    `;
     notificationList.appendChild(div);
+  };
 
-  });
+  if (unreadNotifications.length > 0) {
+    addSectionHeader("Unread");
+    unreadNotifications.forEach(renderCard);
+  }
+
+  if (readNotifications.length > 0) {
+    addSectionHeader("Earlier");
+    readNotifications.forEach(renderCard);
+  }
 
   attachMarkReadEvents();
 
@@ -194,83 +189,87 @@ function attachMarkReadEvents() {
 }
 
 
-markAllReadBtn.addEventListener(
-  "click",
-  async () => {
+if (markAllReadBtn) {
+  markAllReadBtn.addEventListener(
+    "click",
+    async () => {
 
-    try {
+      try {
 
-      const token =
-        localStorage.getItem("accessToken");
+        const token =
+          localStorage.getItem("accessToken");
 
-      const response =
-        await fetch(
-          "/api/v1/notifications/read-all",
-          {
-            method: "PATCH",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json"
+        const response =
+          await fetch(
+            "/api/v1/notifications/read-all",
+            {
+              method: "PATCH",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
+              }
             }
+          );
+
+        console.log()
+        if (!response.ok) {
+
+          throw new Error(
+            "Failed to mark all notifications as read"
+          );
+
+        }
+
+        notifications.forEach(
+          notification => {
+            notification.is_read = true;
           }
         );
 
-      console.log()
-      if (!response.ok) {
+        renderNotifications();
 
-        throw new Error(
-          "Failed to mark all notifications as read"
+        updateNotificationCount();
+
+      }
+      catch (error) {
+
+        console.error(
+          "Error marking all notifications as read:",
+          error
         );
 
       }
 
-      notifications.forEach(
-        notification => {
-          notification.is_read = true;
-        }
-      );
-
-      renderNotifications();
-
-      updateNotificationCount();
-
     }
-    catch (error) {
+  );
+}
 
-      console.error(
-        "Error marking all notifications as read:",
-        error
-      );
+if (notificationBtn) {
+  notificationBtn.addEventListener(
+    "click",
+    async () => {
 
-    }
-
-  }
-);
-
-notificationBtn.addEventListener(
-  "click",
-  async () => {
-
-    notificationPopup.classList.toggle(
-      "hidden"
-    );
-
-    if (
-      !notificationPopup.classList.contains(
+      notificationPopup.classList.toggle(
         "hidden"
-      )
-    ) {
+      );
 
-      notifications =
-        await fetchNotifications();
+      if (
+        !notificationPopup.classList.contains(
+          "hidden"
+        )
+      ) {
 
-      console.log("this is notification :", notifications)
-      renderNotifications();
+        notifications =
+          await fetchNotifications();
+
+        console.log("this is notification :", notifications)
+        renderNotifications();
+
+      }
 
     }
-
-  }
-);
+  );
+}
 
 
 document.addEventListener(
@@ -278,6 +277,7 @@ document.addEventListener(
   event => {
 
     if (
+      notificationBtn && notificationPopup &&
       !notificationBtn.contains(event.target)
       &&
       !notificationPopup.contains(event.target)
@@ -304,7 +304,7 @@ async function fetchNotifications() {
       localStorage.getItem("accessToken");
 
     const response = await fetch(
-      "/api/v1/notifications/unread",
+      "/api/v1/notifications",
       {
         method: "GET",
         headers: {

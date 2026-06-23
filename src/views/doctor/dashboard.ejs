@@ -93,12 +93,16 @@
 
   </main>
 
-  <script>
+ 
+  <script src="/js/doctor.js"></script>
+  <script src="/js/today_schedule.js"></script>
+  <script src="/js/weekly_schedule.js"></script>
+   <script>
     const tabMap = { today: 'tab-today', weekly: 'tab-weekly', patients: 'tab-patients', records: 'tab-records' };
 
     
     const tab_panel=localStorage.getItem('tab-panel')
-    console.log(tab_panel)
+   
     if(!tab_panel){
     
       setTab('today')

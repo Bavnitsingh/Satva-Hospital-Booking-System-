@@ -7,9 +7,11 @@ import {
 } from "./appointment.interface.js";
 import { NotificationService } from "../notification/notification.services.js";
 import { NotificationType } from "../notification/notification.interface.js";
+import { DoctorService } from "../doctor/doctor.service.js";
 
 export class AppointmentService {
   private repo = new AppointmentRepository();
+  private doctorService = new DoctorService();
   private notificationService = new NotificationService();
 
   private async resolvePatientId(user_id: number): Promise<number> {

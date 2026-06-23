@@ -11,7 +11,7 @@ import e from "express";
 // }
 
 export interface IDoctorSchedule {
-  doctor_id: number;
+  
   working_date: Date;
   working_from: string;
   working_to: string;
@@ -25,7 +25,6 @@ export interface IDoctorNotification {
 }
 
 export interface IDoctorLeave {
-  doctor_id: number;
   from_date: Date;
   to_date: Date;
   reason: string;
@@ -40,7 +39,7 @@ export interface IMedicalRecords {
 }
 
 export interface IMedicalAttachments {
-  record_id: number;
+  record_id:number,
   file_name: string;
   file_path: string;
 }
@@ -60,7 +59,7 @@ export interface IPrescriptions {
 }
 
 export interface IPrescriptionItems {
-  prescription_id: number;
+  prescription_id?:number
   medicine_name: string;
   dosage: string;
   frequency: string;
@@ -87,4 +86,12 @@ export enum AppointmentStatus {
   CANCELLED = "CANCELLED",
   RESCHEDULED = "RESCHEDULED",
   NO_SHOW = "NO_SHOW",
+}
+
+export interface IDoctorRecordsFill{
+  appointment_id:number,
+   examination_notes: string,
+  diagnosis:string,
+  prescription_items:IPrescriptionItems[],
+  notes:string
 }

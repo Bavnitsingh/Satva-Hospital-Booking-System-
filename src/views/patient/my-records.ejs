@@ -7,6 +7,7 @@
     <title>Satva - Medical Records</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="module">
       import { checkJwt } from "/js/check-jwt.js";
 
@@ -41,102 +42,8 @@
   <body class="bg-bg-page min-h-screen font-sans">
     <!-- Header -->
 
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-6">
-        <div class="flex items-center justify-between h-20">
-          <a href="/" class="flex items-center gap-3">
-            <div
-              class="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm"
-            >
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-              </svg>
-            </div>
+    <%- include('../partials/patient-header', { title: 'my-records' }) %>
 
-            <div>
-              <h1 class="font-display text-2xl text-dark">Satva</h1>
-              <p class="text-xs text-gray-500">Hospital Appointment System</p>
-            </div>
-          </a>
-
-          <nav class="hidden md:flex items-center gap-8">
-            <a href="/patient/dashboard" class="hover:text-primary">
-              Dashboard
-            </a>
-
-            <a href="/patient/doctors" class="hover:text-primary"> Doctors </a>
-
-            <a href="/appointment/my-appointments" class="hover:text-primary">
-              My Appointments
-            </a>
-
-            <a href="#" class="text-primary font-semibold"> Records </a>
-
-            <a href="/patient/profile" class="hover:text-primary"> Profile </a>
-          </nav>
-
-          <div class="flex items-center gap-3 sm:gap-4">
-            <a
-              href="/patient/notifications"
-              class="relative p-2 rounded-xl hover:bg-primary-light text-gray-700 hover:text-primary transition"
-              aria-label="Notifications"
-            >
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15 17h5l-1.4-1.4A2 2 0 0118 14.17V11a6 6 0 10-12 0v3.17a2 2 0 01-.6 1.43L4 17h5m6 0a3 3 0 11-6 0m6 0H9"
-                />
-              </svg>
-            </a>
-
-            <div class="flex items-center gap-2">
-              <img
-                id="user_img"
-                src="https://ui-avatars.com/api/?name=Patient&background=10A37F&color=fff"
-                class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-light"
-                alt="Patient"
-              />
-
-              <div class="hidden sm:block">
-                <p class="text-sm font-semibold text-dark" id="patientName">
-                  Patient
-                </p>
-                <p class="text-xs text-gray-500">Patient</p>
-              </div>
-            </div>
-
-            <button
-              id="logoutBtn"
-              class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
-                />
-              </svg>
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
 
     <main class="max-w-7xl mx-auto px-6 py-10">
       <div class="flex items-center justify-between mb-8">
@@ -175,10 +82,8 @@
 
     <script>
       const token = localStorage.getItem("accessToken");
-      const username = localStorage.getItem("username");
 
-      document.getElementById("patientName").textContent = username;
-      document.getElementById("user_img").src = `https://ui-avatars.com/api/?name=${username}&background=10A37F&color=fff`
+   
       async function loadRecords() {
         try {
           const response = await fetch("/api/v1/patient/records", {
@@ -280,13 +185,7 @@
                                           View Details
                                           </button>
 
-                                          <button 
-                                          class="px-4 py-2 rounded-xl bg-zinc-100 text-primary hover:bg-primary-light"
-                                          onclick="downloadRecord(${record.record_id})"
-                                          class="text-primary"
-                                          >
-                                          Download
-                                          </button>
+
 
                                           </div>
 

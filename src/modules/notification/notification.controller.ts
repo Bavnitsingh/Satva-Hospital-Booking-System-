@@ -13,11 +13,11 @@ export class NotificationController {
     getNotifications = catchAsync(
         async (req: Request, res: Response) => {
 
-            const receiverId = Number(req.params.receiverId);
+            const user_id: number = (req as AuthRequest).user.id;
 
             const notifications =
                 await this.notificationService
-                    .getNotifications(receiverId);
+                    .getNotifications(user_id);
 
             generalResponse({
                 res,
@@ -67,10 +67,10 @@ export class NotificationController {
     markAsRead = catchAsync(
         async (req: Request, res: Response) => {
 
-            const user_id:number=(req as AuthRequest).user.id;
+            const notificationId = Number(req.params.notificationId);
 
             await this.notificationService
-                .markAsRead(user_id);
+                .markAsRead(notificationId);
 
             generalResponse({
                 res,

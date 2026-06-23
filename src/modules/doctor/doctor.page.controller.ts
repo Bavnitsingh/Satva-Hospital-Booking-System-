@@ -20,5 +20,10 @@ export class DoctorPageController{
         res.render("doctor/doctorLogin")
     }
 
+    renderCreateMedicalRecords=(req:Request,res:Response)=>{
+
+        res.render("doctor/create_medical_records")
+    }
+
     
 }

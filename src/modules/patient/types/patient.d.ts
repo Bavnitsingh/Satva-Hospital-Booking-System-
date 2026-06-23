@@ -15,18 +15,18 @@ export interface IAddFamilyMember {
   relation: string;
   first_name: string;
   last_name: string;
-  dob?: string;
-  mobile?: string;
-  email?: string;
+  dob?: string | null | null;
+  mobile?: string | null | null;
+  email?: string | null | null;
 }
 
 export interface IUpdateFamilyMember {
   relation?: string;
   first_name?: string;
   last_name?: string;
-  dob?: string;
-  mobile?: string;
-  email?: string;
+  dob?: string | null | null;
+  mobile?: string | null | null;
+  email?: string | null | null;
 }
 
 export interface ISearchDoctorsQuery {

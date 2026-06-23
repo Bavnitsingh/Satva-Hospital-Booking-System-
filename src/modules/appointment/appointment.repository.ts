@@ -1,3 +1,4 @@
+import { RowDataPacket } from "mysql2";
 import { query } from "../../database/connection.js";
 import { ICreateAppointmentData, IPaymentData, IStatusHistoryData, INotificationData } from "./appointment.interface.js";
 
@@ -12,9 +13,9 @@ export class AppointmentRepository {
     return result.length ? result[0].doctor_id : null;
   }
 
-  async getUserIdByDoctorId(doctor_id: number): Promise<number | null> {
-    const result: any = await query(`select user_id from doctors where doctor_id = ?`, [doctor_id]);
-    return result.length ? result[0].user_id : null;
+  async getUserIdByDoctorId(doctor_id : number) : Promise<number | null>{
+    const result = await query(`select user_id from doctors where doctor_id = ?`,[doctor_id]) as RowDataPacket;
+    return result.length ? result[0].user_id as number: null;
   }
 
   async isSlotTaken(doctor_id: number, slot_date: string, start_time: string): Promise<boolean> {

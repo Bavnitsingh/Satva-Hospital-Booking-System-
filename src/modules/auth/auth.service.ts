@@ -74,7 +74,7 @@ export class AuthService {
       "DOCTOR",
     );
 
-    await this.userRepo.createDoctor({
+   const doctor =  await this.userRepo.createDoctor({
       user_id: user.user_id,
       hospital_id: data.hospitalId,
       first_name: data.firstName,
@@ -85,6 +85,9 @@ export class AuthService {
       bio: data.bio,
     });
 
+    
+    
+
     const accessToken = sign({
       id: user.user_id,
       email: user.email,
@@ -94,6 +97,7 @@ export class AuthService {
     return {
       accessToken,
       user,
+      doctor
     };
   }
 
@@ -131,14 +135,14 @@ export class AuthService {
     const user = await this.userRepo.findUserByEmail(data.email);
     if (!user) {
       throw new Error("Invalid email or password");
-    } 
-    
-   
+    }
+
+
     const isPasswordValid = await comparePassword(
       data.password,
       user.password_hash,
     );
- 
+
     if (!isPasswordValid) {
       throw new Error("Invalid email or password");
     }
@@ -231,7 +235,56 @@ export class AuthService {
     return await this.userRepo.getLatestOtp(email);
   }
 
+  async verifyPassAndCpass(password: String, confirm_password: string) {
+    if (password === confirm_password) return true;
+    return false;
+  }
   async logout(userId: number) {
     await this.userRepo.logout(userId);
   }
+
+ async registerStaff(data: any) {
+    const existingUser = await this.userRepo.findUserByEmail(data.email);
+
+    if (existingUser) {
+      throw new Error("Email already exists");
+    }
+
+    const hashedPassword = await getHashedPassword(data.password);
+
+    const user = await this.userRepo.createUser(
+      data.email,
+      hashedPassword,
+      "STAFF",
+    );
+
+   const staff =  await this.userRepo.createStaff({
+      user_id: user.user_id,
+      hospital_id: data.hospitalId,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      gender: data.gender,
+     staff_role : data.staff_role,
+     contact_number:data.contact_number,
+     dob:data.dob,
+     address_line1:data.address_line1,
+     address_line2:data.address_line2 ?? ''
+    });
+
+    
+    
+
+    const accessToken = sign({
+      id: user.user_id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return {
+      accessToken,
+      user,
+      staff
+    };
+  }
+
 }

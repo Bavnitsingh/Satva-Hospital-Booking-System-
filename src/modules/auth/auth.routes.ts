@@ -15,7 +15,6 @@ export class AuthRoutes implements Routes {
   }
 
   private initializationRoutes(): void {
-
     //SERVING STATIC PAGES
 
     this.router.post("/register-doctor", this.authController.registerDoctor);
@@ -35,6 +34,8 @@ export class AuthRoutes implements Routes {
 
       ]
     }))
+    this.router.get('/country', this.authController.getCountryCodes);
+
 
     this.router.get('/google/callback', passport.authenticate('google', {
       failureRedirect: '/login'
@@ -51,7 +52,7 @@ export class AuthRoutes implements Routes {
     });
 
 
-    this.router.post("/logout", authenticate,this.authController.logout);
+    this.router.post("/logout", authenticate, this.authController.logout);
 
   }
 }

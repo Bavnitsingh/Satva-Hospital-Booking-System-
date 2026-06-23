@@ -7,12 +7,13 @@ import {
 } from "./appointment.interface.js";
 import { NotificationService } from "../notification/notification.services.js";
 import { NotificationType } from "../notification/notification.interface.js";
-import { DoctorService } from "../doctor/doctor.service.js";
+import { getConnection } from "../../database/connection.js";
+import { TelemedicineService } from "../telemedicine/telemedicine.services.js";
 
 export class AppointmentService {
   private repo = new AppointmentRepository();
-  private doctorService = new DoctorService();
   private notificationService = new NotificationService();
+  private telemedicineService = new TelemedicineService();
 
   private async resolvePatientId(user_id: number): Promise<number> {
     const id = await this.repo.getPatientIdByUserId(user_id);
@@ -34,118 +35,129 @@ export class AppointmentService {
 
   // Book appointment
   async bookAppointment(user_id: number, data: IBookAppointment) {
-    const patient_id = await this.resolvePatientId(user_id);
-    console.log(patient_id)
-    const today = new Date().toISOString().split("T")[0];
+    const conn = await getConnection();
+    try {
+      await conn.beginTransaction();
 
-    if (data.slot_date === today) {
-      const [sh, sm]: any = data.start_time.split(":").map(Number);
+      const patient_id = await this.resolvePatientId(user_id);
+      console.log(patient_id);
+      const today = new Date().toISOString().split("T")[0];
 
-      const slot_minutes = sh * 60 + sm;
+      if (data.slot_date === today) {
+        const [sh, sm]: any = data.start_time.split(":").map(Number);
 
-      const now = new Date();
+        const slot_minutes = sh * 60 + sm;
 
-      const current_minutes = now.getHours() * 60 + now.getMinutes() + 120;
+        const now = new Date();
 
-      if (slot_minutes <= current_minutes) {
-        throw new Error("Cannot book a slot less than 2 hours from now");
+        const current_minutes = now.getHours() * 60 + now.getMinutes() + 120;
+
+        if (slot_minutes <= current_minutes) {
+          throw new Error("Cannot book a slot less than 2 hours from now");
+        }
       }
-    }
 
-    const max_date = new Date();
-    max_date.setDate(max_date.getDate() + 60);
+      const max_date = new Date();
+      max_date.setDate(max_date.getDate() + 60);
 
-    if (new Date(data.slot_date) > max_date) {
-      throw new Error("Cannot book more than 60 days in advance");
-    }
+      if (new Date(data.slot_date) > max_date) {
+        throw new Error("Cannot book more than 60 days in advance");
+      }
 
-    const taken = await this.repo.isSlotTaken(
-      data.doctor_id,
-      data.slot_date,
-      data.start_time,
-    );
-    if (taken) {
-      throw new Error(
-        "This slot is no longer available. Please choose another.",
+      const taken = await this.repo.isSlotTaken(
+        data.doctor_id,
+        data.slot_date,
+        data.start_time,
       );
-    }
+      if (taken) {
+        throw new Error(
+          "This slot is no longer available. Please choose another.",
+        );
+      }
 
-    const day_schedule: any = await this.repo.getDoctorSchedule(
-      data.doctor_id,
-      data.slot_date,
-    );
-    if (!day_schedule) {
-      throw new Error("Doctor is not available on this date");
-    }
+      const day_schedule: any = await this.repo.getDoctorSchedule(
+        data.doctor_id,
+        data.slot_date,
+      );
+      if (!day_schedule) {
+        throw new Error("Doctor is not available on this date");
+      }
 
-    const end_time = this.addMinutesToTime(
-      data.start_time,
-      day_schedule.slot_duration,
-    );
+      const end_time = this.addMinutesToTime(
+        data.start_time,
+        day_schedule.slot_duration,
+      );
 
-    const confirmation_no = generateConfirmationNo();
-    const appointment_id = await this.repo.createAppointment({
-      doctor_id: data.doctor_id,
-      patient_id: patient_id,
-      slot_date: data.slot_date,
-      start_time: data.start_time,
-      end_time: end_time,
-      appointment_type: data.appointment_type,
-      chief_complaint: data.chief_complaint,
-      confirmation_no: confirmation_no,
-    });
-
-
-    const payment_id = await this.repo.createPayment({
-      appointment_id: appointment_id,
-      amount: data.amount,
-      payment_method: data.payment_method,
-      status: "SUCCESS",
-      transaction_id: `TXN-${Date.now()}`,
-    });
-    await this.repo.updateAppointmentStatus(appointment_id, "CONFIRMED");
-
-    await this.repo.logStatusHistory({
-      appointment_id: appointment_id,
-      old_status: "PAYMENT_PENDING",
-      new_status: "CONFIRMED",
-      changed_by_user_id: user_id,
-      remarks: "Payment successful",
-    });
-
-
-    // this is for creating and storing the notification in db
-    await this.notificationService.createNotification({
-      user_id: user_id,
-      notification_type: NotificationType.APPOINTMENT_BOOKED,
-      title: "Appointment Confirmed",
-      notification_message:
-        "Your appointment has been booked successfully.",
-    });
-
-
-    let doctor_user_id = await this.repo.getUserIdByDoctorId(data.doctor_id);
-
-
-    if (doctor_user_id) {
-      await this.notificationService.createNotification({
-        user_id: doctor_user_id,
-        notification_type: NotificationType.APPOINTMENT_BOOKED,
-        title: "New Appointment",
-        notification_message:
-          `A new appointment has been booked.`,
-        redirect_url: `/doctor/appointments/${appointment_id}`
+      const confirmation_no = generateConfirmationNo();
+      const appointment_id = await this.repo.createAppointment({
+        doctor_id: data.doctor_id,
+        patient_id: patient_id,
+        slot_date: data.slot_date,
+        start_time: data.start_time,
+        end_time: end_time,
+        appointment_type: data.appointment_type,
+        chief_complaint: data.chief_complaint,
+        confirmation_no: confirmation_no,
       });
+
+      const payment_id = await this.repo.createPayment({
+        appointment_id: appointment_id,
+        amount: data.amount,
+        payment_method: data.payment_method,
+        status: "SUCCESS",
+        transaction_id: `TXN-${Date.now()}`,
+      });
+      await this.repo.updateAppointmentStatus(appointment_id, "CONFIRMED");
+
+      await this.repo.logStatusHistory({
+        appointment_id: appointment_id,
+        old_status: "PAYMENT_PENDING",
+        new_status: "CONFIRMED",
+        changed_by_user_id: user_id,
+        remarks: "Payment successful",
+      });
+
+      await this.notificationService.createNotification({
+        user_id: user_id,
+        notification_type: NotificationType.APPOINTMENT_BOOKED,
+        title: "Appointment Confirmed",
+        notification_message: "Your appointment has been booked successfully.",
+      });
+
+      let doctor_user_id = await this.repo.getUserIdByDoctorId(data.doctor_id);
+
+      if (doctor_user_id) {
+        await this.notificationService.createNotification({
+          user_id: doctor_user_id,
+          notification_type: NotificationType.APPOINTMENT_BOOKED,
+          title: "New Appointment",
+          notification_message: `A new appointment has been booked.`,
+          redirect_url: `/doctor/appointments/${appointment_id}`,
+        });
+      }
+
+      if (data.appointment_type === "TELEMEDICINE") {
+         await this.telemedicineService.createTelemedicineSession({
+            appointment_id,
+            start_time:data.start_time,
+            end_time : end_time
+        });
+      }
+      
+      await conn.commit();
+      return {
+        appointment_id,
+        payment_id,
+        confirmation_no,
+        slot_date: data.slot_date,
+        start_time: data.start_time,
+        end_time: end_time,
+        status: "CONFIRMED",
+      };
+    } catch (err: unknown) {
+      await conn.rollback();
+      throw err;
     }
-    return {
-      appointment_id,
-      payment_id,
-      confirmation_no,
-      slot_date: data.slot_date,
-      start_time: data.start_time,
-      end_time: end_time,
-      status: "CONFIRMED",
-    };
   }
 
   // Reschedule
@@ -154,89 +166,95 @@ export class AppointmentService {
     appointment_id: number,
     data: IRescheduleAppointment & { doctor_id?: number },
   ) {
-    const patient_id = await this.resolvePatientId(user_id);
-    const appt: any = await this.repo.getAppointmentById(appointment_id);
+    const conn = await getConnection();
+    try {
+      await conn.beginTransaction();
+      const patient_id = await this.resolvePatientId(user_id);
+      const appt: any = await this.repo.getAppointmentById(appointment_id);
 
-    if (!appt) throw new Error("Appointment not found");
-    if (appt.patient_id !== patient_id) throw new Error("Forbidden");
+      if (!appt) throw new Error("Appointment not found");
+      if (appt.patient_id !== patient_id) throw new Error("Forbidden");
 
-    const cancellable_statuses = ["CONFIRMED", "PAYMENT_PENDING"];
-    if (!cancellable_statuses.includes(appt.appointment_status)) {
-      throw new Error("Only confirmed appointments can be rescheduled");
-    }
+      const cancellable_statuses = ["CONFIRMED", "PAYMENT_PENDING"];
+      if (!cancellable_statuses.includes(appt.appointment_status)) {
+        throw new Error("Only confirmed appointments can be rescheduled");
+      }
 
-    const original_slot = new Date(`${appt.slot_date}T${appt.start_time}`);
-    const now = new Date();
-    const diff_ms = original_slot.getTime() - now.getTime();
-    if (diff_ms < 4 * 60 * 60 * 1000) {
-      throw new Error("Cannot reschedule within 4 hours of the appointment");
-    }
+      const original_slot = new Date(`${appt.slot_date}T${appt.start_time}`);
+      const now = new Date();
+      const diff_ms = original_slot.getTime() - now.getTime();
+      if (diff_ms < 4 * 60 * 60 * 1000) {
+        throw new Error("Cannot reschedule within 4 hours of the appointment");
+      }
 
-    // Check new slot availability
-    const taken = await this.repo.isSlotTaken(
-      appt.doctor_id,
-      data.slot_date,
-      data.start_time,
-    );
-    if (taken) throw new Error("New slot is not available");
+      // Check new slot availability
+      const taken = await this.repo.isSlotTaken(
+        appt.doctor_id,
+        data.slot_date,
+        data.start_time,
+      );
+      if (taken) throw new Error("New slot is not available");
 
-    const day_schedule: any = await this.repo.getDoctorSchedule(
-      data.doctor_id || appt.doctor_id,
-      data.slot_date,
-    );
+      const day_schedule: any = await this.repo.getDoctorSchedule(
+        data.doctor_id || appt.doctor_id,
+        data.slot_date,
+      );
 
-    if (!day_schedule) {
-      throw new Error("Doctor is not available on this date");
-    }
-    const end_time = this.addMinutesToTime(
-      data.start_time,
-      day_schedule.slot_duration,
-    );
+      if (!day_schedule) {
+        throw new Error("Doctor is not available on this date");
+      }
+      const end_time = this.addMinutesToTime(
+        data.start_time,
+        day_schedule.slot_duration,
+      );
 
-    await this.repo.rescheduleAppointment(appointment_id, {
-      slot_date: data.slot_date,
-      start_time: data.start_time,
-      end_time: end_time,
-    });
+      await this.repo.rescheduleAppointment(appointment_id, {
+        slot_date: data.slot_date,
+        start_time: data.start_time,
+        end_time: end_time,
+      });
 
-    //this is for appointment rescheduled
-    await this.notificationService.createNotification({
-      user_id: user_id,
-      notification_type: NotificationType.APPOINTMENT_RESCHEDULED,
-      title: "Appointment Rescheduled",
-      notification_message:
-        `Your appointment has been rescheduled.`,
-      redirect_url: `/appointments/${appointment_id}`
-    });
-
-
-    let doctor_user_id = await this.repo.getUserIdByDoctorId(appt.doctor_id);
-
-    if (doctor_user_id) {
+      //this is for appointment rescheduled
       await this.notificationService.createNotification({
-        user_id: doctor_user_id,
+        user_id: user_id,
         notification_type: NotificationType.APPOINTMENT_RESCHEDULED,
         title: "Appointment Rescheduled",
-        notification_message:
-          `Your appointment has been rescheduled.`,
-        redirect_url: `/doctor/appointments/${appointment_id}`
+        notification_message: `Your appointment has been rescheduled.`,
+        redirect_url: `/appointments/${appointment_id}`,
       });
+
+      let doctor_user_id = await this.repo.getUserIdByDoctorId(appt.doctor_id);
+
+      if (doctor_user_id) {
+        await this.notificationService.createNotification({
+          user_id: doctor_user_id,
+          notification_type: NotificationType.APPOINTMENT_RESCHEDULED,
+          title: "Appointment Rescheduled",
+          notification_message: `Your appointment has been rescheduled.`,
+          redirect_url: `/doctor/appointments/${appointment_id}`,
+        });
+      }
+
+      await this.repo.logStatusHistory({
+        appointment_id: appointment_id,
+        old_status: appt.appointment_status,
+        new_status: "RESCHEDULED",
+        changed_by_user_id: user_id,
+        remarks: `Rescheduled to ${data.slot_date} ${data.start_time}`,
+      });
+
+      await conn.commit();
+
+      return {
+        appointment_id,
+        new_slot_date: data.slot_date,
+        new_start_time: data.start_time,
+        end_time: end_time,
+      };
+    } catch (err: unknown) {
+      await conn.rollback();
+      throw err;
     }
-
-    await this.repo.logStatusHistory({
-      appointment_id: appointment_id,
-      old_status: appt.appointment_status,
-      new_status: "RESCHEDULED",
-      changed_by_user_id: user_id,
-      remarks: `Rescheduled to ${data.slot_date} ${data.start_time}`,
-    });
-
-    return {
-      appointment_id,
-      new_slot_date: data.slot_date,
-      new_start_time: data.start_time,
-      end_time: end_time,
-    };
   }
 
   // Cancel
@@ -245,6 +263,11 @@ export class AppointmentService {
     appointment_id: number,
     reason?: string,
   ) {
+    const conn = await getConnection();
+    try{
+
+      await conn.beginTransaction();
+
     const patient_id = await this.resolvePatientId(user_id);
 
     const appt: any = await this.repo.getAppointmentById(appointment_id);
@@ -278,13 +301,11 @@ export class AppointmentService {
       user_id: user_id,
       notification_type: NotificationType.APPOINTMENT_CANCELLED,
       title: "Appointment Cancelled",
-      notification_message:
-        `Your appointment has been cancelled.`,
-      redirect_url: `/appointments/${appointment_id}`
+      notification_message: `Your appointment has been cancelled.`,
+      redirect_url: `/appointments/${appointment_id}`,
     });
 
     let doctor_user_id = await this.repo.getUserIdByDoctorId(appt.doctor_id);
-
 
     //this is for doctor
     if (doctor_user_id) {
@@ -292,17 +313,20 @@ export class AppointmentService {
         user_id: doctor_user_id,
         notification_type: NotificationType.APPOINTMENT_CANCELLED,
         title: "Appointment Cancelled",
-        notification_message:
-          `Appointment has been cancelled.`,
-        redirect_url: `/doctor/appointments/${appointment_id}`
+        notification_message: `Appointment has been cancelled.`,
+        redirect_url: `/doctor/appointments/${appointment_id}`,
       });
     }
-
+    await conn.commit();
     return {
       appointment_id,
       status: "CANCELLED",
       payment_status: payment ? "REFUNDED" : "NO_PAYMENT",
     };
+    }catch(err:unknown){
+      await conn.rollback();
+      throw err;
+    }
   }
 
   // Get appointments list

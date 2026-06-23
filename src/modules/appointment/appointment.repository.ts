@@ -106,6 +106,7 @@ export class AppointmentRepository {
         a.appointment_type, a.appointment_status, a.chief_complaint, a.confirmation_no,
         d.first_name as doctor_first_name, d.last_name as doctor_last_name,
         d.consultation_fee, d.currency_code, d.profile_path as doctor_photo,
+        t.meeting_link,
         h.hospital_name,
         group_concat(distinct s.specialty_name separator ', ') as specialties,
         p.status as payment_status, p.amount as payment_amount
@@ -115,6 +116,8 @@ export class AppointmentRepository {
         left join doctor_specialties ds on d.doctor_id = ds.doctor_id
         left join specialties s on ds.specialty_id = s.specialty_id
         left join payments p on a.appointment_id = p.appointment_id
+        left join telemedicine_sessions t on a.appointment_id = t.appointment_id
+
         where a.patient_id = ? ${statusFilter}
         group by a.appointment_id
         order by a.slot_date desc, a.start_time desc`,

@@ -17,6 +17,8 @@ export interface TelemedicineSession {
 export interface CreateTelemedicineSession {
   appointment_id: number;
   meeting_link?: string;
+  start_time:string;
+  end_time:string;
 }
 
 

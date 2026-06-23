@@ -1,3 +1,23 @@
+import { RowDataPacket } from "mysql2";
+
+export interface IPatient {
+  patient_id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  country_code: string;
+  mobile: string;
+  address_line1?: string | null;
+  address_line2?: string | null;
+  blood_group?: string | null;
+  profile_path?: string | null;
+  dob: Date;
+  gender: "MALE" | "FEMALE" | "OTHER";
+  is_insured: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface IUpdatePatientProfile {
   first_name?: string;
   last_name?: string;
@@ -65,3 +85,6 @@ export interface ICancelAppointment {
 export interface INotificationsQuery {
   unread?: "true" | "false";
 }
+
+
+

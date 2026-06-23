@@ -17,20 +17,20 @@ export class StaffRoutes implements Routes {
     // use this way for
     // this.router.post('/register',middleware,this.contoller.register)
     this.router.use(staffAuth);
-    this.router.get('/fetchDoctors',this.staffController.fetchDoctors)
-    this.router.get('/fetchPatients',this.staffController.fetchPatients)
-    this.router.get('/stats',this.staffController.fetchStatsOfHospital)
-    this.router.get('/fetchAppointments',this.staffController.fetchAppointments)
-    this.router.get('/appointments/:appointment_id',this.staffController.fetchAppointment);
+    this.router.get('/fetchDoctors', this.staffController.fetchDoctors)
+    this.router.get('/fetchPatients', this.staffController.fetchPatients)
+    this.router.get('/stats', this.staffController.fetchStatsOfHospital)
+    this.router.get('/fetchAppointments', this.staffController.fetchAppointments)
+    this.router.get('/appointments/:appointment_id', this.staffController.fetchAppointment);
     this.router.get('/doctors/:doctorId', this.staffController.viewDoctor);
-        this.router.get('/patients/:patientId',this.staffController.fetchPatientDetails);
-this.router.get('/appointments/confirm/:confirmation_no',  this.staffController.getAppointmentByConfirmationNo);
-this.router.put('/appointments/:appointment_id/checkin',   this.staffController.checkInPatient);
-this.router.put('/appointments/:appointment_id/payment',  this.staffController.markPaymentDone);
-this.router.put('/appointments/:appointment_id/noshow', this.staffController.markNoShow);
+    this.router.get('/patients/:patientId', this.staffController.fetchPatientDetails);
+    this.router.get('/appointments/confirm/:confirmation_no', this.staffController.getAppointmentByConfirmationNo);
+    this.router.put('/appointments/:appointment_id/checkin', this.staffController.checkInPatient);
+    this.router.put('/appointments/:appointment_id/payment', this.staffController.markPaymentDone);
+    this.router.put('/appointments/:appointment_id/noshow', this.staffController.markNoShow);
 
 
-    
+
   }
 
 }

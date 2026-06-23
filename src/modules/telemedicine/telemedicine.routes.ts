@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { Routes } from "../../common/interfaces/routes.interfaces.js";
 import { TelemedicineController } from "./telemedicine.controller.js";
-import { doctorAuth } from "../../common/middlewares/auth.middleware.js";
+import { doctorAuth, patientAuth } from "../../common/middlewares/auth.middleware.js";
 
 export class TelemedicineRoutes implements Routes {
   path: string = "/telemedicine";

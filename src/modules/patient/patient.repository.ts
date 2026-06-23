@@ -1,23 +1,8 @@
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { query } from "../../database/connection.js";
-import { IUpdatePatientProfile } from "./types/patient.js";
-
-export interface IPatient {
-  patient_id: number;
-  user_id: number;
-  first_name: string;
-  last_name: string;
-  country_code: string;
-  mobile: string;
-  address_line1?: string | null;
-  address_line2?: string | null;
-  blood_group?: string | null;
-  profile_path?: string | null;
-  dob: Date;
-  gender: "MALE" | "FEMALE" | "OTHER";
-  is_insured: boolean;
-  created_at: Date;
-  updated_at: Date;
-}
+import {
+  type IPatient,
+} from "./types/patient.js";
 
 type SearchDoctorsFilters = {
   name?: string | undefined;
@@ -39,24 +24,24 @@ type UpdatePatientProfileDto = Partial<
     | "profile_path"
     | "is_insured"
   >
->;
+>;                                      
 
 export class PatientRepository {
   async getPatientByUserId(userId: number) {
-    const rows: any = await query(
+    const rows = (await query(
       "select p.*, u.email, u.is_active, u.is_email_verified from patients p join users u on p.user_id = u.user_id where p.user_id = ?",
       [userId],
-    );
+    )) as RowDataPacket[];
     console.log(rows);
 
-    return rows[0];
+    return rows[0] ?? null;
   }
 
   async getPatientIdByUserId(userId: number) {
-    const rows: any = await query(
+    const rows = (await query(
       `select patient_id from patients where user_id = ?`,
       [userId],
-    );
+    )) as RowDataPacket[];
 
     return rows[0]?.patient_id ?? null;
   }
@@ -116,7 +101,7 @@ export class PatientRepository {
   }
 
   async getInsuranceByPatientId(patientId: number | string) {
-    const rows: any = await query(
+    const rows: any = (await query(
       `
     select *
     from patient_insurance_details
@@ -124,12 +109,12 @@ export class PatientRepository {
     limit 1
     `,
       [patientId],
-    );
+    )) as RowDataPacket[];
 
     return rows[0] ?? null;
   }
 
-  async upsertInsuranceDetails(
+  async updateInsuranceDetails(
     patientId: number | string,
     data: {
       policyNumber: string;
@@ -161,7 +146,7 @@ export class PatientRepository {
       return this.getInsuranceByPatientId(patientId);
     }
 
-    const result: any = await query(
+    const result = (await query(
       `
     insert into patient_insurance_details (
       patient_id,
@@ -177,7 +162,7 @@ export class PatientRepository {
         data.policyCompany,
         data.policyDocumentPath ?? null,
       ],
-    );
+    )) as ResultSetHeader;
 
     return result;
   }
@@ -193,14 +178,14 @@ export class PatientRepository {
   }
 
   async countFamilyMembers(patientId: number | string) {
-    const rows: any = await query(
+    const rows = (await query(
       `
     select count(*) as total
     from family_members
     where patient_id = ?
     `,
       [patientId],
-    );
+    )) as RowDataPacket[];
 
     return Number(rows[0]?.total || 0);
   }
@@ -209,7 +194,7 @@ export class PatientRepository {
     return query(
       "select * from family_members where patient_id = ? order by created_at asc",
       [patientId],
-    );
+    ) as RowDataPacket;
   }
 
   async addFamilyMember(
@@ -228,7 +213,7 @@ export class PatientRepository {
       throw new Error("Maximum 3 family members are allowed");
     }
 
-    const result: any = await query(
+    const result = (await query(
       `
     insert into family_members
       (patient_id, relation, first_name, last_name, dob, mobile, email)
@@ -244,7 +229,7 @@ export class PatientRepository {
         data.mobile ?? null,
         data.email ?? null,
       ],
-    );
+    )) as ResultSetHeader;
 
     return result;
   }
@@ -328,7 +313,7 @@ export class PatientRepository {
   }
 
   async getDoctorById(doctorId: number) {
-    const rows: any = await query(
+    const rows = (await query(
       `select
          d.*,
          h.hospital_name, h.address_line1 as hospital_address,
@@ -342,7 +327,7 @@ export class PatientRepository {
        where d.doctor_id = ? and d.is_deactivated = false
        group by d.doctor_id`,
       [doctorId],
-    );
+    )) as RowDataPacket;
     console.log(rows);
     return rows[0] ?? null;
   }
@@ -373,7 +358,7 @@ export class PatientRepository {
   }
 
   async getMedicalRecordById(recordId: number, patientId: number) {
-    const rows: any = await query(
+    const rows = (await query(
       `select
             mr.*,
             d.first_name as doctor_first_name, d.last_name as doctor_last_name,
@@ -385,70 +370,22 @@ export class PatientRepository {
             left join prescriptions pr on mr.record_id = pr.record_id
             where mr.record_id = ? and mr.patient_id = ?`,
       [recordId, patientId],
-    );
+    )) as RowDataPacket[];
     if (!rows[0]) return null;
 
-    const prescriptionItems = await query(
+    const prescriptionItems = (await query(
       `select pi.* from prescription_items pi
         join prescriptions pr on pi.prescription_id = pr.prescription_id
         where pr.record_id = ?`,
       [recordId],
-    );
+    )) as RowDataPacket[];
 
-    const attachments = await query(
+    const attachments = (await query(
       `select * from medical_record_attachments where record_id = ?`,
       [recordId],
-    );
-
+    )) as RowDataPacket[];
+ 
     return { ...rows[0], prescriptionItems, attachments };
-  }
-
-  // Notifications
-  async getNotifications(patientId: number, unreadOnly: boolean) {
-    const filter = unreadOnly ? "AND is_read = FALSE" : "";
-    return query(
-      `select * from notifications
-        where user_id = ? ${filter}
-        order by created_at desc
-        limit 5`,
-      [patientId],
-    );
-  }
-
-  async markNotificationRead(notificationId: number, patientId: number) {
-    return query(
-      `update notifications set is_read = true, updated_at = utc_timestamp()
-        where notification_id = ? and user_id = ?`,
-      [notificationId, patientId],
-    );
-  }
-
-  async markAllNotificationsRead(patientId: number) {
-    return query(
-      `update notifications set is_read = true, updated_at = utc_timestamp()
-        where user_id = ?`,
-      [patientId],
-    );
-  }
-  async createNotification(data: {
-    userId: number;
-    title: string;
-    message: string;
-  }) {
-    const result: any = await query(
-      `
-      insert into notifications (
-        user_id,
-        notification_type,
-        notification_message,
-        sent_at
-      )
-      values (?, ?, ?, utc_timestamp())
-    `,
-      [data.userId, data.title, data.message],
-    );
-
-    return result.insertId;
   }
 
   async getPaymentHistory(patientId: number) {

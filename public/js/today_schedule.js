@@ -33,7 +33,7 @@ async function createMedicalRecords(appointment_id, patient_name, chief_complain
 
 }
 
-async function startConsultation(btn, appointment_id, patient_name, chief_complaint) {
+async function startConsultation(btn, appointment_id, patient_name, chief_complaint,appointment_type,link) {
 console.log(appointment_id)
   
   const NEXT_STATUS = 'IN_PROGRESS';
@@ -62,6 +62,10 @@ console.log(appointment_id)
     btn1.onclick=()=>{createMedicalRecords(appointment_id , patient_name , chief_complaint)}
     const response = await result.json();
     console.log(response);
+
+    if(appointment_type==='TELEMEDICINE'){
+     window.open(link, "_blank");
+    }
 
   } catch (err) {
     console.error('Failed to start Consultation:', err);
@@ -156,7 +160,7 @@ async function updateInProgress(btn, appointment_id) {
 
 
 
-  function renderActions(status, start_time, end_time, appointment_id, patient_name, chief_complaint) {
+  function renderActions(status, start_time, end_time, appointment_id, patient_name, chief_complaint,appointment_type,link) {
 
 
     if (status === 'IN_PROGRESS') {
@@ -181,7 +185,7 @@ async function updateInProgress(btn, appointment_id) {
       const disabled = !isConsultationTime(start_time, end_time);
 
       return `
-    <button  id="appt-${appointment_id}" onclick='startConsultation(this,${appointment_id}, "${patient_name}" , "${chief_complaint}")'
+    <button  id="appt-${appointment_id}" onclick='startConsultation(this,${appointment_id}, "${patient_name}" , "${chief_complaint}","${appointment_type}","${link}")'
       class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition whitespace-nowrap ${disabled ? 'opacity-50 cursor-not-allowed' : ''}"
      
       ${disabled ? 'disabled' : ''}>
@@ -226,7 +230,7 @@ async function updateInProgress(btn, appointment_id) {
 
         <!-- Actions -->
         <div class="flex-shrink-0 flex items-center gap-2">
-          ${renderActions(appt.appointment_status, appt.start_time, appt.end_time, appt.appointment_id, appt.patient_name, appt.chief_complaint)}
+          ${renderActions(appt.appointment_status, appt.start_time, appt.end_time, appt.appointment_id, appt.patient_name, appt.chief_complaint,appt.appointment_type,appt.link)}
         </div>
 
       </div>`;

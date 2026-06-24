@@ -264,11 +264,27 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   //! --- Logout Handler ---
-  document.getElementById("logoutBtn").addEventListener("click", () => {
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
     window.showFlash("Logging out of Super Admin Portal...", "success");
-    setTimeout(() => {
-      window.location.href = "/super-admin/login";
-    }, 1500);
+    
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        await fetch("/api/v1/auth/logout", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Logout API failed, clearing local session anyway.", error);
+    } finally {
+      localStorage.removeItem("accessToken");
+      setTimeout(() => {
+        window.location.href = "/super-admin/login";
+      }, 1500);
+    }
   });
 
   // --- Setup Search Event Listeners ---

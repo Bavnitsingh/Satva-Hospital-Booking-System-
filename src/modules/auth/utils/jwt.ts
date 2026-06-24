@@ -4,7 +4,7 @@ import { env } from "../../../config/index.js";
 export interface JwtPayload {
   id: number;
   email: string;
-  role: "PATIENT" | "DOCTOR" | "ADMIN" |"STAFF"|"SUPER_ADMIN";
+  role: "PATIENT" | "DOCTOR" | "ADMIN" | "STAFF" | "SUPER_ADMIN";
 }
 
 export function sign(payload: JwtPayload): string {
@@ -19,11 +19,12 @@ export function verifyToken(token: string): JwtPayload {
   return isValid as JwtPayload;
 }
 
-export function verifyRefreshToken(token: string): any {
-  return jwt.verify(
+export function verifyRefreshToken(token: string): JwtPayload {
+  const isValid = jwt.verify(
     token,
     env.REFRESH_TOKEN_SECRET as string
   );
+  return isValid as JwtPayload;
 }
 
 export function signRefreshToken(payload: JwtPayload): string {

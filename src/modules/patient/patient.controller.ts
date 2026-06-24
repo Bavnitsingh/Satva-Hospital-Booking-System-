@@ -76,6 +76,7 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
       (req as AuthRequest).user.id,
       req.body,
     );
+    console.log(req.body)
     generalResponse({
       res,
       data: result,
@@ -175,42 +176,5 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
-  // Notifications
-  getNotifications = catchAsync(async (req: Request, res: Response) => {
-    const { unread } = (req as any).validatedQuery as { unread?: string };
-    const unreadOnly = unread === "true";
-    const result = await this.service.getNotifications(
-      (req as AuthRequest).user.id,
-      unreadOnly,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Notifications fetched",
-      statusCode: 200,
-    });
-  });
 
-  markNotificationRead = catchAsync(async (req: Request, res: Response) => {
-    await this.service.markNotificationRead(
-      (req as AuthRequest).user.id,
-      Number(req.params.notificationId),
-    );
-    generalResponse({
-      res,
-      data: null,
-      message: "Notification marked as read",
-      statusCode: 200,
-    });
-  });
-
-  markAllNotificationsRead = catchAsync(async (req: Request, res: Response) => {
-    await this.service.markAllNotificationsRead((req as AuthRequest).user.id);
-    generalResponse({
-      res,
-      data: null,
-      message: "All notifications marked as read",
-      statusCode: 200,
-    });
-  });
 }

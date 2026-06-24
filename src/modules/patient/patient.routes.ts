@@ -49,17 +49,6 @@ export class PatientRoutes implements Routes {
     this.router.get("/records", this.patient.getMedicalHistory);
     this.router.get("/records/:recordId", this.patient.getMedicalRecord);
 
-    // Notifications 
-    this.router.get("/notifications", validateRequestQuery(notification_query_schema), this.patient.getNotifications);
-    this.router.patch(
-      "/notifications/:notificationId/read",
-      this.patient.markNotificationRead,
-    );
-    this.router.patch(
-      "/notifications/read-all",
-      this.patient.markAllNotificationsRead,
-    );
 
-    this.router.delete("/family/:memberId", this.patient.deleteFamilyMember);
   }
 }

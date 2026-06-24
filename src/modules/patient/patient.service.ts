@@ -1,3 +1,7 @@
+import { getConnection } from "../../database/connection.js";
+import { NotificationType } from "../notification/notification.interface.js";
+import { NotificationRepository } from "../notification/notification.repository.js";
+import { NotificationService } from "../notification/notification.services.js";
 import { PatientRepository } from "./patient.repository.js";
 import {
   ISearchDoctorsQuery,
@@ -8,8 +12,9 @@ import {
 
 
 export class PatientService {
-  private repo = new PatientRepository();
 
+  private repo = new PatientRepository();
+  private notificationService = new NotificationService(); 
   private async resolvePatientId(userId: number): Promise<number> {
     const id = await this.repo.getPatientIdByUserId(userId);
     if (!id) throw new Error("Patient profile not found");
@@ -24,43 +29,54 @@ export class PatientService {
 
   // profile
   async getProfile(userId: number) {
-    const patient = await this.repo.getPatientByUserId(userId);
-    if (!patient) throw new Error("Patient not found");
+    try{
 
-    const insurance = await this.repo.getInsuranceByPatientId(
-      patient.patient_id,
-    );
-    const familyMembers = await this.repo.getFamilyMembers(patient.patient_id);
+      const patient = await this.repo.getPatientByUserId(userId);
+      if (!patient) throw new Error("Patient not found");
 
-    return {
-      ...patient,
-      insurance,
-      familyMembers,
-    };
+      const insurance = await this.repo.getInsuranceByPatientId(
+        patient.patient_id,
+      );
+      const familyMembers = await this.repo.getFamilyMembers(patient.patient_id);
+
+      console.log("transaction commited");
+      return {
+        ...patient,
+        insurance,
+        familyMembers,
+      };
+    }catch(err:unknown){
+      throw err;
+    }
+
   }
 
   async updateProfile(userId: number, data: IUpdatePatientProfile) {
-    const patientId: any = await this.resolvePatientId(userId);
-
-    const allowed = [
-      "first_name",
-      "last_name",
-      "address_line1",
-      "address_line2",
-      "blood_group",
-      "profile_path",
-      "is_insured",
-      "country_code",
-      "mobile",
-      "dob",
-      "gender",
-    ];
-
-    const filtered = Object.fromEntries(
-      Object.entries(data).filter(([k]) => allowed.includes(k)),
-    );
-
-    const isInsured =
+    const conn = await getConnection();
+    try{
+      await conn.beginTransaction();
+      
+      const patientId: any = await this.resolvePatientId(userId);
+      
+      const allowed = [
+        "first_name",
+        "last_name",
+        "address_line1",
+        "address_line2",
+        "blood_group",
+        "profile_path",
+        "is_insured",
+        "country_code",
+        "mobile",
+        "dob",
+        "gender",
+      ];
+      
+      const filtered = Object.fromEntries(
+        Object.entries(data).filter(([k]) => allowed.includes(k)),
+      );
+      
+      const isInsured =
       filtered.is_insured === true ||
       filtered.is_insured === "true" ||
       filtered.is_insured === 1 ||
@@ -69,14 +85,26 @@ export class PatientService {
     filtered.is_insured = isInsured ? 1 : 0;
 
     await this.repo.updateProfile(patientId, filtered);
+  
 
+    // this is for creating and storing the notification in db
+
+
+    await this.notificationService.createNotification({
+      user_id: userId,
+      notification_type: NotificationType.PROFILE_UPDATED,
+      title: "Profile Updated Successfully",
+      notification_message:
+      "Your profile has been updated successfully.",
+    });
+    
     if (isInsured) {
       const policyNumber = data.policy_number?.trim();
       const policyCompany = data.policy_company?.trim();
       const policyDocumentPath = data.policy_document_path || null;
 
       if (policyNumber && policyCompany) {
-        await this.repo.upsertInsuranceDetails(patientId, {
+        await this.repo.updateInsuranceDetails(patientId, {
           policyNumber,
           policyCompany,
           policyDocumentPath,
@@ -85,9 +113,16 @@ export class PatientService {
     } else {
       await this.repo.deleteInsuranceDetails(patientId);
     }
+    
+    await conn.commit();
 
     return this.repo.getPatientByUserId(userId);
+    }catch(err:unknown){
+      await conn.rollback();
+      throw err;
+    }
   }
+
 
   // Family members
   async getFamilyMembers(userId: number) {
@@ -132,7 +167,7 @@ export class PatientService {
 
   async getPaymentHistory(userId: number) {
     const patientId = await this.resolvePatientId(userId);
-    return this.repo.getPaymentHistory(patientId);
+    // return this.repo.getPaymentHistory(patientId);
   }
 
   // Medical records
@@ -156,20 +191,5 @@ export class PatientService {
     const record = await this.repo.getMedicalRecordById(recordId, patientId);
     if (!record) throw new Error("Record not found");
     return record;
-  }
-
-  // Notifications
-  async getNotifications(userId: number, unreadOnly: boolean) {
-    return this.repo.getNotifications(userId, unreadOnly);
-  }
-
-  async markNotificationRead(userId: number, notificationId: number) {
-    const patientId = await this.resolvePatientId(userId);
-    return this.repo.markNotificationRead(notificationId, patientId);
-  }
-
-  async markAllNotificationsRead(userId: number) {
-    const patientId = await this.resolvePatientId(userId);
-    return this.repo.markAllNotificationsRead(patientId);
   }
 }

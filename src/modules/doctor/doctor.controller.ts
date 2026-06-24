@@ -4,7 +4,7 @@ import { generalResponse } from "../../common/helpers/general-response.js"
 import { DoctorService } from "./doctor.service.js"
 
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js"
-import { IDoctorLeave, IDoctorSchedule } from "./doctor.interface.js"
+import { IDoctorLeave, IDoctorRecordsFill, IDoctorSchedule } from "./doctor.interface.js"
 
 import { BadRequestException, InternalServerException, NotFoundException } from "../../common/helpers/http-exception.js"
 
@@ -77,9 +77,14 @@ getPatientList=catchAsync(async(req:Request,res:Response)=>{
 })
 
 postPatientMedicalRecords=catchAsync(async(req:Request,res:Response)=>{
-    const {patient_id,doctor_id,appointment_id,diagnosis,examination_notes}=req.body
+    // const {patient_id,doctor_id,appointment_id,diagnosis,examination_notes}=req.body
 
-    console.log(req.body,req.files)
+    const  payload:IDoctorRecordsFill = JSON.parse(req.body.payload)
+    
+    this.doctorService.postRecords(payload,req.files)
+    
+    
+
 
     //pending will work when frontend integrated 
 
@@ -151,7 +156,6 @@ generalResponse({res,data:[hospitalDetails],message:'Successfully Fetched Data',
 updateAppointmentStatus=catchAsync(async(req:Request,res:Response)=>{
 
     const user_id=(req as AuthRequest).user.id
-
     const {appointment_id,appointment_status}=req.body
     const result=await this.doctorService.updateAppointmentStatus(user_id,appointment_id,appointment_status)
     generalResponse({res,data:[],message:'Successfully Updated',statusCode:200})

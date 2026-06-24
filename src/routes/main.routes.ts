@@ -8,6 +8,7 @@ import { SuperAdminRoutes } from "../modules/super_admin/super.admin.routes.js";
 import { HospitalRoutes } from "../modules/hospital/hospital.routes.js";
 import { TelemedicineRoutes } from "../modules/telemedicine/telemedicine.routes.js";
 import { AppointmentRoutes } from "../modules/appointment/appointment.routes.js";
+import { NotificationRouter } from "../modules/notification/notification.route.js";
 import { StaffRoutes } from "../modules/staff/staff.routes.js";
 
 export function buildApiRouter(): Router {
@@ -23,6 +24,7 @@ export function buildApiRouter(): Router {
     new HospitalRoutes(),
     new TelemedicineRoutes(),
     new AppointmentRoutes(),
+    new NotificationRouter(),
     new StaffRoutes()
 
   ];

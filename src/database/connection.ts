@@ -42,3 +42,7 @@ export async function query2(
   const [rows]=await pool.query(sql,params);
   return rows
 }
+
+export async function getConnection() {
+  return pool.getConnection();
+}

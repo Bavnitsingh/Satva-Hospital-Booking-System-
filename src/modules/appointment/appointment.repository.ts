@@ -1,3 +1,4 @@
+import { RowDataPacket } from "mysql2";
 import { query } from "../../database/connection.js";
 import { ICreateAppointmentData, IPaymentData, IStatusHistoryData, INotificationData } from "./appointment.interface.js";
 
@@ -10,6 +11,11 @@ export class AppointmentRepository {
   async getDoctorIdByUserId(user_id: number): Promise<number | null> {
     const result: any = await query(`select doctor_id from doctors where user_id = ?`, [user_id]);
     return result.length ? result[0].doctor_id : null;
+  }
+
+  async getUserIdByDoctorId(doctor_id : number) : Promise<number | null>{
+    const result = await query(`select user_id from doctors where doctor_id = ?`,[doctor_id]) as RowDataPacket;
+    return result.length ? result[0].user_id as number: null;
   }
 
   async isSlotTaken(doctor_id: number, slot_date: string, start_time: string): Promise<boolean> {
@@ -38,6 +44,9 @@ export class AppointmentRepository {
   }
 
   async createPayment(data: IPaymentData): Promise<number> {
+
+    console.log("this is data :", data);
+    
     const result: any = await query(
       `insert into payments (appointment_id, amount, payment_method, status, transaction_id) values (?, ?, ?, ?, ?)`,
       [data.appointment_id, data.amount, data.payment_method, data.status, data.transaction_id]
@@ -97,6 +106,7 @@ export class AppointmentRepository {
         a.appointment_type, a.appointment_status, a.chief_complaint, a.confirmation_no,
         d.first_name as doctor_first_name, d.last_name as doctor_last_name,
         d.consultation_fee, d.currency_code, d.profile_path as doctor_photo,
+        t.meeting_link,
         h.hospital_name,
         group_concat(distinct s.specialty_name separator ', ') as specialties,
         p.status as payment_status, p.amount as payment_amount
@@ -106,6 +116,8 @@ export class AppointmentRepository {
         left join doctor_specialties ds on d.doctor_id = ds.doctor_id
         left join specialties s on ds.specialty_id = s.specialty_id
         left join payments p on a.appointment_id = p.appointment_id
+        left join telemedicine_sessions t on a.appointment_id = t.appointment_id
+
         where a.patient_id = ? ${statusFilter}
         group by a.appointment_id
         order by a.slot_date desc, a.start_time desc`,

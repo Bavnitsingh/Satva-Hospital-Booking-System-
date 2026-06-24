@@ -20,6 +20,7 @@ export class TelemedicineRepository {
   (
     appointment_id,
     meeting_link
+    
   )
   values (?, ?)
 `;

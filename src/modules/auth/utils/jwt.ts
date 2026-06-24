@@ -4,7 +4,7 @@ import { env } from "../../../config/index.js";
 export interface JwtPayload {
   id: number;
   email: string;
-  role: "PATIENT" | "DOCTOR" | "ADMIN" |"STAFF"|"SUPER_ADMIN";
+  role: "PATIENT" | "DOCTOR" | "ADMIN" | "STAFF" | "SUPER_ADMIN";
 }
 
 export function sign(payload: JwtPayload): string {

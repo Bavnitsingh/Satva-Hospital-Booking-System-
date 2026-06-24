@@ -24,35 +24,13 @@
 </head>
 <body class="m-0 bg-[#f6f7f9] text-[#1c2125] font-sans">
 
-<header class="bg-white border-b border-gray-200 flex items-center justify-between px-7 py-3.5">
-  <div class="flex items-center gap-2 font-bold text-base text-gray-900">
-    <svg class="text-brand" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C0.3 8.4 2 5 5.4 5c2 0 3.4 1.1 4.1 2.2C10.2 6.1 11.6 5 13.6 5 17 5 18.7 8.4 17 11.7 14.5 16.4 12 21 12 21z"/></svg>
-    HealthCare
-  </div>
-  <div class="flex items-center gap-4">
-    <button class="w-[34px] h-[34px] rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-colors" title="Notifications">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-    </button>
-    <button class="w-[34px] h-[34px] rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-colors" title="Account">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-    </button>
-    <button class="bg-danger text-white rounded-md px-3.5 py-2 text-[13px] font-semibold flex items-center gap-1.5 hover:bg-[#c94739] transition-colors">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Logout
-    </button>
-  </div>
-</header>
+<%-include('partials/header.ejs')%>
 
 <div class="max-w-[880px] mx-auto px-6 pt-6 pb-12">
   <h2 class="text-[19px] font-bold m-0">Dr. Michael Chen</h2>
   <p class="text-[13px] text-gray-400 mt-1 mb-6">Cardiologist &bull; 15 years experience</p>
 
-  <nav class="flex gap-6 border-b border-gray-200 mb-6 overflow-x-auto">
-    <button class="tab-btn pb-3 text-sm font-medium text-gray-400 border-b-2 border-transparent -mb-px hover:text-gray-900 transition-colors" data-tab="schedule">Today's Schedule</button>
-    <button class="tab-btn pb-3 text-sm font-medium text-gray-400 border-b-2 border-transparent -mb-px hover:text-gray-900 transition-colors" data-tab="weekly">Weekly Schedule</button>
-    <button class="tab-btn pb-3 text-sm font-medium text-gray-400 border-b-2 border-transparent -mb-px hover:text-gray-900 transition-colors" data-tab="patients">Patient List</button>
-    <button class="tab-btn pb-3 text-sm font-semibold text-brand-dark border-b-2 border-brand -mb-px" data-tab="records">Medical Records</button>
-  </nav>
+  
 
   <div class="bg-white border border-gray-200 rounded-2xl p-9 sm:p-9 max-sm:p-5">
     <h1 class="text-lg font-bold mb-6">Create Medical Record</h1>
@@ -91,12 +69,10 @@
           <input type="text" id="diagnosis" placeholder="ICD-10 code and description"
             class="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-brand focus:ring-2 focus:ring-[#14926f]/[0.12] transition-colors">
         </div>
-        <div>
-          <label for="followUpDate" class="block text-[13px] font-semibold text-gray-800 mb-2">Follow-up Date</label>
-          <input type="date" id="followUpDate"
-            class="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand focus:ring-2 focus:ring-[#14926f]/[0.12] transition-colors">
-        </div>
+        
       </div>
+
+
 
       <div class="mb-5">
         <label class="block text-[13px] font-semibold text-gray-800 mb-2">Prescription</label>
@@ -131,264 +107,11 @@
       <button type="submit" id="saveBtn" class="w-full bg-brand text-white rounded-xl py-3.5 text-[15px] font-bold mt-2 hover:bg-brand-dark disabled:bg-[#9fd2bf] disabled:cursor-not-allowed transition-colors">Save Medical Record</button>
     </form>
   </div>
-</div>
+</div> 
 
 <div id="toast" class="fixed top-5 right-5 bg-gray-900 text-white px-4.5 py-3 rounded-lg text-sm opacity-0 -translate-y-2 transition-all duration-200 pointer-events-none z-50"></div>
 
-<script>
-  /* ============ Backend-supplied, read-only fields ============ *
-   * In a real app, replace this with an actual fetch tied to the
-   * active appointment, e.g.:
-   *   const res = await fetch(`/api/appointments/${appointmentId}`);
-   *   const data = await res.json();
-   * ============================================================ */
-  const backendData = {
-    patientName: "Riya Kapoor",
-    chiefComplaint: "Recurring chest tightness and shortness of breath during exertion, ongoing for 2 weeks."
-  };
-  document.getElementById('patientName').value = backendData.patientName;
-  document.getElementById('chiefComplaint').value = backendData.chiefComplaint;
-
-  /* ============ Tabs (visual only in this demo) ============ */
-  const ACTIVE_TAB = ['text-brand-dark', 'font-semibold', 'border-brand'];
-  const INACTIVE_TAB = ['text-gray-400', 'font-medium', 'border-transparent'];
-
-  document.querySelectorAll('.tab-btn').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(t => {
-        t.classList.remove(...ACTIVE_TAB);
-        t.classList.add(...INACTIVE_TAB);
-      });
-      tab.classList.remove(...INACTIVE_TAB);
-      tab.classList.add(...ACTIVE_TAB);
-    });
-  });
-
-  /* ============ Prescription items (dynamic rows) ============ */
-  const rxList = document.getElementById('rxList');
-  const rxEmpty = document.getElementById('rxEmpty');
-  const addRxBtn = document.getElementById('addRxBtn');
-  let rxCounter = 0;
-
-  const RX_INPUT_CLASSES = "w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-brand focus:ring-2 focus:ring-[#14926f]/[0.12] transition-colors";
-
-  function rxRowTemplate(num) {
-    return `
-      <div class="rx-item border border-gray-200 rounded-xl p-4 mb-3.5 bg-gray-50" data-rx-id="${num}">
-        <div class="flex items-center justify-between mb-3.5">
-          <span class="rx-item-title text-[12.5px] font-bold text-gray-400 uppercase tracking-wide">Medicine #${num}</span>
-          <button type="button" class="remove-rx-btn text-gray-400 hover:bg-red-50 hover:text-danger rounded-md p-1.5 flex items-center transition-colors" aria-label="Remove medicine">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
-          </button>
-        </div>
-        <div class="grid grid-cols-1 gap-3.5">
-          <div>
-            <label class="block text-[11.5px] font-semibold text-gray-400 mb-1.5">Medicine Name</label>
-            <input type="text" class="rx-medicine_name ${RX_INPUT_CLASSES}" placeholder="e.g. Atorvastatin">
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-            <div>
-              <label class="block text-[11.5px] font-semibold text-gray-400 mb-1.5">Dosage</label>
-              <input type="text" class="rx-dosage ${RX_INPUT_CLASSES}" placeholder="e.g. 10mg">
-            </div>
-            <div>
-              <label class="block text-[11.5px] font-semibold text-gray-400 mb-1.5">Frequency</label>
-              <input type="text" class="rx-frequency ${RX_INPUT_CLASSES}" placeholder="e.g. Once daily">
-            </div>
-            <div>
-              <label class="block text-[11.5px] font-semibold text-gray-400 mb-1.5">Duration</label>
-              <input type="text" class="rx-duration ${RX_INPUT_CLASSES}" placeholder="e.g. 30 days">
-            </div>
-          </div>
-          <div>
-            <label class="block text-[11.5px] font-semibold text-gray-400 mb-1.5">Instructions</label>
-            <input type="text" class="rx-instructions ${RX_INPUT_CLASSES}" placeholder="e.g. Take after meals">
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  function renumberRx() {
-    const items = rxList.querySelectorAll('.rx-item');
-    items.forEach((item, i) => {
-      item.querySelector('.rx-item-title').textContent = `Medicine #${i + 1}`;
-    });
-    if (items.length === 0) {
-      rxEmpty.classList.remove('hidden');
-    } else {
-      rxEmpty.classList.add('hidden');
-    }
-  }
-
-  function addRxRow() {
-    rxCounter++;
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = rxRowTemplate(rxCounter);
-    rxList.appendChild(wrapper.firstElementChild);
-    renumberRx();
-  }
-
-  addRxBtn.addEventListener('click', addRxRow);
-
-  rxList.addEventListener('click', (e) => {
-    const btn = e.target.closest('.remove-rx-btn');
-    if (!btn) return;
-    btn.closest('.rx-item').remove();
-    renumberRx();
-  });
-
-  // Start with one empty prescription row
-  addRxRow();
-
-  function collectPrescriptionItems() {
-    return Array.from(rxList.querySelectorAll('.rx-item')).map(item => ({
-      medicine_name: item.querySelector('.rx-medicine_name').value.trim(),
-      dosage: item.querySelector('.rx-dosage').value.trim(),
-      frequency: item.querySelector('.rx-frequency').value.trim(),
-      duration: item.querySelector('.rx-duration').value.trim(),
-      instructions: item.querySelector('.rx-instructions').value.trim()
-    })).filter(item =>
-      item.medicine_name || item.dosage || item.frequency || item.duration || item.instructions
-    );
-  }
-
-  /* ============ File attachments (multi-file) ============ */
-  const dropzone = document.getElementById('dropzone');
-  const fileInput = document.getElementById('fileInput');
-  const chooseBtn = document.getElementById('chooseBtn');
-  const fileList = document.getElementById('fileList');
-  let attachedFiles = [];
-
-  const DRAGOVER_CLASSES = ['border-brand', 'bg-brand-light'];
-
-  function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  }
-
-  function fileIconSVG() {
-    return `<svg class="text-brand-dark flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-    </svg>`;
-  }
-
-  function renderFileList() {
-    fileList.innerHTML = '';
-    attachedFiles.forEach((file, index) => {
-      const item = document.createElement('div');
-      item.className = 'flex items-center gap-2.5 border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 text-sm';
-      item.innerHTML = `
-        ${fileIconSVG()}
-        <div class="flex-1 min-w-0">
-          <div class="text-gray-900 font-medium truncate">${file.name}</div>
-          <div class="text-gray-400 text-[11px]">${formatSize(file.size)}</div>
-        </div>
-        <button type="button" class="remove-btn flex-shrink-0 text-gray-400 hover:bg-gray-100 hover:text-danger rounded-full p-1 text-base leading-none transition-colors" data-index="${index}" aria-label="Remove file">&times;</button>
-      `;
-      fileList.appendChild(item);
-    });
-  }
-
-  function addFiles(newFiles) {
-    const existingKeys = new Set(attachedFiles.map(f => f.name + f.size));
-    Array.from(newFiles).forEach(f => {
-      const key = f.name + f.size;
-      if (!existingKeys.has(key)) {
-        attachedFiles.push(f);
-        existingKeys.add(key);
-      }
-    });
-    renderFileList();
-  }
-
-  chooseBtn.addEventListener('click', () => fileInput.click());
-  dropzone.addEventListener('click', (e) => {
-    if (e.target === chooseBtn) return;
-    fileInput.click();
-  });
-  fileInput.addEventListener('change', (e) => {
-    addFiles(e.target.files);
-    fileInput.value = '';
-  });
-
-  ['dragenter', 'dragover'].forEach(evt =>
-    dropzone.addEventListener(evt, (e) => {
-      e.preventDefault();
-      dropzone.classList.remove('border-gray-200');
-      dropzone.classList.add(...DRAGOVER_CLASSES);
-    })
-  );
-  ['dragleave', 'drop'].forEach(evt =>
-    dropzone.addEventListener(evt, (e) => {
-      e.preventDefault();
-      dropzone.classList.remove(...DRAGOVER_CLASSES);
-      dropzone.classList.add('border-gray-200');
-    })
-  );
-  dropzone.addEventListener('drop', (e) => {
-    if (e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
-  });
-
-  fileList.addEventListener('click', (e) => {
-    const btn = e.target.closest('.remove-btn');
-    if (!btn) return;
-    attachedFiles.splice(parseInt(btn.dataset.index, 10), 1);
-    renderFileList();
-  });
-
-  /* ============ Save ============ */
-  const form = document.getElementById('medicalForm');
-  const saveBtn = document.getElementById('saveBtn');
-  const toast = document.getElementById('toast');
-
-  const TOAST_BG = { success: 'bg-brand-dark', error: 'bg-danger', default: 'bg-gray-900' };
-
-  function showToast(message, type) {
-    toast.textContent = message;
-    toast.classList.remove('opacity-0', '-translate-y-2', 'bg-gray-900', 'bg-brand-dark', 'bg-danger');
-    const bg = TOAST_BG[type] || TOAST_BG.default;
-    toast.classList.add('opacity-100', 'translate-y-0', bg);
-
-    setTimeout(() => {
-      toast.classList.remove('opacity-100', 'translate-y-0', bg);
-      toast.classList.add('opacity-0', '-translate-y-2');
-    }, 2800);
-  }
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const record = {
-      patientName: backendData.patientName,           // read-only, from backend
-      chiefComplaint: backendData.chiefComplaint,      // read-only, from backend
-      examFindings: document.getElementById('examFindings').value.trim(),
-      diagnosis: document.getElementById('diagnosis').value.trim(),
-      followUpDate: document.getElementById('followUpDate').value,
-      prescriptionItems: collectPrescriptionItems(),
-      notes: document.getElementById('notes').value.trim(),
-      attachments: attachedFiles.map(f => ({ name: f.name, size: f.size, type: f.type }))
-    };
-
-    // Replace with a real API call, e.g.:
-    // const formData = new FormData();
-    // formData.append('payload', JSON.stringify(record));
-    // attachedFiles.forEach(f => formData.append('files', f));
-    // await fetch('/api/medical-records', { method: 'POST', body: formData });
-    console.log('Saving medical record:', record);
-
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Saving...';
-
-    setTimeout(() => {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save Medical Record';
-      showToast('Medical record saved successfully.', 'success');
-    }, 700);
-  });
-</script>
+<script src="/js/create_medical_records.js"> </script>
 
 </body>
 </html>

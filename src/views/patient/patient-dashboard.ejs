@@ -91,126 +91,8 @@
   </head>
 
   <body class="bg-bg-page text-gray-800 min-h-screen">
-    <!-- ===================== NAVBAR ===================== -->
-    <header
-      class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="h-16 sm:h-20 flex items-center justify-between">
-          <a href="/" class="flex items-center gap-3">
-            <div
-              class="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm"
-            >
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-              </svg>
-            </div>
-
-            <div>
-              <h1
-                class="font-display text-xl sm:text-2xl text-dark leading-none"
-              >
-                Satva
-              </h1>
-              <p class="text-xs text-gray-500">Hospital Appointment System</p>
-            </div>
-          </a>
-
-          <nav class="hidden md:flex items-center gap-8">
-            <a
-              href="/patient/dashboard"
-              class="nav-link text-primary font-semibold"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/patient/doctors"
-              class="nav-link text-gray-600 hover:text-primary transition"
-            >
-              Doctors
-            </a>
-            <a
-              href="/patient/my-appointments"
-              class="nav-link text-gray-600 hover:text-primary transition"
-            >
-              Appointments
-            </a>
-            <a
-              href="/patient/records"
-              class="nav-link text-gray-600 hover:text-primary transition"
-            >
-              Records
-            </a>
-            <a
-              href="/patient/profile"
-              class="nav-link text-gray-600 hover:text-primary transition"
-            >
-              Profile
-            </a>
-          </nav>
-
-          <div class="flex items-center gap-3 sm:gap-4">
-            <a
-              href="/patient/notifications"
-              class="relative p-2 rounded-xl hover:bg-primary-light text-gray-700 hover:text-primary transition"
-              aria-label="Notifications"
-            >
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15 17h5l-1.4-1.4A2 2 0 0118 14.17V11a6 6 0 10-12 0v3.17a2 2 0 01-.6 1.43L4 17h5m6 0a3 3 0 11-6 0m6 0H9"
-                />
-              </svg>
-            </a>
-
-            <div class="flex items-center gap-2">
-              <img
-                id="user_img"
-                src="https://ui-avatars.com/api/?name=Patient&background=10A37F&color=fff"
-                class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-light"
-                alt="Patient"
-              />
-
-              <div class="hidden sm:block">
-                <p class="text-sm font-semibold text-dark" id="patientName">
-                  Patient
-                </p>
-                <p class="text-xs text-gray-500">Patient</p>
-              </div>
-            </div>
-
-            <button
-              id="logoutBtn"
-              class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
-                />
-              </svg>
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+   
+<%- include('../partials/patient-header', { title: 'dashboard' }) %>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Welcome -->
@@ -293,7 +175,7 @@
             />
           </svg>
           <p class="text-gray-500 mt-3">Notifications</p>
-          <h3 id="notificationCount" class="text-3xl font-bold mt-2 text-dark">
+          <h3 id="notificationCountDashboard" class="text-3xl font-bold mt-2 text-dark">
             0
           </h3>
         </div>
@@ -375,15 +257,7 @@
     </main>
 
     <%- include('../partials/footer') %>
-    <script type="module">
-      import { logout } from "/js/logout.js";
-      const logout_btn = document.getElementById("logoutBtn");
-      logout_btn.addEventListener("click", async function (e) {
-        e.preventDefault();
-        await logout();
-        
-      });
-    </script>
+
     <script>
       const token = localStorage.getItem("accessToken");
       function statusPill(status) {
@@ -414,7 +288,7 @@
 
           const profile = await profileRes.json();
           console.log(profile);
-
+          localStorage.setItem("user",JSON.stringify(profile));
           if (profile.data) {
             document.getElementById("bloodGroup").textContent =
               profile.data.blood_group || "--";
@@ -425,14 +299,7 @@
             document.getElementById("dob").textContent =
               profile.data.dob?.split("T")[0] || "--";
 
-            const username =
-              `${profile.data.first_name || ""} ${profile.data.last_name || ""}`.trim() ||
-              "Patient";
-            document.getElementById("patient_name").textContent = username;
-            document.getElementById("patientName").textContent = username;
-            document.getElementById("user_img").src =
-              profile.data.picture ||
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=10A37F&color=fff`;
+
           }
 
           localStorage.setItem(
@@ -545,7 +412,7 @@
           }
 
           const notificationsRes = await fetch(
-            "/api/v1/patient/notifications",
+            "/api/v1/notifications/unread/count",
             {
               method: "GET",
               headers: {
@@ -557,8 +424,8 @@
 
           const notifications = await notificationsRes.json();
           console.log(notifications);
-          document.getElementById("notificationCount").textContent =
-            notifications.data?.length || 0;
+          document.getElementById("notificationCountDashboard").textContent =
+            notifications.data?.count || 0;
         } catch (err) {
           console.error("Dashboard Error:", err);
           if(err.message == "Unauthorized"){

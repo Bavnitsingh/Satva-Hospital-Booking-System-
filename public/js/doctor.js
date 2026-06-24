@@ -64,7 +64,7 @@ const response=await fetch("/api/v1/doctor/get-dashboard-data",{
 
 const result=await response.json()
 const dashboardData=result.data[0].dashboard_data
-console.log(dashboardData)
+
 appointment.innerText=dashboardData['TOTAL APPOINTMENT']
 upcoming.innerText=dashboardData['UPCOMING']
 rescheduled.innerText=dashboardData['RESCHEDULED']

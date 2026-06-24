@@ -1,53 +1,29 @@
-export async function downloadMedicalRecord(record, fileName = null) {
-  const doctorName =
-    `${record.doctor_first_name || ""} ${record.doctor_last_name || ""}`.trim();
+export async function downloadMedicalRecord() {
+  const element = document.getElementById("recordContainer");
 
-  const content = `
-      SATVA MEDICAL RECORD
+  if (!element) {
+    alert("Record not found");
+    return;
+  }
 
-      Record ID:
-      ${record.record_id}
-
-      Appointment ID:
-      ${record.appointment_id}
-
-      Doctor Name:
-      ${doctorName || "Not Available"}
-
-      Diagnosis:
-      ${record.diagnosis || "Not Available"}
-
-      Examination Notes:
-      ${record.examination_notes || "Not Available"}
-
-      Record Date:
-      ${record.created_at.split("T")[0] || "Not Available"}
-
-      Appointment Type:
-      ${record.appointment_type || "Not Available"}
-
-      Prescription Notes:
-      ${record.prescription_notes || "No Prescription"}
-
-      `;
-
-  const blob = new Blob([content], {
-    type: "text/plain",
-  });
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-
-  a.href = url;
-
-  a.download = fileName || `medical-record-${record.record_id}.txt`;
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  a.remove();
-
-  URL.revokeObjectURL(url);
+  await html2pdf()
+    .set({
+      margin: 10,
+      filename: "medical-record.pdf",
+      image: {
+        type: "jpeg",
+        quality: 1,
+      },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+      },
+      jsPDF: {
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait",
+      },
+    })
+    .from(element)
+    .save();
 }

@@ -67,9 +67,6 @@ export const fetchDoctorsQuerySchema = z.object({
 export type FetchDoctorsQuerySchema =
   z.infer<typeof fetchDoctorsQuerySchema>;
 
-/**
- * Doctor ID Schema (for delete/update/get single doctor)
- */
 export const doctorIdSchema = z.object({
   doctor_id: z.coerce.number().int().positive()
 });

@@ -31,9 +31,6 @@ export async function authenticate(
 
     // Access token valid
     const payload = verifyToken(accessToken ?? "");
-
-    console.log("this is token --------------------------------",accessToken);
-
     (req as AuthRequest).user = payload;
 
     return next();
@@ -94,7 +91,7 @@ export async function authenticate(
         role: refreshPayload.role
       });
 
-      console.log("new Access Token is Created")
+    console.log("new Access Token is Created")
       // Send new token back to frontend
       res.setHeader(
         "x-access-token",
@@ -118,6 +115,8 @@ export async function authenticate(
     }
   }
 }
+
+
 // Role-based auth
 export function isPatient(req: Request, res: Response, next: NextFunction): void {
   const user = (req as AuthRequest).user;
@@ -147,12 +146,35 @@ export function isAdmin(req: Request, res: Response, next: NextFunction): void {
   next();
 }
 
+export function isStaff(req: Request, res: Response, next: NextFunction): void {
+  const user = (req as AuthRequest).user;
+ 
+  if (user?.role !== "STAFF") {
+    res.status(403).json({ statusCode: 403, message: "Access restricted to STAFFS", data: null });
+    return;
+  }
+  next();
+}
+
+export function isSuperAdmin(req: Request, res: Response, next: NextFunction): void {
+  const user = (req as AuthRequest).user;
+ 
+  if (user?.role !== "SUPER_ADMIN") {
+    res.status(403).json({ statusCode: 403, message: "Access restricted to SUPER ADMINS", data: null });
+    return;
+  }
+  next();
+}
+
+
 //  authenticate + role  
 export const patientAuth  = [authenticate, isPatient];
 export const doctorAuth   = [authenticate, isDoctor];
 export const adminAuth    = [authenticate, isAdmin];
-
-export function authorizeRoles(...roles: Array<"PATIENT" | "DOCTOR" | "ADMIN">) {
+export const staffAuth    = [authenticate, isStaff];
+export const superAdminAuth = [authenticate,isSuperAdmin]
+ 
+export function authorizeRoles(...roles: Array<"PATIENT" | "DOCTOR" | "ADMIN" | "STAFF" | "SUPER_ADMIN">) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const user = (req as AuthRequest).user;
     if (!roles.includes(user?.role)) {

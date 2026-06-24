@@ -1,8 +1,7 @@
 import z from "zod";
-import { WorkingDay } from "../doctor.interface.js";
 
 export const doctorScheduleSchema = z.object({
-  working_day: z.nativeEnum(WorkingDay),
+  working_date: z.coerce.date(),
 
   working_from: z
     .string()
@@ -18,15 +17,18 @@ export const doctorScheduleSchema = z.object({
       "Invalid time format"
     ),
 
-  date_from: z.coerce.date(),
-
-  date_to: z.coerce.date(),
-
   slot_duration: z
     .number()
     .int()
     .positive("Slot duration must be positive")
-});
+})
+.refine(
+  (data) => data.working_from < data.working_to,
+  {
+    message: "Working end time must be after working start time",
+    path: ["working_to"]
+  }
+);
 
 export type DoctorScheduleSchema =
   z.infer<typeof doctorScheduleSchema>;

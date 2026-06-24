@@ -1,8 +1,10 @@
 
 import {
+  AppointmentStatus,
   IDoctorDetails,
   IDoctorLeave,
   IDoctorNotification,
+  IDoctorRecordsFill,
   IDoctorSchedule,
   IMedicalAttachments,
   IMedicalRecords,
@@ -11,11 +13,16 @@ import {
 } from "./doctor.interface.js";
 import { DoctorRepo } from "./doctor.repository.js";
 import {
+  BadRequestException,
+  InternalServerException,
   NotFoundException,
  
 } from "../../common/helpers/http-exception.js";
 import { getNextWeekStartingDay } from "./utils/doctor.utilts.js";
-import { profile } from "node:console";
+import fs from 'fs'
+import { Console } from "winston/lib/winston/transports/index.js";
+import { ResultSetHeader } from "mysql2";
+
 
 
 export class DoctorService {
@@ -73,21 +80,31 @@ export class DoctorService {
       doctor_id,
       start_date,
     );
+    const doctorLeavesSchedule=await this.doctorRepo.findDoctorLeavesByDoctorId(doctor_id)
 
-    return { weekScheduleList };
+    return { weekScheduleList ,doctorLeavesSchedule};
   }
 
-  async setWeeklySchedule(data: IDoctorSchedule) {
+  async setWeeklySchedule(data: IDoctorSchedule,user_id:number) {
     if (!data) {
       throw new NotFoundException("Data is empty");
     }
+    const doctor_id=await this.getDoctorId(user_id)
 
-    const result = await this.doctorRepo.insertORUpdateDoctorSchedule(data);
+    const result = await this.doctorRepo.insertORUpdateDoctorSchedule(data,doctor_id);
     return { result };
   }
 
-  async setLeaves(data: IDoctorLeave) {
-    const result = await this.doctorRepo.insertDoctorLeaves(data);
+  async setLeaves(data: IDoctorLeave,user_id:number) {
+    const doctor_id:number=await this.getDoctorId(user_id)
+
+    if(data.from_date){}
+
+    const checkISLeaveExistsBetween:boolean=await this.doctorRepo.checkLeaveExistBetween(data.from_date,data.to_date,doctor_id)
+    if(checkISLeaveExistsBetween){
+      throw new BadRequestException('Your start date or end date is already in your past applied leaves. Cancel that leaves')
+    }
+    const result = await this.doctorRepo.insertDoctorLeaves(data,doctor_id);
 
     return { result };
   }
@@ -104,27 +121,30 @@ export class DoctorService {
   }
 
   async insertMedicalRecords(medical_records: IMedicalRecords) {
-    const result = await this.doctorRepo.insertMedicalRecords(medical_records);
-    return { result };
+    const record_id = await this.doctorRepo.insertMedicalRecords(medical_records);
+   
+    return record_id ;
   }
 
   async insertMedicalRecordsAttachments(
-    medical_record_attachment: IMedicalAttachments,
-  ) {
-    const result = await this.doctorRepo.insertMedicalRecordsAttactments(
-      medical_record_attachment,
-    );
+   record_id:number,files:Express.Multer.File[]
+  ) 
+    { 
+      const data=files.map((f)=>([record_id,f.filename,f.path]))
+    const result = await this.doctorRepo.insertMedicalRecordsAttactments(data);
 
     return { result };
   }
 
   async insertPrescriptions(data: IPrescriptions) {
-    const result = await this.doctorRepo.insertPrescription(data);
-    return { result };
+    const prescription_id = await this.doctorRepo.insertPrescription(data);
+    return prescription_id;
   }
 
-  async insertPrescriptionItems(data: IPrescriptionItems) {
-    const result = await this.doctorRepo.insertPrescriptionItems(data);
+  async insertPrescriptionItems(data: IPrescriptionItems[],prescription_id:number) {
+    const prescription_items=data.map((d)=>([prescription_id,d.medicine_name,d.dosage,d.frequency,d.duration,d.instructions]))
+
+    const result = await this.doctorRepo.insertPrescriptionItems(prescription_items);
     return { result };
   }
 
@@ -165,8 +185,14 @@ export class DoctorService {
   async postProfileUpdateData(data: any, file: any) {
     const doctor_details=data.doctor_details
 
-    const profile_path=file?.destination || '/uploads/doctor_profile/default.png'
-    
+    let profile_path=file?.path || 'uploads/doctor_profile/default.png'
+    if(!file){
+      const result=await this.doctorRepo.getFileDetails(doctor_details.doctor_id)
+      if(!result){
+        throw new NotFoundException('Image Url Not Found')
+      }
+      profile_path=result.profile_path
+    }
     const docDetail: IDoctorDetails = {
       first_name: doctor_details.first_name,
       last_name: doctor_details.last_name,
@@ -177,11 +203,10 @@ export class DoctorService {
       doctor_id:doctor_details.doctor_id
     };
 
-
+    // unlink files in doctor_proifle
+  
     const docQualifictionDetail=data.qualifications.map((q:any,i:number)=>[doctor_details.doctor_id,q.degree,q.graduation_year,q.college_name])
     const docSpecialities=data.specialties.map((q:any,i:number)=>[doctor_details.doctor_id,q.specialty_id])
-
-    console.log(docQualifictionDetail,docSpecialities)
 
     const doc_detail_result=await this.doctorRepo.updateDoctorDetail(docDetail)
     const doc_qualification_result=await this.doctorRepo.updateDoctorQualifications(docQualifictionDetail)
@@ -191,5 +216,84 @@ export class DoctorService {
     return {doc_detail_result,doc_qualification_result,doctor_specialties_result}
 
 
+  }
+
+
+  async getHospitalDetails(user_id:number){
+
+    const hospital_details=await this.doctorRepo.getHosptialDetails(user_id)
+    return {hospital_details}
+  }
+
+  async updateAppointmentStatus(user_id:number,appointment_id:number,appointment_status:string){
+
+  if(!appointment_status || appointment_status==='' || appointment_status==undefined){
+    throw new BadRequestException('Appointment Status not found')
+  }
+
+  if(!appointment_id || appointment_id===undefined){
+    throw new BadRequestException("Appointment Id Not Found")
+  }
+
+    if(!(appointment_status in AppointmentStatus)){
+      throw new BadRequestException('Status type does not exists')
+    }
+        
+    const doctor_id=await this.getDoctorId(user_id)
+    
+
+    if(appointment_status==AppointmentStatus.IN_PROGRESS){
+      // check if there is still doctor is taking consultation
+      const {progress_status}=await this.doctorRepo.getInProgressStatus(doctor_id)
+      if(progress_status){
+       
+        throw new BadRequestException("Please Complete the Existing Consultation or Click the Button to Complete")
+      }
+    }
+    
+    const isUpdated=await this.doctorRepo.setAppointmentStatus(appointment_id,appointment_status)
+    return {isUpdated}
+
+  }
+
+
+
+  async deleteLeave(leave_id:number){
+
+
+    const result =await this.doctorRepo.cancelLeave(leave_id)
+    return {result }
+  }
+
+
+  async postRecords(payload:IDoctorRecordsFill, files?:any){
+
+    if(!payload.appointment_id){
+      throw new BadRequestException('Appointment Id Missing')
+    }
+    const {patient_id,doctor_id}=await this.doctorRepo.getPatientAndDoctorIdByAppointmentId(payload.appointment_id)
+    if(!patient_id || !doctor_id){
+      throw new InternalServerException("Enable to find Patient or Doctor")
+    }
+    const record_id=await this.insertMedicalRecords({doctor_id:Number(doctor_id),patient_id:Number(patient_id),appointment_id:payload.appointment_id,diagnosis:payload.diagnosis,examination_notes:payload.examination_notes})
+    if(!record_id){
+      throw new InternalServerException('Enable to insert data')
+    }
+    const prescription_id=await this.insertPrescriptions({record_id:record_id,notes:payload.notes})
+    if(!prescription_id){
+      throw new InternalServerException('Enable to insert data')
+    }
+  
+    if(payload.prescription_items!=undefined){
+    const result=await this.insertPrescriptionItems(payload.prescription_items,prescription_id)
+    }
+   
+
+    if(files.length>0){
+    const result1=await this.insertMedicalRecordsAttachments(record_id,files)   
+    }
+
+
+    return {}
   }
 }

@@ -1,3 +1,4 @@
+import { Console } from "winston/lib/winston/transports/index.js";
 import { HttpException, InternalServerException } from "../../common/helpers/http-exception.js";
 import { query, query2 } from "../../database/connection.js";
 import {
@@ -11,12 +12,13 @@ import {
   IPrescriptionItems,
   IPrescriptions,
 } from "./doctor.interface.js";
+import { QueryResult, ResultSetHeader, RowDataPacket } from "mysql2";
 
 export class DoctorRepo {
   async findDoctorByUserID(user_id: number) {
     const rows: any = await query(
       `
-            SELECT * from doctors where user_id=? `,
+            select * from doctors where user_id=? `,
       [user_id],
     );
 
@@ -26,7 +28,7 @@ export class DoctorRepo {
   async findDoctorQualificationByDoctorID(doctor_id: number) {
     const rows: any = await query(
       `
-            SELECT degree,graduation_year,college_name FROM doctor_qualifications where 
+            select degree,graduation_year,college_name from doctor_qualifications where 
             doctor_id=?`,
       [doctor_id],
     );
@@ -56,8 +58,8 @@ export class DoctorRepo {
   async findDoctorScheduleByDoctorID(doctor_id: number, start_date: string) {
     const rows: any = await query(
       `     
-            SELECT working_from,working_to,Date_format(working_date,'%Y-%m-%d') as working_date,slot_duration
-            FROM doctor_schedules 
+            select working_from,working_to,date_format(working_date,'%Y-%m-%d') as working_date,slot_duration
+            from doctor_schedules 
             where doctor_id=? and working_date >=?`,
       [doctor_id, start_date],
     );
@@ -67,9 +69,9 @@ export class DoctorRepo {
   async findDoctorAppointments(doctor_id: number, slot_date: string) {
     const rows: any = await query(
       `
-    with cte as(select a.appointment_id,a.slot_date,a.start_time,
-    a.end_time,a.appointment_type,a.appointment_status,a.chief_complaint,
-    a.confirmation_no,a.created_at,CONCAT(p.first_name,p.last_name) as 'patient name',p.patient_id 
+    with cte as(select a.appointment_id,a.slot_date,SUBSTRING(a.start_time,1,5) as start_time,
+    SUBSTRING(a.end_time,1,5) as end_time,a.appointment_type,a.appointment_status,a.chief_complaint,
+    a.confirmation_no,a.created_at,CONCAT(p.first_name,' ',p.last_name) as 'patient_name',timestampdiff(year,p.dob,current_date) as age,p.patient_id 
     from appointments a 
     inner join patients p on a.patient_id=p.patient_id 
     where a.doctor_id=? and slot_date=?)
@@ -78,14 +80,14 @@ export class DoctorRepo {
     else ''
     end as link
     from cte c left join telemedicine_sessions ts on c.appointment_id=ts.appointment_id 
-    order by  c.created_at desc;`,
+    order by  c.start_time; `,
       [doctor_id, slot_date],
     );
 
     return rows;
   }
 
-  async insertORUpdateDoctorSchedule(data: IDoctorSchedule) {
+  async insertORUpdateDoctorSchedule(data: IDoctorSchedule,doctor_id:number) {
     const result: any = await query(
       `insert into doctor_schedules(doctor_id,working_date,working_from,working_to,slot_duration)
          values (?,?,?,?,?) as new_row
@@ -97,7 +99,7 @@ export class DoctorRepo {
          slot_duration=new_row.slot_duration
          `,
       [
-        data.doctor_id,
+        doctor_id,
         data.working_date,
         data.working_from,
         data.working_to,
@@ -108,11 +110,11 @@ export class DoctorRepo {
     return result;
   }
 
-  async insertDoctorLeaves(data: IDoctorLeave) {
+  async insertDoctorLeaves(data: IDoctorLeave,doctor_id:number) {
     const result: any = await query(
       `insert into doctor_leaves(doctor_id,from_date,to_date,reason)
         values(?,?,?,?)`,
-      [data.doctor_id, data.from_date, data.to_date, data.reason],
+      [doctor_id, data.from_date, data.to_date, data.reason],
     );
   }
 
@@ -120,9 +122,8 @@ export class DoctorRepo {
     const rows: any = await query(
       `    
 select 
-	COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' THEN 1 END) AS 'TOTAL APPOINTMENT',
-    COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' THEN 1 END) - 
-    COUNT(CASE WHEN a.appointment_status = 'COMPLETED' THEN 1 END) AS 'UPCOMING',
+	COUNT(a.appointment_status)-SUM(CASE WHEN a.appointment_status='CANCELLED' THEN 1 WHEN a.appointment_status='RESCHEDULED' THEN 1 ELSE 0 END) as 'TOTAL APPOINTMENT',
+    COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' OR a.appointment_status='CHECKED_IN' THEN 1 END) AS 'UPCOMING',
     COUNT(CASE WHEN a.appointment_status = 'CANCELLED' THEN 1 END) AS 'CANCELLED',
     COUNT(CASE WHEN a.appointment_status = 'RESCHEDULED' THEN 1 END) AS 'RESCHEDULED'
  from appointments a inner join doctors d on a.doctor_id=d.doctor_id and a.slot_date=current_date where d.doctor_id=?;`,
@@ -139,8 +140,8 @@ select
         notification_type,
         notification_message,
         sent_at 
-        notifications where doctor_id=? and is_read=FALSE 
-        order by created_at Desc;
+        notifications where doctor_id=? and is_read=false 
+        order by created_at desc;
         `,
       [doctor_id],
     );
@@ -163,7 +164,7 @@ select
     const result: any = await query(
       `
         
-        insert into medical_records(appointment_id_,
+        insert into medical_records(appointment_id,
         doctor_id,patient_id,diagnosis,examination_notes)
         values(?,?,?,?,?)
         `,
@@ -176,17 +177,17 @@ select
       ],
     );
 
-    return result[0];
+    return result.insertId;
   }
 
-  async insertMedicalRecordsAttactments(data: IMedicalAttachments) {
-    const result: any = await query(
+  async insertMedicalRecordsAttactments(data:any) {
+    const result: any = await query2(
       `
-        insert into medical_record_attachment
+        insert into medical_record_attachments
         (record_id,file_name,file_path)
-        values(?,?,?)
+        values ?
         `,
-      [data.record_id, data.file_name, data.file_path],
+      [data],
     );
 
     return result[0];
@@ -214,27 +215,20 @@ select
   }
 
   async insertPrescription(data: IPrescriptions) {
-    const result: any = await query(
+    const result: ResultSetHeader = await query(
       `insert into prescriptions(record_id,notes) 
         values(?,?)`,
       [data.record_id, data.notes],
-    );
+    ) as ResultSetHeader;
 
-    return result[0];
+    return result.insertId;
   }
 
-  async insertPrescriptionItems(data: IPrescriptionItems) {
-    const result: any = await query(
+  async insertPrescriptionItems(data:(string|number)[][]) {
+    const result: any = await query2(
       `insert into prescription_items(prescription_id,medicine_name,dosage,
-        frequency,duration,instruction)values(?,?,?,?,?,?)`,
-      [
-        data.prescription_id,
-        data.medicine_name,
-        data.dosage,
-        data.frequency,
-        data.duration,
-        data.instructions,
-      ],
+        frequency,duration,instructions) values ?`,
+      [data],
     );
 
     return result[0];
@@ -246,7 +240,7 @@ select
 
         select p.prescription_id,m.record_id,a.appointment_id,m.diagnosis,
         m.examination_notes,
-        Concat(d.first_name,d.last_name) as 'Doctor Name',
+        concat(d.first_name,d.last_name) as 'Doctor Name',
         a.slot_date 
         from medical_records m 
         inner join doctors d on m.doctor_id=d.doctor_id 
@@ -304,8 +298,8 @@ select
   async fetchPatientList(doctor_id: number) {
     const rows: any = await query(
       `
-    select p.patient_id,p.first_name,p.last_name,p.blood_group,TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) AS age ,p.gender  from patients p where exists(
-    select 1 from appointments a where a.patient_id=p.patient_id AND a.doctor_id=?)`,
+    select p.patient_id,p.first_name,p.last_name,p.blood_group,timestampdiff(year, p.dob, curdate()) as age ,p.gender  from patients p where exists(
+    select 1 from appointments a where a.patient_id=p.patient_id and a.doctor_id=?)`,
       [doctor_id],
     );
 
@@ -357,7 +351,7 @@ select
   }
 
   async updateDoctorDetail(data:IDoctorDetails){
-    console.log(data)
+
     const result=await query(`update doctors set first_name=?, 
       last_name=?,
       experience_years=?,
@@ -373,37 +367,101 @@ select
         data.profile_path,
         data.doctor_id
       ])
-      console.log(result)
+     
       
       return result
   
   }
 
   async updateDoctorQualifications(data:any){
- const qualPlaceholders = data.map(() => "(?, ?, ?, ?)").join(", ");
-    const result =await query(`delete from doctor_qualifications where doctor_id=?`,[data[0]])
+  
+    const result =await query(`delete from doctor_qualifications where doctor_id=?`,[data[0][0]])
+
     if(!result){
       throw new InternalServerException('Unable to update')
     }
     else{
-    const result1=await query2(`insert into doctor_qualifications(doctor_id,degree,graduation_year,college_name) values ${qualPlaceholders}`,data.flat())
+    const result1=await query2(`insert into doctor_qualifications(doctor_id,degree,graduation_year,college_name) values?`,[data])
       return result1
     }
 
   }
 
   async updateDoctorSpecialities(data:any){
-
-    const result=await query(`delete from doctor_specialties where doctor_id=?`,[data[0]])
+   
+    const result=await query(`delete from doctor_specialties where doctor_id=?`,[data[0][0]])
 
     if(!result){
       throw new InternalServerException(`unable to update Specialites`)
     }
     else{
-      const result1=await query2(`insert into doctor_specialties(doctor_id,speciality_id) values ?`,[data])
+      const result1=await query2(`insert into doctor_specialties(doctor_id,specialty_id) values?`,[data])
       return result1
     }
 
   }
+
+async getFileDetails(doctor_id:number){
+  const rows:RowDataPacket[]=await query(`Select profile_path from doctors where doctor_id=?`,[doctor_id]) as RowDataPacket[]
+  return rows[0]
+}
+
+async getHosptialDetails(user_id:number){
+  const rows=await query(`Select d.doctor_id, d.hospital_id,h.hospital_name from hospitals h inner join doctors d on d.hospital_id=h.hospital_id where d.user_id=?`,[user_id]) as RowDataPacket[]
+  return rows[0]
+}
+
+async getInProgressStatus(doctor_id:number):Promise<{progress_status:number}>{
+
+  const rows=await query(`Select count(*) as progress_status from appointments where doctor_id=? and appointment_status='IN_PROGRESS and slot_date=current_date'`,[doctor_id]) as RowDataPacket[]
+  return {progress_status:rows[0]?.progress_status??0}
+}
+
+async setAppointmentStatus(appointment_id:number,appointment_status:string){
+  const result =await query('Update appointments set appointment_status=? where appointment_id=?',[appointment_status,appointment_id]) as ResultSetHeader
+  return result 
+}
+
+async findDoctorLeavesByDoctorId(doctor_id:number){
+
+  const rows=await query('select leave_id,from_date, to_date ,reason from doctor_leaves where doctor_id=? and to_date>=current_date',[doctor_id]) as RowDataPacket
+
+  return rows
+
+}
+
+async cancelLeave(leave_id:number){
+
+  const result=await query(`Delete from doctor_leaves where leave_id= ?`,[leave_id]) as ResultSetHeader
+  return result 
+
+}
+
+async checkLeaveExistBetween(from_date:Date,to_date:Date,doctor_id:number):Promise<boolean>{
+
+  const result=await query(`
+    SELECT COUNT(*) as isExist
+FROM doctor_leaves 
+WHERE doctor_id = ? 
+  AND (
+    ? BETWEEN from_date AND to_date
+    OR 
+    ? BETWEEN from_date AND to_date
+  );
+    
+    `,[doctor_id,from_date,to_date]) as RowDataPacket
+
+   if(!result || result==undefined){
+    return false 
+   }
+   return result[0].isExist?true:false
+}
+
+async getPatientAndDoctorIdByAppointmentId(appointment_id:number){
+  const rows =await query(`select patient_id,doctor_id from appointments where appointment_id=?`,[appointment_id]) as RowDataPacket
+
+  return rows[0]
+
+}
 
 }

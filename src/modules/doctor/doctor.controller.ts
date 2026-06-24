@@ -4,10 +4,10 @@ import { generalResponse } from "../../common/helpers/general-response.js"
 import { DoctorService } from "./doctor.service.js"
 
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js"
-import { IDoctorSchedule } from "./doctor.interface.js"
-import logger from "../../common/logger.js"
+import { IDoctorLeave, IDoctorRecordsFill, IDoctorSchedule } from "./doctor.interface.js"
+
 import { BadRequestException, InternalServerException, NotFoundException } from "../../common/helpers/http-exception.js"
-import { resolveObjectURL } from "node:buffer"
+
 
 
 
@@ -29,16 +29,16 @@ getTodaysAppointment=catchAsync(async(req:Request,res:Response)=>{
 
     const user_id:number=(req as AuthRequest).user.id 
     const result =await this.doctorService.getTodaysAppointment(user_id)
-  
+    
     generalResponse({res,data:[result],message:'Successfully Fetched Todays Appointment',statusCode:200})
 })
 
 
 getDoctorDashboard=catchAsync(async(req:Request,res:Response)=>{
-
     const user_id:number=(req as AuthRequest).user.id
+  
     const result=await this.doctorService.getDoctorDashboardData(user_id)
-
+    
     generalResponse({res,data:[result],message:'Successfully Fetched DashboardData',statusCode:200})
 })
 
@@ -47,20 +47,21 @@ getWeeklySchedule=catchAsync(async(req:Request,res:Response)=>{
 
     const user_id:number=(req as AuthRequest).user.id
     const result =await this.doctorService.getWeeklySchedule(user_id)
-    
+   
     generalResponse({res,data:[result],message:'Weekly Schedule Fetched Successfully',statusCode:200})
 
 })
 
 postWeeklySchedule=catchAsync(async(req:Request,res:Response)=>{
 
-  
-    const data:IDoctorSchedule[]=req.body.schedules
-   
-    const result= await Promise.all(data.map(d=>this.doctorService.setWeeklySchedule(d)))
-    if(!result){
-        throw new InternalServerException('Error while inserting schedule')
+    const user_id:number=(req as AuthRequest).user.id
+    const data:IDoctorSchedule=req.body
+
+    if(!data){
+        throw new BadRequestException('Data is Empty')
     }
+
+    const result= await this.doctorService.setWeeklySchedule(data,user_id)
 
     generalResponse({res,data:[],message:'Successfully Inserted Data',statusCode:201})
 
@@ -76,7 +77,14 @@ getPatientList=catchAsync(async(req:Request,res:Response)=>{
 })
 
 postPatientMedicalRecords=catchAsync(async(req:Request,res:Response)=>{
-    const {patient_id,doctor_id,appointment_id,diagnosis,examination_notes,}=req.body
+    // const {patient_id,doctor_id,appointment_id,diagnosis,examination_notes}=req.body
+
+    const  payload:IDoctorRecordsFill = JSON.parse(req.body.payload)
+    
+    this.doctorService.postRecords(payload,req.files)
+    
+    
+
 
     //pending will work when frontend integrated 
 
@@ -90,7 +98,7 @@ getPatientAllMedicalRecords=catchAsync(async(req:Request,res:Response)=>{
     if(!patient_id || patient_id==undefined){
         throw new BadRequestException('patient id is required')
     } 
-    console.log(user_id)
+
 
     const result =await this.doctorService.getPatientAllMedicalRecords(user_id,patient_id)
 
@@ -126,17 +134,56 @@ getSpecialites=catchAsync(async(req:Request,res:Response)=>{
 
 
 postProfileData=catchAsync(async(req:Request,res:Response)=>{
-
-
 const data= JSON.parse(req.body.data)
 const file=req.file 
-
 const result=await this.doctorService.postProfileUpdateData(data,file)
-console.log(result)
-
 generalResponse({res,data:[],message:'Successfully Data upload',statusCode:201})
      
 })
 
+
+
+getHospitalDetails=catchAsync(async(req:Request,res:Response)=>{    
+
+const user_id=(req as AuthRequest).user.id
+const hospitalDetails =await this.doctorService.getHospitalDetails(user_id)
+generalResponse({res,data:[hospitalDetails],message:'Successfully Fetched Data',statusCode:200})
+
+
+})
+
+
+updateAppointmentStatus=catchAsync(async(req:Request,res:Response)=>{
+
+    const user_id=(req as AuthRequest).user.id
+    const {appointment_id,appointment_status}=req.body
+    const result=await this.doctorService.updateAppointmentStatus(user_id,appointment_id,appointment_status)
+    generalResponse({res,data:[],message:'Successfully Updated',statusCode:200})
+    
+
+})
+
+postLeaves=catchAsync(async(req:Request,res:Response)=>{
+
+
+    const user_id=(req as AuthRequest).user.id
+    
+    const data:IDoctorLeave =req.body
+    
+
+    const result =await this.doctorService.setLeaves(data,user_id)
+
+    generalResponse({res,data:[],message:'Successfully Applied For Leave',statusCode:201})
+})
+
+deleteLeaves=catchAsync(async(req:Request,res:Response)=>{
+
+    const {leave_id}=req.body
+    
+    const result=await this.doctorService.deleteLeave(Number(leave_id))
+    
+
+    generalResponse({res,data:[],message:'Successfully Cancelled Leave',statusCode:201})
+})
 
 }

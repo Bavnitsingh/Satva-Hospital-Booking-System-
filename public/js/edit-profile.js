@@ -23,6 +23,7 @@ const doctor_name = document.getElementById("doctor_name")
 const exp_years = document.getElementById("experience_years")
 const consultation_fee = document.getElementById("consultation_fee")
 const bio = document.getElementById('bio')
+const avatar=document.getElementById("avatar-preview")
 let specialties = []
 let qualifications = [];
 let doctor_id=null;
@@ -248,7 +249,9 @@ function renderDoctorDetails(data) {
     doctor_name.value = `Dr. ${data.first_name} ${data.last_name}`
     exp_years.value = data.experience_years
     consultation_fee.value = data.consultation_fee
+    console.log(data)
     bio.innerText = data.bio
+    avatar.innerHTML=`<img src="/${data.profile_path}" alt="Profile" class="w-full h-full object-cover">`
     doctor_id=data.doctor_id
 }
 
@@ -279,7 +282,7 @@ function formData(){
 async function saveProfile() {
     clearDirty();
     const form_data=formData()
-    console.log(form_data)
+    
     const payload=new FormData()
     payload.append('data',JSON.stringify(form_data))
 
@@ -287,7 +290,7 @@ async function saveProfile() {
     if (fileInput && fileInput.files[0]) {
         payload.append('profile_image', fileInput.files[0]);
     }
-        
+    
     const response= await fetch('/api/v1/doctor/profile/update',{
         method:'POST',
         headers:{

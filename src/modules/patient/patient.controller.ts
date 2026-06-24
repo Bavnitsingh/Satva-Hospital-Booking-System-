@@ -15,10 +15,16 @@ export class PatientController {
 
   // Profile
   getProfile = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.getProfile((req as AuthRequest).user.id);
+    let result: any = null;
+    try {
+      result = await this.service.getProfile((req as AuthRequest).user.id);
+    } catch (e) {
+      // Patient record might be missing, ignore to allow profile update check
+    }
+    const isProfileUpdated = !!(result?.mobile?.trim() && result?.address_line1?.trim());
     generalResponse({
       res,
-      data: result,
+      data: { ...result, isProfileUpdated },
       message: "Profile fetched",
       statusCode: 200,
     });
@@ -70,6 +76,7 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
       (req as AuthRequest).user.id,
       req.body,
     );
+    console.log(req.body)
     generalResponse({
       res,
       data: result,
@@ -129,63 +136,6 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
-  // Appointments
-  getAppointments = catchAsync(async (req: Request, res: Response) => {
-    const { status } = req.query as { status?: string };
-    const result = await this.service.getAppointments(
-      (req as AuthRequest).user.id,
-      status,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Appointments fetched",
-      statusCode: 200,
-    });
-  });
-
-  bookAppointment = catchAsync(async (req: Request, res: Response) => {
-    const dto = req.body as IBookAppointment;
-    const result = await this.service.bookAppointment(
-      (req as AuthRequest).user.id,
-      req.body,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Appointment booked",
-      statusCode: 201,
-    });
-  });
-
-  rescheduleAppointment = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.rescheduleAppointment(
-      (req as AuthRequest).user.id,
-      Number(req.params.appointmentId),
-      req.body,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Appointment rescheduled",
-      statusCode: 200,
-    });
-  });
-
-  cancelAppointment = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.service.cancelAppointment(
-      (req as AuthRequest).user.id,
-      Number(req.params.appointmentId),
-      req.body.reason,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Appointment cancelled",
-      statusCode: 200,
-    });
-  });
-
   // Payments
 
   getPaymentHistory = catchAsync(async (req: Request, res: Response) => {
@@ -226,77 +176,5 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
-  // Notifications
-  getNotifications = catchAsync(async (req: Request, res: Response) => {
-    const { unread } = (req as any).validatedQuery as { unread?: string };
-    const unreadOnly = unread === "true";
-    const result = await this.service.getNotifications(
-      (req as AuthRequest).user.id,
-      unreadOnly,
-    );
-    generalResponse({
-      res,
-      data: result,
-      message: "Notifications fetched",
-      statusCode: 200,
-    });
-  });
 
-  markNotificationRead = catchAsync(async (req: Request, res: Response) => {
-    await this.service.markNotificationRead(
-      (req as AuthRequest).user.id,
-      Number(req.params.notificationId),
-    );
-    generalResponse({
-      res,
-      data: null,
-      message: "Notification marked as read",
-      statusCode: 200,
-    });
-  });
-
-  markAllNotificationsRead = catchAsync(async (req: Request, res: Response) => {
-    await this.service.markAllNotificationsRead((req as AuthRequest).user.id);
-    generalResponse({
-      res,
-      data: null,
-      message: "All notifications marked as read",
-      statusCode: 200,
-    });
-  });
-
-  getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
-    const { doctor_id, date } = (req as any).validatedQuery as { doctor_id: number; date: string };
-    const result = await this.service.getAvailableSlots(doctor_id, date);
-    generalResponse({
-      res,
-      data: result,
-      message: "Available slots",
-      statusCode: 200,
-    });
-  });
-
-  // showProfile=catchAsync(async(req:Request,res:Response)=>{
-
-  // const result= await this.patientService.showProfile(Number(req.params.user_id))
-
-  // generalResponse({res,data:result,message:'Profile Fetched Successfully',statusCode:200})
-  // })
-
-  // updateProfile=catchAsync(async(req:Request,res:Response)=>{
-
-  //     const result=await this.patientService.updateProfile(req.body,Number(req.params.user_id))
-
-  //     generalResponse({res,data:[],message:'Profile Update Successfully',statusCode:200})
-  // })
-
-  // updateProfilePicture=catchAsync(async(req:Request,res:Response)=>{
-
-  //     const destination=req.file?.destination || 'uploads/patient_profile/default.png'
-
-  //     const result =await this.patientService.updatePatientProfile(Number(req.params.user_id),destination)
-
-  //     generalResponse({res,data:[],message:'Profile Image successfully',statusCode:201})
-
-  // })
 }

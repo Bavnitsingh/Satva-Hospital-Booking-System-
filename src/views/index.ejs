@@ -93,7 +93,6 @@
   <body class="bg-[#f0faf6] text-gray-800 min-h-screen">
     <%- include('partials/header') %>
 
-
     <!-- ===== HERO ===== -->
     <section class="relative overflow-hidden pt-56 pb-36 px-4">
       <div class="hero-blob w-96 h-96 bg-primary top-0 -left-20"></div>
@@ -126,7 +125,7 @@
             class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start animate-fadeUp-d3"
           >
             <a
-              href="doctors.html"
+              href="/api/v1/doctors"
               class="bg-white text-gray-700 font-semibold px-7 py-3.5 rounded-xl border border-gray-200 hover:border-primary hover:text-primary transition-all"
               >Browse Doctors</a
             >
@@ -804,8 +803,9 @@
     </section>
 
     <!-- ===== FOOTER ===== -->
-<%- include('partials/footer') %>
-
+    <%- include('partials/footer') %>
+    <!-- Error flash message -->
+    <%- include("error_flash") %>
   </body>
   <script>
     const menuBtn = document.getElementById("menuBtn");

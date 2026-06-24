@@ -12,6 +12,14 @@ import cookieParser from "cookie-parser";
 import { PatientPageRoutes } from "./modules/patient/patient.page.routes.js";
 import { AuthPageRoutes } from "./modules/auth/auth.page.routes.js";
 import { DoctorPageRoutes } from "./modules/doctor/doctor.page.routes.js";
+import { SuperAdminPageRoutes } from "./modules/super_admin/super.admin.page.routes.js";
+import { HospitalPageRoutes } from "./modules/hospital/hospital.page.routes.js";
+import { AdminPageRoutes } from "./modules/admin/admin.page.routes.js";
+import { StaffPageRoutes } from "./modules/staff/staff.page.routes.js";
+import limiter, { rateLimit } from "express-rate-limit";
+
+
+import { notFoundMiddleware } from "./common/middlewares/not-found.middlware.js";
 
 
 
@@ -22,7 +30,17 @@ export function buildApp(): Application {
   let __filePath = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filePath);
 
-  //configuring ejs settings 
+  let limiter = rateLimit({
+    max:10,  // max 5 request allowed from a particular IP
+    windowMs:3*60*1000, // in 3 minutes
+    message:"We have received too many requests from this IP, Please try again later."
+  })
+
+
+  // app.use("/api/v1",limiter);
+
+
+  //configuring ejs settings
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "views"));
 
@@ -40,6 +58,8 @@ export function buildApp(): Application {
     }),
   );
   app.use(express.urlencoded({ extended: true }));
+
+  app.use(express.static("public"));
   app.use(cookieParser());
   app.use(express.static("public"));
 
@@ -59,6 +79,9 @@ export function buildApp(): Application {
     const doctor_profile = path.join(folderpath, "doctor_profile");
     fs.mkdirSync(doctor_profile);
     // Add logic below for creating new folder
+    const medical_records=path.join(folderpath,"medical_records")
+    fs.mkdirSync(medical_records)
+
     console.log("Folder Created Successfully ");
   }
 
@@ -72,22 +95,40 @@ export function buildApp(): Application {
   );
   console.log(path.join(__dirname, "views"));
 
-  //
   app.use(passport.initialize());
   app.use(passport.session());
+  // HANDLES GLOBAL ERROR
+
+app.use('/admin', new AdminPageRoutes().router);
+
+app.use('/staff',new StaffPageRoutes().router)
+
+
 
 
   //ROUTER
+  app.use("/api/v1", buildApiRouter());
+
+  app.get("/", (req, res) => {
+    res.render("index");
+  });
+
+  app.use('/super-admin', new SuperAdminPageRoutes().router);
+  app.use('/hospital', new HospitalPageRoutes().router);
+
+
 
 
 
 app.use("/patient", new PatientPageRoutes().router);
-app.use('/doctor',new DoctorPageRoutes().router);
+app.use('/doctor', new DoctorPageRoutes().router);
+
 
   //ROUTER 
-  app.use("/api/v1",buildApiRouter())
 app.use("/", new AuthPageRoutes().router);
   
+
+app.use(notFoundMiddleware);
 // HANDLES GLOBAL ERROR
   app.use(errorMiddleware)
   

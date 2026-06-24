@@ -16,6 +16,14 @@ export class DoctorPageController{
         res.render("doctor/edit-profile",{user:(req as any).user})
     }
 
+    renderDoctorLogin=(req:Request,res:Response)=>{
+        res.render("doctor/doctorLogin")
+    }
+
+    renderCreateMedicalRecords=(req:Request,res:Response)=>{
+
+        res.render("doctor/create_medical_records")
+    }
 
     
 }

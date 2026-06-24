@@ -16,7 +16,7 @@ import { SuperAdminPageRoutes } from "./modules/super_admin/super.admin.page.rou
 import { HospitalPageRoutes } from "./modules/hospital/hospital.page.routes.js";
 import { AdminPageRoutes } from "./modules/admin/admin.page.routes.js";
 import { StaffPageRoutes } from "./modules/staff/staff.page.routes.js";
-
+import limiter, { rateLimit } from "express-rate-limit";
 
 
 import { notFoundMiddleware } from "./common/middlewares/not-found.middlware.js";
@@ -29,6 +29,16 @@ export function buildApp(): Application {
 
   let __filePath = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filePath);
+
+  let limiter = rateLimit({
+    max:5,  // max 5 request allowed from a particular IP
+    windowMs:3*60*1000, // in 3 minutes
+    message:"We have received too many requests from this IP, Please try again later."
+  })
+
+
+  app.use("/api/v1",limiter);
+
 
   //configuring ejs settings
   app.set("view engine", "ejs");

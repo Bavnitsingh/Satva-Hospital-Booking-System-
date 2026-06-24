@@ -12,6 +12,7 @@ export async function checkSuperAdminJwt() {
                 const result = await res.json();
                 token = result.data.accessToken;
                 localStorage.setItem("accessToken", token);
+                window.location.reload();
             } else {
                 window.location.href = "/super-admin/login";
                 return;

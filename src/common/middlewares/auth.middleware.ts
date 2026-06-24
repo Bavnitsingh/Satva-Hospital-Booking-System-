@@ -27,16 +27,24 @@ export async function authenticate(
 
   const accessToken = header.split(" ")[1];
 
+  if (!accessToken || accessToken === "null" || accessToken === "undefined") {
+    res.status(401).json({
+      statusCode: 401,
+      message: "Missing or invalid authorization token",
+      data: null
+    });
+    return;
+  }
+
   try {
 
     // Access token valid
-    const payload = verifyToken(accessToken ?? "");
+    const payload = verifyToken(accessToken);
     (req as AuthRequest).user = payload;
 
     return next();
 
   } catch (error: any) {
-    console.log(error)
 
     // Token is invalid but NOT expired
     if (error.name !== "TokenExpiredError") {
@@ -51,7 +59,7 @@ export async function authenticate(
     // Access token expired
     const refreshToken = req.cookies.refreshToken;
 
-    console.log(req.cookies.refreshToken)
+    // console.log(req.cookies.refreshToken)
     if (!refreshToken) {
       res.status(401).json({
         statusCode: 401,

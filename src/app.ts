@@ -31,13 +31,13 @@ export function buildApp(): Application {
   let __dirname = path.dirname(__filePath);
 
   let limiter = rateLimit({
-    max:5,  // max 5 request allowed from a particular IP
+    max:10,  // max 5 request allowed from a particular IP
     windowMs:3*60*1000, // in 3 minutes
     message:"We have received too many requests from this IP, Please try again later."
   })
 
 
-  app.use("/api/v1",limiter);
+  // app.use("/api/v1",limiter);
 
 
   //configuring ejs settings

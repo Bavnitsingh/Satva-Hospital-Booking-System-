@@ -102,7 +102,7 @@ export class AppointmentRepository {
     }
     return query(
       `select
-        a.appointment_id, a.slot_date, a.start_time, a.end_time,
+        a.appointment_id, a.doctor_id, a.slot_date, a.start_time, a.end_time,
         a.appointment_type, a.appointment_status, a.chief_complaint, a.confirmation_no,
         d.first_name as doctor_first_name, d.last_name as doctor_last_name,
         d.consultation_fee, d.currency_code, d.profile_path as doctor_photo,

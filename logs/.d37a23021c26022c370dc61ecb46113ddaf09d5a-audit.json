@@ -46,6 +46,7 @@
             "hash": "8166d1354691292a918ac5ad3ab8e24cd2dffd4858d580a26d8d66ce3bb9a8cc"
         },
         {
+<<<<<<< HEAD
             "date": 1782189995844,
             "name": "logs/application-2026-06-23.log",
             "hash": "f324f2a17b4b8fd9b52e93137181a47449066e2d9a0cd2c8b915428afd933026"
@@ -54,6 +55,16 @@
             "date": 1782278016426,
             "name": "logs/application-2026-06-24.log",
             "hash": "0760c18b7d9002cd9103c225f7383214b0877ed1de2a36c1122bdbe61978416c"
+=======
+            "date": 1782197616852,
+            "name": "logs/application-2026-06-23.log",
+            "hash": "1e4c8c202b1efca7b4a1b31a962b2b87ca304c2416cee5f19963b563731861de"
+        },
+        {
+            "date": 1782298510290,
+            "name": "logs/application-2026-06-24.log",
+            "hash": "59496ac4a040cf0b20a9f06e79b311fd0b395a91b330306dd0beb5687439f1cf"
+>>>>>>> doctor
         }
     ],
     "hashType": "sha256"

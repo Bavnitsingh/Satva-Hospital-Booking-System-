@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken, JwtPayload, sign, verifyRefreshToken } from "../../modules/auth/utils/jwt.js";
 import logger from "../logger.js";
-import {  UserRepository } from "../../modules/auth/auth.repository.js";
+import { UserRepository } from "../../modules/auth/auth.repository.js";
 
 export interface AuthRequest extends Request {
   user: JwtPayload;
@@ -91,7 +91,7 @@ export async function authenticate(
         role: refreshPayload.role
       });
 
-    console.log("new Access Token is Created")
+      console.log("new Access Token is Created")
       // Send new token back to frontend
       res.setHeader(
         "x-access-token",
@@ -136,7 +136,7 @@ export function isDoctor(req: Request, res: Response, next: NextFunction): void 
 
 export function isAdmin(req: Request, res: Response, next: NextFunction): void {
   const user = (req as AuthRequest).user;
- 
+
   if (user?.role !== "ADMIN") {
     res.status(403).json({ statusCode: 403, message: "Access restricted to admins", data: null });
     return;
@@ -146,7 +146,7 @@ export function isAdmin(req: Request, res: Response, next: NextFunction): void {
 
 export function isStaff(req: Request, res: Response, next: NextFunction): void {
   const user = (req as AuthRequest).user;
- 
+
   if (user?.role !== "STAFF") {
     res.status(403).json({ statusCode: 403, message: "Access restricted to STAFFS", data: null });
     return;
@@ -156,7 +156,7 @@ export function isStaff(req: Request, res: Response, next: NextFunction): void {
 
 export function isSuperAdmin(req: Request, res: Response, next: NextFunction): void {
   const user = (req as AuthRequest).user;
- 
+
   if (user?.role !== "SUPER_ADMIN") {
     res.status(403).json({ statusCode: 403, message: "Access restricted to SUPER ADMINS", data: null });
     return;
@@ -166,12 +166,12 @@ export function isSuperAdmin(req: Request, res: Response, next: NextFunction): v
 
 
 //  authenticate + role  
-export const patientAuth  = [authenticate, isPatient];
-export const doctorAuth   = [authenticate, isDoctor];
-export const adminAuth    = [authenticate, isAdmin];
-export const staffAuth    = [authenticate, isStaff];
-export const superAdminAuth = [authenticate,isSuperAdmin]
- 
+export const patientAuth = [authenticate, isPatient];
+export const doctorAuth = [authenticate, isDoctor];
+export const adminAuth = [authenticate, isAdmin];
+export const staffAuth = [authenticate, isStaff];
+export const superAdminAuth = [authenticate, isSuperAdmin]
+
 export function authorizeRoles(...roles: Array<"PATIENT" | "DOCTOR" | "ADMIN" | "STAFF" | "SUPER_ADMIN">) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const user = (req as AuthRequest).user;

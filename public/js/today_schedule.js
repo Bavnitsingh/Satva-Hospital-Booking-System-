@@ -19,7 +19,7 @@ const ICON_TELEMEDICINE = `
 async function viewMedicalRecords(btn, appointment_id) {
   localStorage.setItem("appointment_id", appointment_id)
 
-  window.location.href = window.location.origin + '/doctor/view-medical-records'
+  window.location.href = window.location.origin + `/doctor/view-medical-record/${appointment_id}`
 
 }
 

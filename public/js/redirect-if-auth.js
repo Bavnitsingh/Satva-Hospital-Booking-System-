@@ -30,7 +30,7 @@
           window.location.href = "/admin/dashboard";
           break;
         case "STAFF":
-          window.location.href = "/staff/dashboard";
+          window.location.href = "/staff/doctors";
           break;
         case "SUPER_ADMIN":
           window.location.href = "/super-admin/dashboard";

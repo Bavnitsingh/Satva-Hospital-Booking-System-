@@ -106,16 +106,22 @@ getPatientAllMedicalRecords=catchAsync(async(req:Request,res:Response)=>{
 })
 
 getPatientMedicalData=catchAsync(async(req:Request,res:Response)=>{
-
-    const record_id =Number(req.params.record_id)
-    if(!record_id || record_id==undefined){
-        throw new BadRequestException('record_id is required')
+   
+    const appointment_id =Number(req.params.appointment_id)
+    
+    if(!appointment_id || appointment_id==undefined){
+        throw new BadRequestException('appointment_id is required')
     }
-
+    const medical_records=await this.doctorService.getMedicalRecords(appointment_id)
+    
+    const record_id=await medical_records.record_id
+    if(!record_id){
+        throw new NotFoundException("No Medical Records Found")
+    }
     const medical_attachments= await this.doctorService.getPatientAllMedicalAttachments(record_id)
     const prescription_data=await this.doctorService.getPatientMedicalRecordAllPrescription(record_id)
-
-    generalResponse({res,data:[medical_attachments,prescription_data],message:'Successfully Fetched Medical Record Data',statusCode:200})
+    console.log(medical_attachments,prescription_data)
+    generalResponse({res,data:[medical_records,medical_attachments,prescription_data],message:'Successfully Fetched Medical Record Data',statusCode:200})
 
 
 })

@@ -40,6 +40,6 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
   },
-  "include":["src/**/*"],
+  "include":["src/**/*", "public/js/view_medical_records.js", "public/js/view_medical_record.js"],
   "exclude": ["node_modules","dist"]
 }

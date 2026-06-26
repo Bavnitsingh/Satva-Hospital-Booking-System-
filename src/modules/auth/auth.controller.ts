@@ -195,4 +195,14 @@ registerStaff = catchAsync(async (req: Request, res: Response) => {
       statusCode: 201,
     });
   });
+
+  checkStatus = catchAsync(async (req: Request, res: Response) => {
+    const user = (req as AuthRequest).user;
+    generalResponse({
+      res,
+      data: { role: user.role },
+      message: "User is authenticated",
+      statusCode: 200,
+    });
+  });
 }

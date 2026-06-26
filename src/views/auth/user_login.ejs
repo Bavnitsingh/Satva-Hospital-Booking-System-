@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Satva — Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import "/js/redirect-if-auth.js";
+    </script>
     <script>
       tailwind.config = {
         theme: {
@@ -619,20 +622,55 @@
         localStorage.removeItem("is_profile_updated");
         window.history.replaceState({}, document.title, "/login");
         
-        // Immediately check profile status to prevent flashing the dashboard
-        fetch("/api/v1/patient/profile", {
+        // Use the generic check-status endpoint to determine role and redirect
+        fetch("/api/v1/auth/check-status", {
           headers: { "Authorization": `Bearer ${urlToken}` }
-        }).then(res => res.json()).then(profile => {
-          if (profile.data && profile.data.isProfileUpdated === false) {
-            localStorage.setItem("is_profile_updated", "false");
-            window.location.href = "/patient/profile";
-          } else {
-            localStorage.setItem("is_profile_updated", "true");
-            window.location.href = "/patient/dashboard";
+        })
+        .then(res => {
+          if (!res.ok) {
+            // If token is invalid/expired, clear storage and do nothing.
+            localStorage.clear();
+            throw new Error('Invalid token');
           }
-        }).catch(() => {
-          localStorage.setItem("is_profile_updated", "false");
-          window.location.href = "/patient/profile";
+          return res.json();
+        })
+        .then(authStatus => {
+          const userRole = authStatus.data?.role;
+          if (!userRole) {
+            localStorage.clear();
+            return;
+          }
+
+          localStorage.setItem("role", userRole);
+
+          if (userRole === 'PATIENT') {
+            // For patients, check if profile is complete before redirecting
+            return fetch("/api/v1/patient/profile", {
+              headers: { "Authorization": `Bearer ${urlToken}` }
+            }).then(res => res.json()).then(profile => {
+              if (profile.data && profile.data.isProfileUpdated === false) {
+                localStorage.setItem("is_profile_updated", "false");
+                window.location.href = "/patient/profile";
+              } else {
+                localStorage.setItem("is_profile_updated", "true");
+                window.location.href = "/patient/dashboard";
+              }
+            });
+          } else {
+            // For other roles, redirect directly to their dashboard
+            const dashboards = {
+              DOCTOR: "/doctor/dashboard",
+              STAFF: "/staff/dashboard",
+              ADMIN: "/admin/dashboard",
+              SUPER_ADMIN: "/super-admin/dashboard"
+            };
+            window.location.href = dashboards[userRole] || "/login";
+          }
+        })
+        .catch((err) => {
+          console.error("Google auth redirect error:", err.message);
+          // Fallback: if anything fails, clear storage and user stays on login page.
+          localStorage.clear();
         });
       }
 
@@ -725,7 +763,7 @@
               window.location.href = "/doctor/dashboard";
             }else if(role === 'STAFF'){
               localStorage.setItem("role",role);
-              window.locatio.href = "/staff/doctor"
+              window.location.href = "/staff/dashboard";
             }
           }
           catch (error) {

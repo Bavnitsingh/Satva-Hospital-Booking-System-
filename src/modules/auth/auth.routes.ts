@@ -4,6 +4,14 @@ import { AuthController } from "./auth.controller.js";
 import passport from './utils/googleauth.js'
 import { authenticate } from "../../common/middlewares/auth.middleware.js";
 import { sign } from "./utils/jwt.js";
+import  { rateLimit } from "express-rate-limit";
+
+
+  let limiter = rateLimit({
+    max:15,  // max 15 request allowed from a particular IP
+    windowMs:10*60*1000, // in 10 minutes
+    message:"We have received too many requests from this IP, Please try again later."
+  })
 
 export class AuthRoutes implements Routes {
   path: string = "/auth";
@@ -14,9 +22,9 @@ export class AuthRoutes implements Routes {
     this.initializationRoutes();
   }
 
-  private initializationRoutes(): void {
-    //SERVING STATIC PAGES
 
+  private initializationRoutes(): void {
+    this.router.use(limiter)
     this.router.post("/register-doctor", this.authController.registerDoctor);
     this.router.post("/register-admin", this.authController.registerAdmin);
     this.router.post("/register", this.authController.register);
@@ -52,6 +60,7 @@ export class AuthRoutes implements Routes {
     });
 
 
+    this.router.get("/check-status", authenticate, this.authController.checkStatus);
     this.router.post("/logout", authenticate, this.authController.logout);
 
   }

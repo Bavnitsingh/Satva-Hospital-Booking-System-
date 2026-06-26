@@ -7,11 +7,33 @@ import { Hospital } from "./interfaces/hospital.interface.js";
 export class AdminService{
      private adminRepo = new AdminRepository();
       private authservice = new AuthService()
-     async fetchDoctors(hospital_id:number){
+     async fetchDoctorsByHospitalId(hospital_id: number, query: {
+  search?:         string;
+  specialty_id?:   string;
+  is_deactivated?: string;
+  page?:           string;
+  limit?:          string;
+}) {
+  const filters = {
+    search:         query.search,
+    specialty_id:   query.specialty_id ? Number(query.specialty_id) : undefined,
+    is_deactivated: query.is_deactivated !== undefined
+      ? query.is_deactivated === 'true'
+      : undefined,
+    page:  Number(query.page)  || 1,
+    limit: Number(query.limit) || 10,
+  };
 
-        const doctors = await this.adminRepo.fetchDoctorsByHospitalId(hospital_id);
-        return doctors;
-     } 
+  const { rows, total } = await this.adminRepo.fetchDoctorsByHospitalId(hospital_id, filters);
+
+  return {
+    data:  rows,
+    total: Number(total),
+    page:  filters.page,
+    limit: filters.limit,
+  };
+}
+
 
 
      
@@ -69,9 +91,32 @@ if (data.specialties.length > 0) {
       const {hospital_id} = await this.adminRepo.fetchHospitalIdFromAdminId(user_id);
       return hospital_id;
      }
-     async fetchPatients(hospital_id: number) {
-    return await this.adminRepo.fetchPatientsByHospital(hospital_id);
-  }
+    async fetchPatientsByHospital(hospital_id: number, query: {
+  search?:     string;
+  gender?:     string;
+  is_insured?: string;
+  page?:       string;
+  limit?:      string;
+}) {
+  const filters = {
+    search:     query.search,
+    gender:     query.gender,
+    is_insured: query.is_insured !== undefined
+      ? query.is_insured === 'true'
+      : undefined,
+    page:  Number(query.page)  || 1,
+    limit: Number(query.limit) || 10,
+  };
+
+  const { rows, total } = await this.adminRepo.fetchPatientsByHospital(hospital_id, filters);
+
+  return {
+    data:  rows,
+    total: Number(total),
+    page:  filters.page,
+    limit: filters.limit,
+  };
+}
   async fetchDoctorFromId(doctor_id:number){
   const doctor =  await this.adminRepo.getDoctorById(doctor_id);
   return doctor;

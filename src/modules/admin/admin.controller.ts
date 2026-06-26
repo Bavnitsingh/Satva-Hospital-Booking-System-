@@ -20,29 +20,31 @@ private async getHospitalIdFromReq(req: Request): Promise<number> {
   }
 
 
-    fetchDoctors = catchAsync(async (req:Request,res:Response)=>{
-       const hospital_id = await this.getHospitalIdFromReq(req);
-           console.log(hospital_id)
-       
-        const doctors = await this.adminService.fetchDoctors(Number(hospital_id));
-        generalResponse({
-            res,
-            data:doctors,
-            message:"Doctors Fetched Successfully",
-            statusCode:200
-        })
-        
-    })
+    fetchDoctors = catchAsync(async (req: Request, res: Response) => {
+  const user_id     = (req as AuthRequest).user.id;
+  const hospital_id = await this.adminService.getHospitalId(user_id);
 
+  const result = await this.adminService.fetchDoctorsByHospitalId(hospital_id, req.query as any);
 
-    fetchPatients = catchAsync(async (req: Request, res: Response) => {
-        const hospital_id = await this.getHospitalIdFromReq(req);
-        const patients = await this.adminService.fetchPatients(hospital_id);
-    generalResponse({ res,
-         data: patients, 
-         message: "Patients fetched successfully",
-          statusCode: 200 });
+  generalResponse({
+    res,
+    data:       result,
+    message:    'Doctors fetched successfully',
+    statusCode: 200,
   });
+});
+
+   fetchPatients = catchAsync(async (req: Request, res: Response) => {
+  const hospital_id = await this.getHospitalIdFromReq(req);
+  const result = await this.adminService.fetchPatientsByHospital(hospital_id, req.query as any);
+
+  generalResponse({
+    res,
+    data:       result,
+    message:    'Patients fetched successfully',
+    statusCode: 200,
+  });
+});
 
     
 

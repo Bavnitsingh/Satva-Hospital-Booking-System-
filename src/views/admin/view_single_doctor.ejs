@@ -208,8 +208,6 @@
           <button onclick="toggleEdit()"
             class="text-sm text-gray-500 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
             Cancel
-          </button>
-          <p id="save-error" class="text-xs text-red-500 ml-auto hidden"></p>
         </div>
       </div>
 
@@ -386,9 +384,7 @@
     async function saveDoctor() {
       const doctorId = getDoctorId();
       const saveBtn  = document.getElementById('save-btn');
-      const errEl    = document.getElementById('save-error');
 
-      errEl.classList.add('hidden');
       saveBtn.disabled  = true;
       saveBtn.innerHTML = '<i class="ti ti-loader-2 animate-spin text-base"></i> Saving...';
 
@@ -427,10 +423,10 @@
 
         populateView(doctorData);
         toggleEdit();
+        showFlash('Doctor profile updated successfully', 'success');
 
       } catch (err) {
-        errEl.textContent = err.message;
-        errEl.classList.remove('hidden');
+        showFlash(err.message, 'error');
         console.error(err);
       } finally {
         saveBtn.disabled  = false;
@@ -441,5 +437,6 @@
     loadDoctor();
   </script>
 
+<%- include('../error_flash.ejs') %>
 </body>
 </html> 

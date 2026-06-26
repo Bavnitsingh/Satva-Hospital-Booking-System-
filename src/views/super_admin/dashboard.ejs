@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Satva — Super Admin Dashboard</title>
+      <script type="module">
+        import { checkSuperAdminJwt } from '/js/check-super-admin-jwt.js';
+        checkSuperAdminJwt();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -29,6 +33,7 @@
     <style>
         body { font-family: "DM Sans", sans-serif; }
     </style>
+  
 </head>
 <body class="bg-bg-page text-gray-800 min-h-screen flex flex-col">
 

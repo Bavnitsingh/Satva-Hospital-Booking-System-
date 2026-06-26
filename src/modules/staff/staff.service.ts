@@ -1,3 +1,4 @@
+import { Filters } from "../admin/interfaces/filters.interface.js";
 import { StaffRepository } from "./staff.repository.js";
 
 export class StaffService{
@@ -9,11 +10,34 @@ export class StaffService{
       return hospital_id;
      }
 
-      async fetchDoctors(hospital_id:number){
+     // staff.service.ts
 
-        const doctors = await this.staffRepo.fetchDoctorsByHospitalId(hospital_id);
-        return doctors;
-     } 
+async fetchDoctorsByHospitalId(hospital_id: number, query: {
+  search?:         string;
+  specialty_id?:   string;
+  is_deactivated?: string;
+  page?:           string;
+  limit?:          string;
+}) {
+  const filters = {
+    search:         query.search,
+    specialty_id:   query.specialty_id ? Number(query.specialty_id) : undefined,
+    is_deactivated: query.is_deactivated !== undefined
+      ? query.is_deactivated === 'true'
+      : undefined,
+    page:  Number(query.page)  || 1,
+    limit: Number(query.limit) || 10,
+  };
+
+  const { rows, total } = await this.staffRepo.fetchDoctorsByHospitalId(hospital_id, filters);
+
+  return {
+    data:  rows,
+    total: Number(total),
+    page:  filters.page,
+    limit: filters.limit,
+  };
+}
 
      async fetchPatients(hospital_id: number) {
     return await this.staffRepo.fetchPatientsByHospital(hospital_id);
@@ -24,10 +48,31 @@ export class StaffService{
     return stats;
   }
 
-    async fetchAppointmentsByHospitalId(hospital_id:number){
-    const appointments = await this.staffRepo.fetchAppointments(hospital_id);
-    return appointments;
-  }
+   
+async fetchAppointments(hospital_id: number, query: {
+  date?:      string;
+  doctor_id?: string;
+  status?:    string;
+  page?:      string;
+  limit?:     string;
+}) {
+  const filters:Filters = {
+    date:      query.date,
+    doctor_id: query.doctor_id ? Number(query.doctor_id) : undefined,
+    status:    query.status,
+    page:      Number(query.page)  || 1,
+    limit:     Number(query.limit) || 10,
+  };
+
+  const { rows, total } = await this.staffRepo.fetchAppointments(hospital_id, filters);
+
+  return {
+    data:  rows,
+    total: Number(total),
+    page:  filters.page,
+    limit: filters.limit,
+  };
+}
   async fetchAppointment(appointment_id:number){
     const appointment = await this.staffRepo.fetchAppointmentDetails(appointment_id);
     return appointment;

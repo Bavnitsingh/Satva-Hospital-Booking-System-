@@ -9,6 +9,7 @@ import {
   updateAdminSchema,
 } from "./validators/superadmin.crud.validations.js";
 import { validateRequestBody } from "../../common/middlewares/validation.middleware.js";
+import { superAdminAuth } from "../../common/middlewares/auth.middleware.js";
 
 export class SuperAdminRoutes implements Routes {
   path: string = "/super-admin";
@@ -33,12 +34,13 @@ export class SuperAdminRoutes implements Routes {
     );
 
 
-    this.router.get("/list", this.superAdminController.getAdminsList);
+    this.router.get("/list", superAdminAuth, this.superAdminController.getAdminsList);
 
     // Admin CRUD routes
 
     this.router.post(
       "/create-admin",
+      superAdminAuth,
       validateRequestBody(createAdminSchema),
       this.superAdminController.postCreateAdmin,
     );
@@ -46,6 +48,7 @@ export class SuperAdminRoutes implements Routes {
 
     this.router.put(
       "/edit-admin/:id",
+      superAdminAuth,
       validateRequestBody(updateAdminSchema),
       this.superAdminController.putEditAdmin,
     );

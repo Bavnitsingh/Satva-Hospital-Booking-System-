@@ -7,9 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const loadGlobalStats = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
+      
       // Fetch Hospitals Count (asking for limit=1 makes it lightweight)
       const hospRes = await fetch("/api/v1/hospital/list?page=1&limit=1", {
         cache: "no-store",
+        headers: { "Authorization": `Bearer ${token}` }
       });
       if (hospRes.ok) {
         const hospData = await hospRes.json();
@@ -20,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Fetch Admins Count
       const adminRes = await fetch("/api/v1/super-admin/list?page=1&limit=1", {
         cache: "no-store",
+        headers: { "Authorization": `Bearer ${token}` }
       });
       if (adminRes.ok) {
         const adminData = await adminRes.json();
@@ -49,11 +53,13 @@ document.addEventListener("DOMContentLoaded", () => {
         url = `/api/v1/super-admin/list?${queryParams.toString()}`;
       }
 
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(url, {
         cache: "no-store", // Forces the browser to fetch fresh data every time
         headers: {
           Pragma: "no-cache",
           "Cache-Control": "no-cache",
+          "Authorization": `Bearer ${token}`
         },
       });
       if (!response.ok) throw new Error(`Failed to fetch ${type}`);
@@ -264,11 +270,27 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   //! --- Logout Handler ---
-  document.getElementById("logoutBtn").addEventListener("click", () => {
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
     window.showFlash("Logging out of Super Admin Portal...", "success");
-    setTimeout(() => {
-      window.location.href = "/super-admin/login";
-    }, 1500);
+    
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        await fetch("/api/v1/auth/logout", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Logout API failed, clearing local session anyway.", error);
+    } finally {
+      localStorage.removeItem("accessToken");
+      setTimeout(() => {
+        window.location.href = "/super-admin/login";
+      }, 1500);
+    }
   });
 
   // --- Setup Search Event Listeners ---

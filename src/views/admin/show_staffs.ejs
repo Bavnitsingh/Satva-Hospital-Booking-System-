@@ -316,13 +316,13 @@
           staffRecord.is_active = targetStatus;
           filterStaff();
         } else {
-          alert(json.message ?? 'Failed to update staff status');
+          showFlash(json.message ?? 'Failed to update staff status', 'error');
           btn.disabled      = false;
           btn.style.opacity = '1';
         }
 
       } catch (err) {
-        alert('Network error: ' + err.message);
+        showFlash('Network error: ' + err.message, 'error');
         btn.disabled      = false;
         btn.style.opacity = '1';
       }
@@ -335,5 +335,6 @@
   <script src="/js/tabs.js"></script>
   <script src="/js/stats.js"></script>
 
+<%- include('../error_flash.ejs') %>
 </body>
 </html>

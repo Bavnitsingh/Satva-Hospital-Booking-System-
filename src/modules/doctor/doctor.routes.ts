@@ -26,7 +26,7 @@ private init():void{
     this.router.get('/get-weekly-schedule',doctorAuth,this.doctorController.getWeeklySchedule)
     this.router.get("/get-patient-list",doctorAuth,this.doctorController.getPatientList)
     this.router.get('/get-patient-all-medical-records/:patient_id',doctorAuth,this.doctorController.getPatientAllMedicalRecords)
-    this.router.get('/get-patient-all-medical-record-data/:record_id',doctorAuth,this.doctorController.getPatientMedicalData)
+    this.router.get('/get-patient-all-medical-record-data/:appointment_id',doctorAuth,this.doctorController.getPatientMedicalData)
     this.router.get("/get-specialities",doctorAuth,this.doctorController.getSpecialites)
     this.router.post('/post-weekly-schedule',doctorAuth,this.doctorController.postWeeklySchedule)
     this.router.post('/post-medical-records',doctorAuth,uploadMedicalRecords.array('files'),this.doctorController.postPatientMedicalRecords)

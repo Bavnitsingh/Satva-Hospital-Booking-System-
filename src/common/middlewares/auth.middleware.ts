@@ -114,7 +114,7 @@ export async function authenticate(
       return;
     }
   }
-}
+}  
 
 
 // Role-based auth

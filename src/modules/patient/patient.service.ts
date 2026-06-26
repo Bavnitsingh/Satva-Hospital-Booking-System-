@@ -1,4 +1,5 @@
 import { getConnection } from "../../database/connection.js";
+import { GeminiService } from "../../services/gemini.service.js";
 import { NotificationType } from "../notification/notification.interface.js";
 import { NotificationRepository } from "../notification/notification.repository.js";
 import { NotificationService } from "../notification/notification.services.js";
@@ -12,7 +13,7 @@ import {
 
 
 export class PatientService {
-
+  private geminiService = new GeminiService();
   private repo = new PatientRepository();
   private notificationService = new NotificationService(); 
   private async resolvePatientId(userId: number): Promise<number> {
@@ -123,6 +124,30 @@ export class PatientService {
     }
   }
 
+    async getMedicalRecordSummary(
+      userId: number,
+      recordId: number,
+    ) {
+      const patientId =
+        await this.repo.getPatientIdByUserId(userId);
+
+      const record =
+        await this.repo.getMedicalRecordById(
+          recordId,
+          patientId,
+        );
+
+      if (!record) {
+        throw new Error("Medical record not found");
+      }
+
+      const summary =
+        await this.geminiService.summarizeMedicalRecord(
+          record,
+        );
+
+      return summary;
+    }
 
   // Family members
   async getFamilyMembers(userId: number) {

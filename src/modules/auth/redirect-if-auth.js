@@ -2,7 +2,6 @@
   const token = localStorage.getItem("accessToken");
 
   if (!token) {
-    // No token, user is not authenticated, so they should be on the login/register page.
     return;
   }
 
@@ -18,10 +17,8 @@
       const { data } = await res.json();
       const userRole = data.role;
 
-      // Store role if not already present, for convenience
       localStorage.setItem("role", userRole);
 
-      // Redirect based on role
       switch (userRole) {
         case "PATIENT":
           window.location.href = "/patient/dashboard";
@@ -40,7 +37,6 @@
           break;
       }
     } else {
-      // If API returns an error (e.g., 401 for expired/invalid token), clear storage.
       localStorage.clear();
     }
   } catch (error) {

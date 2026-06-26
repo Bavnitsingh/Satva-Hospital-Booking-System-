@@ -176,5 +176,26 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
+  getMedicalRecordSummary = catchAsync(
+    async (req: Request, res: Response) => {
+      const userId = (req as AuthRequest).user.id;
+
+      const recordId = Number(req.params.id);
+
+      const result =
+        await this.service.getMedicalRecordSummary(
+          userId,
+          recordId,
+        );
+
+      generalResponse({
+        res,
+        data: result,
+        message: "Medical summary generated",
+        statusCode: 200,
+      });
+    },
+  );
+
 
 }

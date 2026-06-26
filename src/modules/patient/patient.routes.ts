@@ -13,7 +13,10 @@ import {
   search_doctors_schema,
   notification_query_schema,
 } from "./validations/patient.validation.js";
-import { validateRequestBody, validateRequestQuery } from "../../common/middlewares/validation.middleware.js";
+import {
+  validateRequestBody,
+  validateRequestQuery,
+} from "../../common/middlewares/validation.middleware.js";
 
 export class PatientRoutes implements Routes {
   path = "/patient";
@@ -30,16 +33,33 @@ export class PatientRoutes implements Routes {
 
     // Profile routes
     this.router.get("/profile", this.patient.getProfile);
-    this.router.patch("/profile", patientProfileAndInsuranceUpload, validateRequestBody(update_patient_profile_schema), this.patient.updateProfile);
+    this.router.patch(
+      "/profile",
+      patientProfileAndInsuranceUpload,
+      validateRequestBody(update_patient_profile_schema),
+      this.patient.updateProfile,
+    );
 
     // Family members routes
     this.router.get("/family", this.patient.getFamilyMembers);
-    this.router.post("/family", validateRequestBody(add_family_member_schema), this.patient.addFamilyMember);
-    this.router.patch("/family/:memberId", validateRequestBody(update_family_member_schema), this.patient.updateFamilyMember);
+    this.router.post(
+      "/family",
+      validateRequestBody(add_family_member_schema),
+      this.patient.addFamilyMember,
+    );
+    this.router.patch(
+      "/family/:memberId",
+      validateRequestBody(update_family_member_schema),
+      this.patient.updateFamilyMember,
+    );
     this.router.delete("/family/:memberId", this.patient.deleteFamilyMember);
 
     //  Doctor search routes
-    this.router.get("/doctors", validateRequestQuery(search_doctors_schema), this.patient.searchDoctors);
+    this.router.get(
+      "/doctors",
+      validateRequestQuery(search_doctors_schema),
+      this.patient.searchDoctors,
+    );
     this.router.get("/doctors/:doctorId", this.patient.getDoctorDetail);
 
     // Payments
@@ -49,6 +69,8 @@ export class PatientRoutes implements Routes {
     this.router.get("/records", this.patient.getMedicalHistory);
     this.router.get("/records/:recordId", this.patient.getMedicalRecord);
 
-
+    this.router.get(
+      "/records/:id/summary",this.patient.getMedicalRecordSummary,
+    );
   }
 }

@@ -29,6 +29,10 @@
     <style>
         body { font-family: "DM Sans", sans-serif; }
     </style>
+    <script type="module">
+        import { checkSuperAdminJwt } from '/js/check-super-admin-jwt.js';
+        checkSuperAdminJwt();
+    </script>
 </head>
 <body class="bg-bg-page text-gray-800 min-h-screen flex flex-col">
 
@@ -295,7 +299,10 @@
                             
                             const response = await fetch(url, {
                                 method: "POST",
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${localStorage.getItem("accessToken")}`
+                                },
                                 body: JSON.stringify(data)
                             });
     

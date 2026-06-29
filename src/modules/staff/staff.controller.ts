@@ -16,19 +16,19 @@ private async getHospitalIdFromReq(req: Request): Promise<number> {
   }
 
 
- fetchDoctors = catchAsync(async (req:Request,res:Response)=>{
-       const hospital_id = await this.getHospitalIdFromReq(req);
-           console.log(hospital_id)
-       
-        const doctors = await this.staffService.fetchDoctors(Number(hospital_id));
-        generalResponse({
-            res,
-            data:doctors,
-            message:"Doctors Fetched Successfully",
-            statusCode:200
-        })
-        
-    })
+ fetchDoctors = catchAsync(async (req: Request, res: Response) => {
+  const user_id     = (req as AuthRequest).user.id;
+  const hospital_id = await this.staffService.getHospitalId(user_id);
+
+  const result = await this.staffService.fetchDoctorsByHospitalId(hospital_id, req.query as any);
+
+  generalResponse({
+    res,
+    data:       result,
+    message:    'Doctors fetched successfully',
+    statusCode: 200,
+  });
+});
 
      fetchPatients = catchAsync(async (req: Request, res: Response) => {
         const hospital_id = await this.getHospitalIdFromReq(req);
@@ -87,17 +87,19 @@ private async getHospitalIdFromReq(req: Request): Promise<number> {
   });
   
   
- fetchAppointments = catchAsync(async(req:Request,res:Response)=>{
- const hospital_id = await this.getHospitalIdFromReq(req);
-    const appointments = await this.staffService.fetchAppointmentsByHospitalId(hospital_id);
+fetchAppointments = catchAsync(async (req: Request, res: Response) => {
+  const user_id      = (req as AuthRequest).user.id;
+  const hospital_id  = await this.staffService.getHospitalId(user_id);
 
-    generalResponse({
-        res,
-        data:appointments,
-        message:"Appointments fetched properly",
-        statusCode:200
-    })
-    })
+  const result = await this.staffService.fetchAppointments(hospital_id, req.query as any);
+
+  generalResponse({
+    res,
+    data:       result,
+    message:    'Appointments fetched successfully',
+    statusCode: 200,
+  });
+});
     
 
 fetchAppointment = catchAsync(async(req:Request,res:Response)=>{

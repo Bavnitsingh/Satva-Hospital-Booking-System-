@@ -168,7 +168,7 @@ export class DoctorService {
     const result =
       await this.doctorRepo.fetchPatientMedicalAttachments(record_id);
 
-    return { result };
+    return { medical_attachments:result };
   }
 
   async getPatientMedicalRecordAllPrescription(record_id: number) {
@@ -295,5 +295,17 @@ export class DoctorService {
 
 
     return {}
+  }
+
+
+  async getMedicalRecords(appointment_id:number){
+
+    if(!appointment_id){
+      throw new BadRequestException('Appointment Id not found')
+    } 
+    console.log(appointment_id)
+    const result =await this.doctorRepo.getMedicalRecordsByAppointmentId(appointment_id)
+    return result
+
   }
 }

@@ -5,10 +5,11 @@ import {
 } from "../../common/helpers/http-exception.js";
 import { UserRepository } from "./auth.repository.js";
 import { comparePassword, getHashedPassword } from "./utils/bcrypt.js";
-import { sign, signRefreshToken } from "./utils/jwt.js";
+import { sign, signRefreshToken, verifyRefreshToken } from "./utils/jwt.js";
 import crypto from "crypto";
 import { SessionInfo } from "./interfaces/auth.interface.js";
 import { AuditService } from "../../services/audit.service.js";
+import { JwtPayload } from "jsonwebtoken";
 
 export class AuthService {
   // private userRepo=new UserRepository();
@@ -75,7 +76,7 @@ export class AuthService {
       "DOCTOR",
     );
 
-   const doctor =  await this.userRepo.createDoctor({
+    const doctor = await this.userRepo.createDoctor({
       user_id: user.user_id,
       hospital_id: data.hospitalId,
       first_name: data.firstName,
@@ -86,8 +87,8 @@ export class AuthService {
       bio: data.bio,
     });
 
-    
-    
+
+
 
     const accessToken = sign({
       id: user.user_id,
@@ -184,6 +185,23 @@ export class AuthService {
     };
   }
 
+  async refreshAccessToken(refreshToken: string) {
+    const refreshPayload: JwtPayload = verifyRefreshToken(refreshToken);
+
+    const session = await this.userRepo.findSessionByRefreshToken(refreshToken);
+    if (!session) {
+      throw new Error("Session expired");
+    }
+
+    const accessToken = sign({
+      id: refreshPayload.id,
+      email: refreshPayload.email,
+      role: refreshPayload.role,
+    });
+
+    return { accessToken };
+  }
+
   async getOtp(email: string) {
     const user = await this.userRepo.findUserByEmail(email);
 
@@ -251,7 +269,7 @@ export class AuthService {
     await this.userRepo.logout(userId);
   }
 
- async registerStaff(data: any) {
+  async registerStaff(data: any) {
     const existingUser = await this.userRepo.findUserByEmail(data.email);
 
     if (existingUser) {
@@ -266,21 +284,21 @@ export class AuthService {
       "STAFF",
     );
 
-   const staff =  await this.userRepo.createStaff({
+    const staff = await this.userRepo.createStaff({
       user_id: user.user_id,
       hospital_id: data.hospitalId,
       first_name: data.firstName,
       last_name: data.lastName,
       gender: data.gender,
-     staff_role : data.staff_role,
-     contact_number:data.contact_number,
-     dob:data.dob,
-     address_line1:data.address_line1,
-     address_line2:data.address_line2 ?? ''
+      staff_role: data.staff_role,
+      contact_number: data.contact_number,
+      dob: data.dob,
+      address_line1: data.address_line1,
+      address_line2: data.address_line2 ?? ''
     });
 
-    
-    
+
+
 
     const accessToken = sign({
       id: user.user_id,

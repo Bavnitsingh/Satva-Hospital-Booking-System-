@@ -1,44 +1,47 @@
-import { Request,Response } from "express";
+import { Request, Response } from "express";
 import { catchAsync } from "../../common/helpers/catch-async.js";
 
-export class AdminPageController{
-     renderAuditLogsPage = catchAsync(async(req:Request,res:Response)=>{
+export class AdminPageController {
+    renderAuditLogsPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/show_audit_logs');
     });
 
-    renderDoctorsPage = catchAsync(async(req:Request,res:Response)=>{
+    renderDoctorsPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/show_doctors');
     })
-  renderPatientsPage = catchAsync(async(req:Request,res:Response)=>{
+    renderPatientsPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/show_patients')
     })
 
-    renderAddDoctorPage = catchAsync(async(req:Request,res:Response)=>{
+    renderAddDoctorPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/add_doctors');
-    })  
+    })
 
-    renderSingleDoctorPage = catchAsync(async(req:Request,res:Response)=>{
+    renderSingleDoctorPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/view_single_doctor')
     })
-    renderAppointmentsPage = catchAsync(async(req:Request,res:Response)=>{
+    renderAppointmentsPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/show_appointments');
     })
-    renderSinglePatientPage=catchAsync(async(req:Request,res:Response)=>{
+    renderSinglePatientPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/view_single_patient')
     })
-    renderSettingsPage = catchAsync(async(req:Request,res:Response)=>{
+    renderSettingsPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/settings');
     })
-    renderSingleAppointmentPage = catchAsync(async(req:Request,res:Response)=>{
+    renderSingleAppointmentPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/view_single_appointment');
     })
-    renderStaffPage = catchAsync(async(req:Request,res:Response)=>{
+    renderStaffPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/show_staffs')
     })
-    renderAddStaffPage = catchAsync(async(req:Request,res:Response)=>{
+    renderAddStaffPage = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/add_staff');
     })
-    renderViewSingleStaff=catchAsync(async(req:Request,res:Response)=>{
+    renderViewSingleStaff = catchAsync(async (req: Request, res: Response) => {
         res.render('admin/view_single_staff')
+    })
+    renderLoginPage = catchAsync(async (req: Request, res: Response) => {
+        res.render('super_admin/super_login')
     })
 }

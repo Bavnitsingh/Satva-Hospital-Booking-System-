@@ -1,6 +1,6 @@
 import { Request,Response } from "express"
 import { AuthRequest } from "../../common/middlewares/auth.middleware.js"
-
+import path from "node:path"
 
 export class DoctorPageController{
 
@@ -23,6 +23,17 @@ export class DoctorPageController{
     renderCreateMedicalRecords=(req:Request,res:Response)=>{
 
         res.render("doctor/create_medical_records")
+    }
+
+    renderViewMedicalRecordsByAppointment=(req:Request,res:Response)=>{
+        console.log("here")
+        res.render("doctor/view_medical_record")
+    }
+    renderFile(req:Request,res:Response){
+        console.log('herer')
+        const file_path=req.query.file_path || ''
+        const file_location=path.join(import.meta.dirname+'../../../../'+file_path)
+        res.sendFile(file_location)
     }
 
     

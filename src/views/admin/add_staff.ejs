@@ -145,8 +145,6 @@
           class="text-sm text-gray-500 border border-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-50 transition">
           Cancel
         </a>
-        <p id="form-error"   class="hidden text-sm text-red-500 ml-auto"></p>
-        <p id="form-success" class="hidden text-sm text-primary ml-auto"></p>
       </div>
 
     </form>
@@ -164,11 +162,7 @@
       e.preventDefault();
 
       const submitBtn  = document.getElementById('submit-btn');
-      const errorEl    = document.getElementById('form-error');
-      const successEl  = document.getElementById('form-success');
 
-      errorEl.classList.add('hidden');
-      successEl.classList.add('hidden');
       submitBtn.disabled  = true;
       submitBtn.innerHTML = 'Saving...';
 
@@ -201,16 +195,11 @@
 
         if (!res.ok) throw new Error(json.message ?? `Error ${res.status}`);
 
-        successEl.textContent = 'Staff member added successfully!';
-        successEl.classList.remove('hidden');
-
-        setTimeout(() => {
-          window.location.href = '/admin/staffs';
-        }, 1000);
+        setFlash('Staff member added successfully!', 'success');
+        window.location.href = 'http://localhost:3333/admin/staffs';
 
       } catch (err) {
-        errorEl.textContent = err.message;
-        errorEl.classList.remove('hidden');
+        showFlash(err.message, 'error');
         console.error(err);
       } finally {
         submitBtn.disabled  = false;
@@ -223,5 +212,6 @@
     });
   </script>
 
+<%- include('../error_flash.ejs') %>
 </body>
 </html>

@@ -8,6 +8,7 @@ import { comparePassword, getHashedPassword } from "./utils/bcrypt.js";
 import { sign, signRefreshToken } from "./utils/jwt.js";
 import crypto from "crypto";
 import { SessionInfo } from "./interfaces/auth.interface.js";
+import { AuditService } from "../../services/audit.service.js";
 
 export class AuthService {
   // private userRepo=new UserRepository();
@@ -22,7 +23,7 @@ export class AuthService {
   //     const tokens = this.generateTokens({ id: user.id, email: user.email, role: user.role });
   //     return { user, ...tokens };
   //   }
-
+  private auditService = new AuditService();
   private userRepo = new UserRepository();
 
   async registerAdmin(data: any) {
@@ -169,6 +170,13 @@ export class AuthService {
       "LOCAL",
     );
 
+    await this.auditService.log({
+      performed_by_user_id: user.user_id,
+      action: "USER_LOGIN",
+      entity_name: "users",
+      entity_id: String(user.user_id),
+      ip_address:"127.0.0.1"
+    });
     return {
       accessToken,
       refreshToken,

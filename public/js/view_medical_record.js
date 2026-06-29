@@ -1,10 +1,9 @@
 
 (function () {
   const APPOINTMENT_ID_PARAM = "appointment_id";
-  const LIST_PAGE_URL = "/view-medical-record"; // page that lists all of a patient's records
+  const LIST_PAGE_URL = "/view-medical-record"; 
   const accessToken=localStorage.getItem("accessToken")
-  // Reads the id from ?record_id=... if present, otherwise falls back to the
-  // last segment of the URL path, e.g. /view-medical-record/123 -> "123".
+ 
   function getIdFromUrl(queryParam) {
     const search = new URLSearchParams(window.location.search);
     const fromQuery = search.get(queryParam);
@@ -130,12 +129,12 @@
   }
 
   function renderRecord(record) {
-    console.log(record)
+  
     els.doctorName.textContent = record.doctor_name || "Medical Record";
     els.visitMeta.textContent = formatDate(record.visit_date || record.created_at);
 
-    els.patientName.value = record.patient_name || "";
-    els.chiefComplaint.value = record.chief_complaint || "";
+    els.patientName.value = localStorage.getItem('patient_name') || "";
+    els.chiefComplaint.value = localStorage.getItem('chief_complaint')|| "";
     els.examFindings.value = record[0].examination_notes || "";
     els.diagnosis.value = record[0].diagnosis || "";
     els.notes.value = record[2].prescription.notes || "";
@@ -163,7 +162,7 @@
       if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
       const result = await res.json();
 
-      // Be flexible about the response shape: { data } or a bare object.
+      
       const record = result.data || result.record || result;
 
       if (!record || typeof record !== "object") {

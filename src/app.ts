@@ -64,7 +64,7 @@ export function buildApp(): Application {
     const doctor_profile = path.join(folderpath, "doctor_profile");
     fs.mkdirSync(doctor_profile);
     // Add logic below for creating new folder
-    const medical_records=path.join(folderpath,"medical_records")
+    const medical_records = path.join(folderpath, "medical_records")
     fs.mkdirSync(medical_records)
 
     console.log("Folder Created Successfully ");
@@ -84,9 +84,9 @@ export function buildApp(): Application {
   app.use(passport.session());
   // HANDLES GLOBAL ERROR
 
-app.use('/admin', new AdminPageRoutes().router);
+  app.use('/admin', new AdminPageRoutes().router);
 
-app.use('/staff',new StaffPageRoutes().router)
+  app.use('/staff', new StaffPageRoutes().router)
 
 
 
@@ -102,7 +102,12 @@ app.use('/staff',new StaffPageRoutes().router)
   app.use('/doctor', new DoctorPageRoutes().router);
   app.use('/super-admin', new SuperAdminPageRoutes().router);
   app.use('/hospital', new HospitalPageRoutes().router);
-
+  app.get("/about", (req, res) => {
+    res.render("about");
+  });
+  app.get("/contact", (req, res) => {
+    res.render("contact");
+  });
 
 
 

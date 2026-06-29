@@ -3,12 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const state = {
     hospitals: { page: 1, limit: 10, total: 0, search: "", loaded: false },
     admins: { page: 1, limit: 10, total: 0, search: "", loaded: false },
+    contactus: { page: 1, limit: 10, total: 0, search: "", loaded: false },
   };
 
   const loadGlobalStats = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      
+
       // Fetch Hospitals Count (asking for limit=1 makes it lightweight)
       const hospRes = await fetch("/api/v1/hospital/list?page=1&limit=1", {
         cache: "no-store",
@@ -51,6 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (type === "admins") {
         url = `/api/v1/super-admin/list?${queryParams.toString()}`;
+      } else if (type === "contactus") {
+        url = `/api/v1/contactus?${queryParams.toString()}`;
       }
 
       const token = localStorage.getItem("accessToken");
@@ -69,10 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(result.message || "Error fetching data");
 
       return {
-        data: result.data.data,
-        total: result.data.total,
-        page: result.data.page,
-        limit: result.data.limit,
+        data: result.data?.data || result.data || [], // Some APIs return directly data array, others nested
+        total: result.data?.total || result.data?.length || 0,
+        page: result.data?.page || page,
+        limit: result.data?.limit || limit,
       };
     } catch (err) {
       throw err;
@@ -132,6 +135,27 @@ document.addEventListener("DOMContentLoaded", () => {
                             <a href="/super-admin/edit-admin/${item.id}" class="text-primary hover:text-primary-dark transition-colors mr-3"><i class="fa-solid fa-pen"></i> Edit</a>
                         </td>
                     `;
+        } else if (type === "contactus") {
+          const statusClass =
+            item.status === "unread"
+              ? "bg-red-100 text-red-800"
+              : item.status === "resolved"
+                ? "bg-green-100 text-green-800"
+                : "bg-yellow-100 text-yellow-800";
+          const date = new Date(item.created_at).toLocaleDateString();
+          tr.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.first_name} ${item.last_name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.email}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="${item.message}">${item.message}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass} cursor-pointer" onclick="toggleContactStatus(${item.id}, '${item.status}')" title="Click to toggle status">${item.status}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="openReplyModal(${item.id})" class="text-blue-600 hover:text-blue-900 transition-colors mr-3"><i class="fa-solid fa-reply"></i> Reply</button>
+                            <button onclick="deleteContactMessage(${item.id})" class="text-red-600 hover:text-red-900 transition-colors"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </td>
+                    `;
         }
         tbody.appendChild(tr);
       });
@@ -147,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
       //     state.admins.total = res.total;
       //   }
 
-      // Mark as loaded without showing a flash notification
+
       if (!state[type].loaded) {
         state[type].loaded = true;
       }
@@ -163,13 +187,92 @@ document.addEventListener("DOMContentLoaded", () => {
     window.showFlash(`${actionName} action executed successfully.`, "success");
   };
 
+  window.toggleContactStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'unread' ? 'read' : currentStatus === 'read' ? 'resolved' : 'unread';
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(`/api/v1/contactus/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        window.showFlash(`Status updated to ${newStatus}`, "success");
+        renderTable("contactus");
+      } else {
+        window.showFlash("Failed to update status", "error");
+      }
+    } catch (err) {
+      window.showFlash("Error updating status", "error");
+    }
+  };
+
+  window.deleteContactMessage = async (id) => {
+    if (!confirm("Are you sure you want to delete this message?")) return;
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(`/api/v1/contactus/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        window.showFlash("Message deleted successfully", "success");
+        renderTable("contactus");
+      } else {
+        window.showFlash("Failed to delete message", "error");
+      }
+    } catch (err) {
+      window.showFlash("Error deleting message", "error");
+    }
+  };
+
+  window.openReplyModal = (id) => {
+    document.getElementById("replyMessageId").value = id;
+    document.getElementById("replyText").value = "";
+    document.getElementById("replyModal").classList.remove("hidden");
+  };
+
+  window.closeReplyModal = () => {
+    document.getElementById("replyModal").classList.add("hidden");
+  };
+
+  window.submitReply = async () => {
+    const id = document.getElementById("replyMessageId").value;
+    const text = document.getElementById("replyText").value;
+    if (!text.trim()) return;
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(`/api/v1/contactus/${id}/reply`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ reply_text: text })
+      });
+      if (res.ok) {
+        window.showFlash("Reply saved successfully. Status marked as resolved.", "success");
+        closeReplyModal();
+        renderTable("contactus");
+      } else {
+        window.showFlash("Failed to save reply", "error");
+      }
+    } catch (err) {
+      window.showFlash("Error saving reply", "error");
+    }
+  };
+
   // --- Render Pagination ---
   const updatePagination = (type, total) => {
     const page = state[type].page;
     const limit = state[type].limit;
     const totalPages = Math.ceil(total / limit);
 
-    let prefix = type === "hospitals" ? "hosp" : "adm";
+    let prefix = type === "hospitals" ? "hosp" : type === "admins" ? "adm" : "contact";
     document.getElementById(`${prefix}-start`).textContent =
       total === 0 ? 0 : (page - 1) * limit + 1;
     document.getElementById(`${prefix}-end`).textContent = Math.min(
@@ -272,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
   //! --- Logout Handler ---
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     window.showFlash("Logging out of Super Admin Portal...", "success");
-    
+
     try {
       const token = localStorage.getItem("accessToken");
       if (token) {
@@ -311,6 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupSearch("hospitals");
   setupSearch("admins");
+  setupSearch("contactus");
 
   // --- Initialize Default Tab ---
   renderTable("hospitals");

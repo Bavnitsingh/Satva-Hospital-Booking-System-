@@ -87,33 +87,37 @@
             </div>
           </div>
           <div class="md:col-span-2">
-            <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-              <form class="space-y-6" onsubmit="event.preventDefault(); alert('Message sent!');">
+            <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 relative">
+              <form id="contact-form" class="space-y-6" novalidate>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                    <input type="text"
+                    <input type="text" id="first_name"
                       class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                       placeholder="John" required>
+                    <p id="firstNameError" class="mt-1 text-sm text-red-500 hidden"></p>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                    <input type="text"
+                    <input type="text" id="last_name"
                       class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                       placeholder="Doe" required>
+                    <p id="lastNameError" class="mt-1 text-sm text-red-500 hidden"></p>
                   </div>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                  <input type="email"
+                  <input type="email" id="email"
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                     placeholder="john@example.com" required>
+                  <p id="emailError" class="mt-1 text-sm text-red-500 hidden"></p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                  <textarea rows="5"
+                  <textarea rows="5" id="message"
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                     placeholder="How can we help you?" required></textarea>
+                  <p id="messageError" class="mt-1 text-sm text-red-500 hidden"></p>
                 </div>
                 <button type="submit"
                   class="w-full bg-primary text-white font-semibold py-3.5 rounded-xl hover:bg-primary-dark transition shadow">Send
@@ -126,6 +130,103 @@
     </main>
 
     <%- include('partials/footer') %>
+      <%- include('error_flash') %>
+
+        <script>
+          document.getElementById('contact-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const firstNameEl = document.getElementById('first_name');
+            const lastNameEl = document.getElementById('last_name');
+            const emailEl = document.getElementById('email');
+            const messageEl = document.getElementById('message');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            const firstName = firstNameEl.value.trim();
+            const lastName = lastNameEl.value.trim();
+            const email = emailEl.value.trim();
+            const message = messageEl.value.trim();
+
+            const firstNameError = document.getElementById('firstNameError');
+            const lastNameError = document.getElementById('lastNameError');
+            const emailError = document.getElementById('emailError');
+            const messageError = document.getElementById('messageError');
+
+            let isValid = true;
+
+            // Reset errors
+            [firstNameError, lastNameError, emailError, messageError].forEach(el => el.classList.add('hidden'));
+            [firstNameEl, lastNameEl, emailEl, messageEl].forEach(el => el.classList.remove('border-red-500'));
+
+            if (!firstName) {
+              firstNameError.textContent = "First name is required";
+              firstNameError.classList.remove("hidden");
+              firstNameEl.classList.add("border-red-500");
+              isValid = false;
+            }
+
+            if (!lastName) {
+              lastNameError.textContent = "Last name is required";
+              lastNameError.classList.remove("hidden");
+              lastNameEl.classList.add("border-red-500");
+              isValid = false;
+            }
+
+            if (!email) {
+              emailError.textContent = "Email address is required";
+              emailError.classList.remove("hidden");
+              emailEl.classList.add("border-red-500");
+              isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+              emailError.textContent = "Please enter a valid email address";
+              emailError.classList.remove("hidden");
+              emailEl.classList.add("border-red-500");
+              isValid = false;
+            }
+
+            if (!message) {
+              messageError.textContent = "Message is required";
+              messageError.classList.remove("hidden");
+              messageEl.classList.add("border-red-500");
+              isValid = false;
+            }
+
+            if (!isValid) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Sending...';
+
+            try {
+              const response = await fetch('/api/v1/contactus', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ first_name: firstName, last_name: lastName, email, message })
+              });
+
+              const result = await response.json();
+
+              if (response.ok && result.success) {
+
+                showFlash(result.message || 'Message sent successfully!', 'success');
+
+                e.target.reset();
+              } else {
+
+                showFlash(result.message || 'Error sending message.', 'error');
+
+              }
+            } catch (error) {
+
+              showFlash('Network error occurred.', 'error');
+
+            } finally {
+              submitBtn.disabled = false;
+              submitBtn.innerText = 'Send Message';
+            }
+          });
+        </script>
 </body>
 
 </html>

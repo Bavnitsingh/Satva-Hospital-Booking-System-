@@ -97,7 +97,7 @@ async function updateInProgress(btn, appointment_id) {
     btn.innerText = 'View Record'
     btn.onclick = () => { viewMedicalRecords(btn, appointment_id,patient_name,chief_complaint) }
     const response = await result.json();
-    console.log(response); .00
+    console.log(response);
 
   } catch (err) {
     console.error('Failed to update appointment:', err);
@@ -178,7 +178,7 @@ async function updateInProgress(btn, appointment_id) {
     }
     if (status === 'COMPLETED') {
       return `
-        <button id="appt-${appointment_id}"  onclick="viewMedicalRecords(this,${appointment_id},${patient_name},${chief_complaint})" class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition">
+        <button id="appt-${appointment_id}"  onclick='viewMedicalRecords(this,${appointment_id},"${patient_name}","${chief_complaint}")' class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition">
           View Record
         </button>`;
     }

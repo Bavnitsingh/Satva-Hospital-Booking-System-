@@ -46,6 +46,14 @@ export class AuthPageController {
     }
   };
 
+  showAboutPage = async(req:Request,res:Response)=>{
+    res.render("about")
+  }
+
+  showContactPage = async(req:Request,res:Response)=>{
+    res.render("contact")
+  }
+
   showIndex=async(req:Request,res:Response)=>{
     res.render("index")
   }

@@ -21,16 +21,11 @@ import { StaffPageRoutes } from "./modules/staff/staff.page.routes.js";
 import { notFoundMiddleware } from "./common/middlewares/not-found.middlware.js";
 
 
-
-
 export function buildApp(): Application {
   const app: Express = express();
 
   let __filePath = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filePath);
-
-
-
 
 
   //configuring ejs settings
@@ -95,8 +90,6 @@ export function buildApp(): Application {
 app.use('/admin', new AdminPageRoutes().router);
 
 app.use('/staff',new StaffPageRoutes().router)
-
-
 
 
   //ROUTER

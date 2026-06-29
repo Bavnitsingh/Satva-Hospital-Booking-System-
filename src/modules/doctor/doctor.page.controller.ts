@@ -26,15 +26,19 @@ export class DoctorPageController{
     }
 
     renderViewMedicalRecordsByAppointment=(req:Request,res:Response)=>{
-        console.log("here")
+
         res.render("doctor/view_medical_record")
     }
-    renderFile(req:Request,res:Response){
-        console.log('herer')
+    renderFile=(req:Request,res:Response)=>{
+       
         const file_path=req.query.file_path || ''
         const file_location=path.join(import.meta.dirname+'../../../../'+file_path)
         res.sendFile(file_location)
     }
 
+    renderPatientMedicalRecords=(req:Request,res:Response)=>{
+
+        res.render("doctor/patient_view_medical_record")
+    }
     
 }

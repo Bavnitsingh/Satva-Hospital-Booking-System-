@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Satva - Contact Us</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#10A37F",
+            "primary-dark": "#0d8a6a",
+            "primary-light": "#e6f7f3",
+            "bg-page": "#f0faf6",
+            dark: "#0f1923",
+          },
+          fontFamily: {
+            sans: ["DM Sans", "sans-serif"],
+            display: ["Playfair Display", "serif"],
+          },
+        },
+      },
+    };
+  </script>
+</head>
+
+<body class="bg-bg-page text-gray-800 min-h-screen font-sans">
+  <%- include('partials/header') %>
+
+  <main class="pt-10">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+      <div class="grid lg:grid-cols-2 gap-12 items-start">
+        <div>
+          <span class="inline-flex items-center rounded-full bg-primary-light text-primary px-4 py-2 text-sm font-semibold">
+            Contact Us
+          </span>
+
+          <h1 class="mt-6 font-display text-4xl sm:text-5xl font-bold text-dark">
+            We’re here to help.
+          </h1>
+          <p class="mt-5 text-gray-600 leading-8 max-w-xl">
+            Reach out for support, partnership questions, or product guidance. Our team will get back to you as soon as possible.
+          </p>
+
+          <div class="mt-10 space-y-5">
+            <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <div class="text-sm text-gray-500">Address</div>
+              <div class="mt-1 font-semibold text-dark">Healthcare Tower, Mumbai, India</div>
+            </div>
+            <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <div class="text-sm text-gray-500">Phone</div>
+              <div class="mt-1 font-semibold text-dark">+91 9876543210</div>
+            </div>
+            <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <div class="text-sm text-gray-500">Email</div>
+              <div class="mt-1 font-semibold text-dark">support@satva.com</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-[2rem] shadow-xl border border-gray-100 p-6 sm:p-8">
+          <h2 class="text-2xl font-bold text-dark">Send a message</h2>
+          <p class="mt-2 text-gray-500">We’ll reply with the right support.</p>
+
+          <form class="mt-8 space-y-5">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+              <input type="text" class="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:outline-none focus:border-primary" placeholder="Your name" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+              <input type="email" class="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:outline-none focus:border-primary" placeholder="you@example.com" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Subject</label>
+              <input type="text" class="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:outline-none focus:border-primary" placeholder="How can we help?" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Message</label>
+              <textarea rows="6" class="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:outline-none focus:border-primary" placeholder="Write your message..."></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white px-6 py-3.5 rounded-2xl font-semibold transition">
+              Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

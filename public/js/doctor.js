@@ -1,6 +1,8 @@
-function showPatientHistory(patientid){
+function showPatientHistory(patientid,first_name,last_name,age,gender){
     
     localStorage.setItem("patient_id",patientid)
+    const patient_details={name:first_name+" "+last_name, age:age, gender:gender}
+    localStorage.setItem("patient_detail",JSON.stringify(patient_details))
     window.location.href=window.location.origin+'/doctor/view-patient-medical-records'
 }
 const patientListTemplate=(first_name,last_name,age,gender,blood_group,patient_id)=>{
@@ -16,7 +18,7 @@ const patientListTemplate=(first_name,last_name,age,gender,blood_group,patient_i
           <p class="text-xs text-gray-500 mt-0.5">Blood Group ${blood_group}</p>
       
         </div>
-        <button class="flex-shrink-0 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition" onclick='showPatientHistory(${patient_id})'>View History</button>
+        <button class="flex-shrink-0 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition" onclick='showPatientHistory(${patient_id},"${first_name}","${last_name}","${age}","${gender}")'>View History</button>
       </div>`
 }
 

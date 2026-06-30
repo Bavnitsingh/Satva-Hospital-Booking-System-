@@ -35,7 +35,7 @@ async function createMedicalRecords(appointment_id, patient_name, chief_complain
 }
 
 async function startConsultation(btn, appointment_id, patient_name, chief_complaint,appointment_type,link) {
-console.log(appointment_id)
+
   
   const NEXT_STATUS = 'IN_PROGRESS';
   const payload = { appointment_id: appointment_id, appointment_status: NEXT_STATUS };
@@ -54,7 +54,7 @@ console.log(appointment_id)
 
     btn.setAttribute('class', 'bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5')
     btn.innerHTML = ` ${ICON_COMPLETE_CHECK} Complete`
-    btn.onclick = () => { updateInProgress(btn, appointment_id) }
+    btn.onclick = () => { updateInProgress(btn, appointment_id,patient_name,chief_complaint) }
 
     let btn1=document.createElement("button")
     btn1.setAttribute('class','border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition')
@@ -62,7 +62,7 @@ console.log(appointment_id)
     btn1.innerText=` Create Medical Records`
     btn1.onclick=()=>{createMedicalRecords(appointment_id , patient_name , chief_complaint)}
     const response = await result.json();
-    console.log(response);
+
 
     if(appointment_type==='TELEMEDICINE'){
      window.open(link, "_blank");
@@ -74,7 +74,7 @@ console.log(appointment_id)
 
 }
 
-async function updateInProgress(btn, appointment_id) {
+async function updateInProgress(btn, appointment_id,patient_name,chief_complaint) {
 
 
 
@@ -97,7 +97,7 @@ async function updateInProgress(btn, appointment_id) {
     btn.innerText = 'View Record'
     btn.onclick = () => { viewMedicalRecords(btn, appointment_id,patient_name,chief_complaint) }
     const response = await result.json();
-    console.log(response);
+
 
   } catch (err) {
     console.error('Failed to update appointment:', err);
@@ -105,28 +105,23 @@ async function updateInProgress(btn, appointment_id) {
 }
 
 
-(async function () {
-
+(function () {
 
   let appts = [];
-  try {
-    const res = await fetch('/api/v1/doctor/get-appointment', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      }
-    }
 
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    let result = await res.json();
-    appts = result.data[0].appointment_list
-    console.log(appts)
+  // ---- Date helpers ----
+  function todayISO() {
+    const d = new Date();
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d - tzOffset).toISOString().split('T')[0]; // "YYYY-MM-DD"
+  }
 
-  } catch (err) {
-    console.error('Failed to load appointments:', err);
-    renderError();
-    return;
+  function formatLabel(isoDate) {
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    // Parse as local date, not UTC, to avoid off-by-one day issues
+    const [y, m, d] = isoDate.split('-').map(Number);
+    const localDate = new Date(y, m - 1, d);
+    return localDate.toLocaleDateString('en-US', opts);
   }
 
 
@@ -141,10 +136,10 @@ async function updateInProgress(btn, appointment_id) {
   };
 
 
-  
+  function isConsultationTime(start_time, end_time, selectedDateISO) {
+    // Only allow "Start Consultation" to be enabled for today's date
+    if (selectedDateISO !== todayISO()) return false;
 
-
-  function isConsultationTime(start_time, end_time) {
     const localTime = new Date().toLocaleTimeString().substring(0, 5)
 
     const [start_hour, start_minute] = start_time.split(":")
@@ -159,9 +154,7 @@ async function updateInProgress(btn, appointment_id) {
   }
 
 
-
-
-  function renderActions(status, start_time, end_time, appointment_id, patient_name, chief_complaint,appointment_type,link) {
+  function renderActions(status, start_time, end_time, appointment_id, patient_name, chief_complaint,appointment_type,link, selectedDateISO) {
 
 
     if (status === 'IN_PROGRESS') {
@@ -171,7 +164,7 @@ async function updateInProgress(btn, appointment_id) {
           Create Medical Records
         </button>
 
-            <button id="appt-${appointment_id}" onclick="updateInProgress(this, ${appointment_id})" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+            <button id="appt-${appointment_id}" onclick='updateInProgress(this, ${appointment_id},"${patient_name}","${chief_complaint}")' class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
   ${ICON_COMPLETE_CHECK}
   Complete
 </button>`;
@@ -183,7 +176,7 @@ async function updateInProgress(btn, appointment_id) {
         </button>`;
     }
     if (status === 'CONFIRMED' || status === "CHECKED_IN") {
-      const disabled = !isConsultationTime(start_time, end_time);
+      const disabled = !isConsultationTime(start_time, end_time, selectedDateISO);
 
       return `
     <button  id="appt-${appointment_id}" onclick='startConsultation(this,${appointment_id}, "${patient_name}" , "${chief_complaint}","${appointment_type}","${link}")'
@@ -197,7 +190,7 @@ async function updateInProgress(btn, appointment_id) {
     return '';
   }
 
-  function renderCard(appt) {
+  function renderCard(appt, selectedDateISO) {
     const { cls: badgeCls, label: badgeLabel } = STATUS_CONFIG[appt.appointment_status] || {};
     const isTelemedicine = appt.appointment_type === 'TELEMEDICINE';
     const typeIcon = isTelemedicine ? ICON_TELEMEDICINE : ICON_IN_PERSON;
@@ -231,18 +224,15 @@ async function updateInProgress(btn, appointment_id) {
 
         <!-- Actions -->
         <div class="flex-shrink-0 flex items-center gap-2">
-          ${renderActions(appt.appointment_status, appt.start_time, appt.end_time, appt.appointment_id, appt.patient_name, appt.chief_complaint,appt.appointment_type,appt.link)}
+          ${renderActions(appt.appointment_status, appt.start_time, appt.end_time, appt.appointment_id, appt.patient_name, appt.chief_complaint,appt.appointment_type,appt.link, selectedDateISO)}
         </div>
 
       </div>`;
   }
 
 
-
-
-  function mountHeader(count) {
-    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const label = new Date().toLocaleDateString('en-US', opts);
+  function mountHeader(count, selectedDateISO) {
+    const label = formatLabel(selectedDateISO);
 
     const dateEl = document.getElementById('today-date-label');
     const countEl = document.getElementById('today-count-label');
@@ -251,7 +241,7 @@ async function updateInProgress(btn, appointment_id) {
   }
 
 
-  function render() {
+  function render(selectedDateISO) {
     const list = document.getElementById('today-appointments-list');
     const emptyState = document.getElementById('today-empty-state');
     if (!list) return;
@@ -259,13 +249,13 @@ async function updateInProgress(btn, appointment_id) {
     if (!appts || appts.length === 0) {
       list.innerHTML = '';
       if (emptyState) emptyState.classList.remove('hidden');
-      mountHeader(0);
+      mountHeader(0, selectedDateISO);
       return;
     }
 
-    list.innerHTML = appts.map(renderCard).join('');
+    list.innerHTML = appts.map(appt => renderCard(appt, selectedDateISO)).join('');
     if (emptyState) emptyState.classList.add('hidden');
-    mountHeader(appts.length);
+    mountHeader(appts.length, selectedDateISO);
   }
 
 
@@ -282,6 +272,57 @@ async function updateInProgress(btn, appointment_id) {
       </div>`;
   }
 
-  render();
+
+  function renderLoading() {
+    const list = document.getElementById('today-appointments-list');
+    const emptyState = document.getElementById('today-empty-state');
+    if (emptyState) emptyState.classList.add('hidden');
+    if (!list) return;
+    list.innerHTML = `
+      <div class="py-16 flex flex-col items-center gap-3 text-gray-400">
+        <p class="text-sm">Loading appointments…</p>
+      </div>`;
+  }
+
+
+  async function fetchAppointments(selectedDateISO) {
+    renderLoading();
+    try {
+      const res = await fetch(`/api/v1/doctor/get-appointment?appointment_date=${selectedDateISO}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const result = await res.json();
+      appts = (result.data && result.data[0] && result.data[0].appointment_list) || [];
+      render(selectedDateISO);
+    } catch (err) {
+      console.error('Failed to load appointments:', err);
+      appts = [];
+      renderError();
+      mountHeader(0, selectedDateISO);
+    }
+  }
+
+
+  // ---- Init ----
+  function init() {
+    const dateInput = document.getElementById('today-date-input');
+    const initialDate = todayISO();
+
+    if (dateInput) {
+      dateInput.value = initialDate;
+      dateInput.addEventListener('change', () => {
+        const selected = dateInput.value || todayISO();
+        fetchAppointments(selected);
+      });
+    }
+
+    fetchAppointments(initialDate);
+  }
+
+  init();
 
 })();

@@ -1,5 +1,5 @@
 (function () {
-  const PATIENT_ID_PARAM = "patient_id";
+  const accessToken=localStorage.getItem("accessToken")
   const DETAIL_PAGE_URL = "/view-medical-record"; 
 
   const els = {
@@ -15,8 +15,8 @@
     toast: document.getElementById("toast"),
   };
 
-  const params = new URLSearchParams(window.location.search);
-  const patientId = params.get(PATIENT_ID_PARAM);
+ 
+  const patientId =localStorage.getItem("patient_id");
 
   function showToast(message, isError) {
     els.toast.textContent = message;
@@ -66,11 +66,12 @@
   }
 
   function recordCard(record) {
-    const id = record.record_id ?? record.id;
+   
+    const id = record.appointment_id;
     const complaintSnippet = (record.chief_complaint || "No chief complaint recorded").slice(0, 110);
-    const diagnosis = record.diagnosis || "No diagnosis recorded";
-    const rxCount = record.prescription_count ?? (record.prescriptions ? record.prescriptions.length : 0);
-    const fileCount = record.attachment_count ?? (record.attachments ? record.attachments.length : 0);
+    const appointment_type = record.appointment_type=="IN_PERSON"?"In Person":"Telemedicine"
+    // const rxCount = record.prescription_count ?? (record.prescriptions ? record.prescriptions.length : 0);
+    // const fileCount = record.attachment_count ?? (record.attachments ? record.attachments.length : 0);
 
     const card = document.createElement("button");
     card.type = "button";
@@ -80,23 +81,23 @@
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-[13px] font-semibold text-gray-800">${escapeHtml(formatDate(record.visit_date || record.created_at))}</span>
+            <span class="text-[13px] font-semibold text-gray-800">${escapeHtml(formatDate(record.slot_date))}</span>
             ${record.doctor_name ? `<span class="text-[12px] text-gray-400">• ${escapeHtml(record.doctor_name)}</span>` : ""}
           </div>
           <div class="text-[13.5px] text-gray-700 truncate">${escapeHtml(complaintSnippet)}</div>
           <div class="inline-flex items-center mt-2 text-[11.5px] font-semibold text-brand-dark bg-brand-light rounded-md px-2 py-1">
-            ${escapeHtml(diagnosis)}
+            ${escapeHtml(appointment_type)}
           </div>
         </div>
         <div class="flex flex-col items-end gap-1.5 shrink-0">
-          <span class="text-[11px] text-gray-400">${rxCount} medicine${rxCount === 1 ? "" : "s"}</span>
-          <span class="text-[11px] text-gray-400">${fileCount} file${fileCount === 1 ? "" : "s"}</span>
+         
           <span class="text-[12px] font-semibold text-brand">View &rarr;</span>
         </div>
       </div>
     `;
     card.addEventListener("click", () => {
-      window.location.href = `${DETAIL_PAGE_URL}?record_id=${encodeURIComponent(id)}`;
+      localStorage.setItem("chief_complaint",complaintSnippet)
+      window.location.href = `/doctor${DETAIL_PAGE_URL}/${encodeURIComponent(id)}`;
     });
     return card;
   }
@@ -117,14 +118,19 @@
     setState("loading");
 
     try {
-      const res = await fetch(`/get-patient-all-medical-records/${encodeURIComponent(patientId)}`);
+      const res = await fetch(`/api/v1/doctor/get-patient-all-medical-records/${encodeURIComponent(patientId)}`,{
+        method:'GET'
+        ,headers:{
+          'Authorization':`Bearer ${accessToken}`
+        }
+      });
       if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
       const result = await res.json();
 
-      // Be flexible about the response shape: { records } or { data } or a bare array.
-      const records = result.records || result.data || (Array.isArray(result) ? result : []);
-
-      renderPatientHeader(result.patient);
+      
+      const records = result.data.result
+      const patient=JSON.parse(localStorage.getItem("patient_detail"))
+      renderPatientHeader(patient);
 
       if (!records || records.length === 0) {
         setState("empty");
@@ -142,6 +148,8 @@
 
   els.retryBtn.addEventListener("click", loadRecords);
   els.backBtn.addEventListener("click", () => {
+    localStorage.removeItem("patient_detail")
+    localStorage.removeItem("patient_id")
     if (window.history.length > 1) window.history.back();
     else window.location.href = "/";
   });

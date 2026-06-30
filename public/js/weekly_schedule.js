@@ -480,21 +480,41 @@
 
     renderApp();
 
-    const yyyy=today.getFullYear()
-    const mm=String(today.getMonth()+1).padStart(2,'0')
-    const dd=String(today.getDate()).padStart(2,'0')
+   const today = new Date();
 
-    const formated_date=`${yyyy}-${mm}-${dd}`
+// Find this week's Monday (treating Monday as start of week)
+const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+const daysUntilNextMonday = ((8 - dayOfWeek) % 7) || 7; // always jumps to *next* week's Monday
 
+const nextMonday = new Date(today);
+nextMonday.setDate(today.getDate() + daysUntilNextMonday);
 
-   const leave_from= document.getElementById("leave-from")
-   const leave_to=document.getElementById("leave-to")
-   leave_from.min=formated_date
-   leave_from.addEventListener("change",(e)=>{
+const nextSunday = new Date(nextMonday);
+nextSunday.setDate(nextMonday.getDate() + 6);
 
-    leave_to.min=leave_from.value
+function formatDate(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
-   })
+const minDate = formatDate(nextMonday);
+const maxDate = formatDate(nextSunday);
+
+const leave_from = document.getElementById("leave-from");
+const leave_to = document.getElementById("leave-to");
+
+leave_from.min = minDate;
+leave_from.max = maxDate;
+leave_to.min = minDate;
+leave_to.max = maxDate;
+
+leave_from.addEventListener("change", (e) => {
+ 
+  leave_to.min = leave_from.value;
+  // leave_to.max = maxDate;
+});
     
   }
 

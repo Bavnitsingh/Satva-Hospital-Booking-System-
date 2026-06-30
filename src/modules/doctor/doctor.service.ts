@@ -54,9 +54,9 @@ export class DoctorService {
     return doctorDetails.doctor_id;
   }
 
-  async getTodaysAppointment(user_id: number) {
+  async getAppointmentByDate(user_id: number,appointment_date:string) {
     const doctor_id = await this.getDoctorId(user_id);
-    const date = new Date().toISOString();
+    const date = appointment_date?appointment_date:new Date().toISOString();
     const current_date = String(date.split("T")[0]);
     const appointment_list = await this.doctorRepo.findDoctorAppointments(
       doctor_id,
@@ -95,19 +95,49 @@ export class DoctorService {
     return { result };
   }
 
-  async setLeaves(data: IDoctorLeave,user_id:number) {
-    const doctor_id:number=await this.getDoctorId(user_id)
+  async setLeaves(data: IDoctorLeave, user_id: number) {
+  const doctor_id: number = await this.getDoctorId(user_id);
 
-    if(data.from_date){}
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const daysUntilNextMonday = ((8 - dayOfWeek) % 7) || 7;
 
-    const checkISLeaveExistsBetween:boolean=await this.doctorRepo.checkLeaveExistBetween(data.from_date,data.to_date,doctor_id)
-    if(checkISLeaveExistsBetween){
-      throw new BadRequestException('Your start date or end date is already in your past applied leaves. Cancel that leaves')
-    }
-    const result = await this.doctorRepo.insertDoctorLeaves(data,doctor_id);
+  const nextMonday = new Date(today);
+  nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+  nextMonday.setHours(0, 0, 0, 0); // normalize to midnight
 
-    return { result };
+  const nextSunday = new Date(nextMonday);
+  nextSunday.setDate(nextMonday.getDate() + 6);
+  nextSunday.setHours(23, 59, 59, 999); // end of day
+
+  const fromDate = new Date(data.from_date);
+  const toDate = new Date(data.to_date);
+
+  if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+    throw new BadRequestException('Invalid date format');
   }
+
+  const isWithinNextWeek =
+    fromDate >= nextMonday &&
+    toDate <= nextSunday &&
+    fromDate <= toDate;
+
+  if (!isWithinNextWeek) {
+    throw new BadRequestException('Leave can only be applied for next week');
+  }
+
+  const checkIsLeaveExistsBetween: boolean =
+    await this.doctorRepo.checkLeaveExistBetween(data.from_date, data.to_date, doctor_id);
+
+  if (checkIsLeaveExistsBetween) {
+    throw new BadRequestException(
+      'Your start date or end date overlaps with an existing leave. Cancel that leave first.',
+    );
+  }
+
+  const result = await this.doctorRepo.insertDoctorLeaves(data, doctor_id);
+  return { result };
+}
 
   async getDoctorNotification(doctor_id: number) {
     const notifications =
@@ -307,5 +337,15 @@ export class DoctorService {
     const result =await this.doctorRepo.getMedicalRecordsByAppointmentId(appointment_id)
     return result
 
+  }
+
+  async getPatientAllAppointmentByDoctor(user_id: number, patient_id: number) {
+    const doctor_id = await this.getDoctorId(user_id);
+
+    const result = await this.doctorRepo.fetchPatientAllAppointmentByDoctor(
+      patient_id,
+      doctor_id,
+    );
+    return { result };
   }
 }

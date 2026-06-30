@@ -132,9 +132,8 @@
   
     els.doctorName.textContent = record.doctor_name || "Medical Record";
     els.visitMeta.textContent = formatDate(record.visit_date || record.created_at);
-
-    els.patientName.value = localStorage.getItem('patient_name') || "";
-    els.chiefComplaint.value = localStorage.getItem('chief_complaint')|| "";
+    els.patientName.value = localStorage.getItem('patient_name') || JSON.parse(localStorage.getItem("patient_detail")).name
+    els.chiefComplaint.value = localStorage.getItem('chief_complaint')|| JSON.parse(localStorage.getItem("patient_detail")).chiefComplaint;
     els.examFindings.value = record[0].examination_notes || "";
     els.diagnosis.value = record[0].diagnosis || "";
     els.notes.value = record[2].prescription.notes || "";
@@ -172,14 +171,17 @@
       renderRecord(record);
       setState("ready");
     } catch (err) {
-      console.error(err);
+      err.message.includes('404')
       setState("error");
+      
       showToast("Couldn't load this medical record.", true);
     }
   }
 
   els.retryBtn.addEventListener("click", loadRecord);
   els.backBtn.addEventListener("click", () => {
+    localStorage.removeItem('patient_name')
+    localStorage.removeItem("chief_complaint")
     if (window.history.length > 1) window.history.back();
     else window.location.href = LIST_PAGE_URL;
   });

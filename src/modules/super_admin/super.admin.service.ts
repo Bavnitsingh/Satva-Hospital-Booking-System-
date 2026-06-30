@@ -163,4 +163,16 @@ export class SuperAdminService {
   async getAdminsByHospitalId(hospitalId: number) {
     return await this.superAdminRepo.findAdminsByHospitalId(hospitalId);
   }
+
+  async getDashboardStats() {
+    const todayRevenue = await this.superAdminRepo.getTodayRevenue();
+    const totalDoctors = await this.superAdminRepo.getTotalDoctors();
+    const todayAppointments = await this.superAdminRepo.getTodayAppointments();
+
+    return {
+      todayRevenue,
+      totalDoctors,
+      todayAppointments,
+    };
+  }
 }

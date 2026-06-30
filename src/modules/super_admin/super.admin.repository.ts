@@ -165,4 +165,22 @@ export class SuperAdminRepository {
     const rows = (await query(sql, [hospitalId])) as any[];
     return rows;
   }
+
+  async getTodayRevenue() {
+    const sql = `SELECT SUM(amount) as total_revenue FROM payments WHERE DATE(created_at) = CURDATE() AND status = 'SUCCESS'`;
+    const rows = (await query(sql, [])) as any[];
+    return rows[0]?.total_revenue || 0;
+  }
+
+  async getTotalDoctors() {
+    const sql = `SELECT COUNT(*) as total_doctors FROM doctors`;
+    const rows = (await query(sql, [])) as any[];
+    return rows[0]?.total_doctors || 0;
+  }
+
+  async getTodayAppointments() {
+    const sql = `SELECT COUNT(*) as total_appointments FROM appointments WHERE slot_date = CURDATE()`;
+    const rows = (await query(sql, [])) as any[];
+    return rows[0]?.total_appointments || 0;
+  }
 }

@@ -37,8 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   loadGlobalStats();
   // --- Initialize Dashboard Stats ---
-  document.getElementById("stat-appointments").textContent = "1,204";
-  document.getElementById("stat-doctors").textContent = "342";
   document.getElementById("stat-hospitals").textContent = state.hospitals.total;
   document.getElementById("stat-admins").textContent = state.admins.total;
 

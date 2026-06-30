@@ -64,14 +64,23 @@
         </div>
 
         <!-- Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
+                <div class="p-3 rounded-full bg-yellow-50 text-yellow-600 mr-4 flex-shrink-0">
+                    <i class="fa-solid fa-indian-rupee-sign fa-lg"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Today's Revenue</p>
+                    <p class="text-2xl font-bold text-gray-800" id="stat-revenue">₹<%= stats && stats.todayRevenue ? stats.todayRevenue : 0 %></p>
+                </div>
+            </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
                 <div class="p-3 rounded-full bg-blue-50 text-blue-600 mr-4 flex-shrink-0">
                     <i class="fa-solid fa-calendar-check fa-lg"></i>
                 </div>
                 <div>
                     <p class="text-sm font-medium text-gray-500">Today's Appointments</p>
-                    <p class="text-2xl font-bold text-gray-800" id="stat-appointments">...</p>
+                    <p class="text-2xl font-bold text-gray-800" id="stat-appointments"><%= stats && stats.todayAppointments ? stats.todayAppointments : 0 %></p>
                 </div>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">
@@ -80,7 +89,7 @@
                 </div>
                 <div>
                     <p class="text-sm font-medium text-gray-500">Total Doctors</p>
-                    <p class="text-2xl font-bold text-gray-800" id="stat-doctors">...</p>
+                    <p class="text-2xl font-bold text-gray-800" id="stat-doctors"><%= stats && stats.totalDoctors ? stats.totalDoctors : 0 %></p>
                 </div>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center">

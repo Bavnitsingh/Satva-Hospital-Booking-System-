@@ -19,14 +19,13 @@ import {
  
 } from "../../common/helpers/http-exception.js";
 import { getNextWeekStartingDay } from "./utils/doctor.utilts.js";
-import fs from 'fs'
-import { Console } from "winston/lib/winston/transports/index.js";
-import { ResultSetHeader } from "mysql2";
-
+import { AuditService } from "../../services/audit.service.js";
 
 
 export class DoctorService {
   private doctorRepo = new DoctorRepo();
+  private auditService = new AuditService();
+
 
   async getDoctor(user_id: number) {
     const doctorDetails = await this.doctorRepo.findDoctorByUserID(user_id);
@@ -92,6 +91,15 @@ export class DoctorService {
     const doctor_id=await this.getDoctorId(user_id)
 
     const result = await this.doctorRepo.insertORUpdateDoctorSchedule(data,doctor_id);
+
+    await this.auditService.log({
+      performed_by_user_id: user_id,
+      action: "SET_WEEKLY_SCHEDULE",
+      entity_name: "doctor",
+      entity_id: String(user_id),
+      ip_address:"127.0.0.1"
+    });
+
     return { result };
   }
 
@@ -105,6 +113,14 @@ export class DoctorService {
       throw new BadRequestException('Your start date or end date is already in your past applied leaves. Cancel that leaves')
     }
     const result = await this.doctorRepo.insertDoctorLeaves(data,doctor_id);
+    
+    await this.auditService.log({
+      performed_by_user_id: user_id,
+      action: "SET_DOCTOR_LEAVES",
+      entity_name: "doctor",
+      entity_id: String(user_id),
+      ip_address:"127.0.0.1"
+    });
 
     return { result };
   }
@@ -122,7 +138,7 @@ export class DoctorService {
 
   async insertMedicalRecords(medical_records: IMedicalRecords) {
     const record_id = await this.doctorRepo.insertMedicalRecords(medical_records);
-   
+
     return record_id ;
   }
 
@@ -212,7 +228,14 @@ export class DoctorService {
     const doc_qualification_result=await this.doctorRepo.updateDoctorQualifications(docQualifictionDetail)
     const doctor_specialties_result=await this.doctorRepo.updateDoctorSpecialities(docSpecialities)
 
-
+    await this.auditService.log({
+      performed_by_user_id: data.user_id,
+      action: "DOCTOR_PROFILE_UPDATE",
+      entity_name: "doctor",
+      entity_id: String(data.user_id),
+      ip_address:"127.0.0.1"
+    });
+    
     return {doc_detail_result,doc_qualification_result,doctor_specialties_result}
 
 
@@ -251,7 +274,16 @@ export class DoctorService {
       }
     }
     
-    const isUpdated=await this.doctorRepo.setAppointmentStatus(appointment_id,appointment_status)
+    const isUpdated=await this.doctorRepo.setAppointmentStatus(appointment_id,appointment_status);
+
+    await this.auditService.log({
+      performed_by_user_id: user_id,
+      action: "UPDATE_APPOINTMENT_STATUS",
+      entity_name: "appointment",
+      entity_id: String(user_id),
+      ip_address:"127.0.0.1"
+    });
+
     return {isUpdated}
 
   }
@@ -259,7 +291,6 @@ export class DoctorService {
 
 
   async deleteLeave(leave_id:number){
-
 
     const result =await this.doctorRepo.cancelLeave(leave_id)
     return {result }

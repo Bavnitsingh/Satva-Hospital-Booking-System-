@@ -16,9 +16,10 @@ const ICON_TELEMEDICINE = `
       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
     </svg>`;
 
-async function viewMedicalRecords(btn, appointment_id) {
+async function viewMedicalRecords(btn, appointment_id,patient_name,chief_complaint) {
   localStorage.setItem("appointment_id", appointment_id)
-
+  localStorage.setItem("patient_name",patient_name)
+  localStorage.setItem("chief_complaint",chief_complaint)
   window.location.href = window.location.origin + `/doctor/view-medical-record/${appointment_id}`
 
 }
@@ -94,9 +95,9 @@ async function updateInProgress(btn, appointment_id) {
     btn.previousElementSibling.classList.add('hidden')
     btn.setAttribute('class', 'border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition')
     btn.innerText = 'View Record'
-    btn.onclick = () => { viewMedicalRecords(btn, appointment_id) }
+    btn.onclick = () => { viewMedicalRecords(btn, appointment_id,patient_name,chief_complaint) }
     const response = await result.json();
-    console.log(response); .00
+    console.log(response);
 
   } catch (err) {
     console.error('Failed to update appointment:', err);
@@ -177,7 +178,7 @@ async function updateInProgress(btn, appointment_id) {
     }
     if (status === 'COMPLETED') {
       return `
-        <button id="appt-${appointment_id}"  onclick="viewMedicalRecords(this,${appointment_id})" class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition">
+        <button id="appt-${appointment_id}"  onclick='viewMedicalRecords(this,${appointment_id},"${patient_name}","${chief_complaint}")' class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium px-3 py-2 rounded-lg transition">
           View Record
         </button>`;
     }

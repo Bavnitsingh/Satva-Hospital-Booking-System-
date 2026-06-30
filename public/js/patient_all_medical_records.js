@@ -1,39 +1,6 @@
-/**
- * view_medical_records.js
- * Powers the "Medical Records" list page for a single patient.
- *
- * API used:
- *   GET /get-patient-all-medical-records/:patient_id
- *
- * Assumed response shape (adjust the field names below to match your real API):
- * {
- *   success: true,
- *   patient: {
- *     name: "Jane Doe",
- *     age: 34,
- *     gender: "Female"
- *   },
- *   records: [
- *     {
- *       record_id: "abc123",
- *       visit_date: "2026-06-20T10:30:00.000Z",
- *       doctor_name: "Dr. Michael Chen",
- *       chief_complaint: "Chest pain on exertion",
- *       diagnosis: "I20.9 - Angina pectoris, unspecified",
- *       prescription_count: 2,
- *       attachment_count: 1
- *     }
- *   ]
- * }
- *
- * The page reaches this script as:
- *   /view-medical-records?patient_id=PATIENT_ID
- * Adjust PATIENT_ID_PARAM / DETAIL_PAGE_URL below if your routes differ.
- */
-
 (function () {
   const PATIENT_ID_PARAM = "patient_id";
-  const DETAIL_PAGE_URL = "/view-medical-record"; // page that shows a single record
+  const DETAIL_PAGE_URL = "/view-medical-record"; 
 
   const els = {
     patientName: document.getElementById("patientName"),

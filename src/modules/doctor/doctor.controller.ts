@@ -108,6 +108,7 @@ getPatientAllMedicalRecords=catchAsync(async(req:Request,res:Response)=>{
 getPatientMedicalData=catchAsync(async(req:Request,res:Response)=>{
    
     const appointment_id =Number(req.params.appointment_id)
+    console.log(appointment_id)
     
     if(!appointment_id || appointment_id==undefined){
         throw new BadRequestException('appointment_id is required')

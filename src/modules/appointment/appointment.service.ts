@@ -254,6 +254,14 @@ export class AppointmentService {
         remarks: `Rescheduled to ${data.slot_date} ${data.start_time}`,
       });
 
+      await this.auditService.log({
+        performed_by_user_id: user_id,
+        action: "APPOINTMENT_RESCHEDULED",
+        entity_name: "appointment",
+        entity_id: String(user_id),
+        ip_address:"127.0.0.1"
+      });
+
       await conn.commit();
 
       return {
@@ -328,7 +336,17 @@ export class AppointmentService {
         redirect_url: `/doctor/appointments/${appointment_id}`,
       });
     }
+
+    await this.auditService.log({
+      performed_by_user_id: user_id,
+      action: "APPOINTMENT_CANCELLED",
+      entity_name: "appointment",
+      entity_id: String(user_id),
+      ip_address:"127.0.0.1"
+    });
+
     await conn.commit();
+    
     return {
       appointment_id,
       status: "CANCELLED",

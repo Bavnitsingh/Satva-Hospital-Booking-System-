@@ -55,6 +55,14 @@ export class AuthService {
       role: user.role,
     });
 
+    await this.auditService.log({
+      performed_by_user_id: user.user_id,
+      action: "ADMIN_LOGIN",
+      entity_name: "auth",
+      entity_id: String(user.user_id),
+      ip_address:"127.0.0.1"
+    });
+
     return {
       accessToken,
       user,
@@ -88,7 +96,13 @@ export class AuthService {
     });
 
 
-
+    await this.auditService.log({
+      performed_by_user_id: user.user_id,
+      action: "DOCTOR_REGISTER",
+      entity_name: "auth",
+      entity_id: String(user.user_id),
+      ip_address:"127.0.0.1"
+    });
 
     const accessToken = sign({
       id: user.user_id,
@@ -100,6 +114,56 @@ export class AuthService {
       accessToken,
       user,
       doctor
+    };
+  }
+  
+  async registerStaff(data: any) {
+    const existingUser = await this.userRepo.findUserByEmail(data.email);
+
+    if (existingUser) {
+      throw new Error("Email already exists");
+    }
+
+    const hashedPassword = await getHashedPassword(data.password);
+
+    const user = await this.userRepo.createUser(
+      data.email,
+      hashedPassword,
+      "STAFF",
+    );
+
+    const staff = await this.userRepo.createStaff({
+      user_id: user.user_id,
+      hospital_id: data.hospitalId,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      gender: data.gender,
+      staff_role: data.staff_role,
+      contact_number: data.contact_number,
+      dob: data.dob,
+      address_line1: data.address_line1,
+      address_line2: data.address_line2 ?? ''
+    });
+
+
+    const accessToken = sign({
+      id: user.user_id,
+      email: user.email,
+      role: user.role,
+    });
+
+    await this.auditService.log({
+      performed_by_user_id: user.user_id,
+      action: "STAFF_REGISTER",
+      entity_name: "auth",
+      entity_id: String(user.user_id),
+      ip_address:"127.0.0.1"
+    });
+
+    return {
+      accessToken,
+      user,
+      staff
     };
   }
 
@@ -130,6 +194,15 @@ export class AuthService {
       email: user.email,
       role: user.role,
     });
+
+    await this.auditService.log({
+      performed_by_user_id: user.user_id,
+      action: "USER_LOGIN",
+      entity_name: "auth",
+      entity_id: String(user.user_id),
+      ip_address:"127.0.0.1"
+    });
+
     return { user, token };
   }
 
@@ -173,11 +246,12 @@ export class AuthService {
 
     await this.auditService.log({
       performed_by_user_id: user.user_id,
-      action: "USER_LOGIN",
+      action: "USER_REGISTER",
       entity_name: "users",
       entity_id: String(user.user_id),
       ip_address:"127.0.0.1"
     });
+
     return {
       accessToken,
       refreshToken,
@@ -251,6 +325,15 @@ export class AuthService {
 
     await this.userRepo.updatePassword(hashedPassword, user_id);
     await this.userRepo.deleteOtp(user_id);
+
+    await this.auditService.log({
+      performed_by_user_id: user_id,
+      action: "PASSWORD_CHANGED",
+      entity_name: "users",
+      entity_id: String(user_id),
+      ip_address:"127.0.0.1"
+    });
+
     return {
       success: true,
       message: "Password updated successfully",
@@ -269,48 +352,6 @@ export class AuthService {
     await this.userRepo.logout(userId);
   }
 
-  async registerStaff(data: any) {
-    const existingUser = await this.userRepo.findUserByEmail(data.email);
 
-    if (existingUser) {
-      throw new Error("Email already exists");
-    }
-
-    const hashedPassword = await getHashedPassword(data.password);
-
-    const user = await this.userRepo.createUser(
-      data.email,
-      hashedPassword,
-      "STAFF",
-    );
-
-    const staff = await this.userRepo.createStaff({
-      user_id: user.user_id,
-      hospital_id: data.hospitalId,
-      first_name: data.firstName,
-      last_name: data.lastName,
-      gender: data.gender,
-      staff_role: data.staff_role,
-      contact_number: data.contact_number,
-      dob: data.dob,
-      address_line1: data.address_line1,
-      address_line2: data.address_line2 ?? ''
-    });
-
-
-
-
-    const accessToken = sign({
-      id: user.user_id,
-      email: user.email,
-      role: user.role,
-    });
-
-    return {
-      accessToken,
-      user,
-      staff
-    };
-  }
 
 }

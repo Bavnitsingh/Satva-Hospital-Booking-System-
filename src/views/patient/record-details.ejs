@@ -344,85 +344,53 @@
 
             loadRecord();
             async function generateSummary(recordId) {
-                  const summaryKey =
-                    `record_summary_${recordId}`;
+              const summaryKey = `record_summary_${recordId}`;
+              const modal = document.getElementById("summaryModal");
+              const content = document.getElementById("summaryContent");
+              const button = document.getElementById("aiSummaryBtn");
 
-                  const modal =
-                    document.getElementById("summaryModal");
+              modal.classList.remove("hidden");
 
-                  const content =
-                    document.getElementById("summaryContent");
+              const cachedSummary = localStorage.getItem(summaryKey);
+              if (cachedSummary) {
+                content.innerHTML = formatSummary(cachedSummary);
+                button.disabled = true;
+                button.innerText = "Summary Generated";
+                button.classList.add("opacity-50", "cursor-not-allowed");
+                return;
+              }
 
-                  const button =
-                    document.getElementById("aiSummaryBtn");
+              content.innerHTML = `
+                <div class="flex justify-center py-10">
+                  <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+                <p class="text-center text-gray-500">Generating AI Summary...</p>
+              `;
 
-                  modal.classList.remove("hidden");
+              try {
+                const token = localStorage.getItem("accessToken");
 
-                  const cachedSummary =
-                    localStorage.getItem(summaryKey);
+                const response = await fetch(`/api/v1/patient/records/${recordId}/summary`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
 
-                  if (cachedSummary) {
-                    content.innerHTML =
-                      formatSummary(cachedSummary);
+                const result = await response.json();
 
-                    return;
-                  }
+                localStorage.setItem(summaryKey, result.data);
 
-                  content.innerHTML = `
-                    <div class="flex justify-center py-10">
-                      <div
-                        class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary">
-                      </div>
-                    </div>
+                content.innerHTML = formatSummary(result.data);
 
-                    <p class="text-center text-gray-500">
-                      Generating AI Summary...
-                    </p>
-                  `;
-
-                  try {
-                    const token =
-                      localStorage.getItem("accessToken");
-
-                    const response = await fetch(
-                      `/api/v1/patient/records/${recordId}/summary`,
-                      {
-                        headers: {
-                          Authorization: `Bearer ${token}`,
-                        },
-                      }
-                    );
-
-                    const result =
-                      await response.json();
-
-                    localStorage.setItem(
-                      summaryKey,
-                      result.data
-                    );
-
-                    content.innerHTML =
-                      formatSummary(result.data);
-
-                    button.disabled = true;
-
-                    button.innerText =
-                      "Summary Generated";
-
-                    button.classList.add(
-                      "opacity-50",
-                      "cursor-not-allowed"
-                    );
-                  } catch (error) {
-                    console.error(error);
-
-                    content.innerHTML = `
-                      <div class="text-center text-red-500 py-6">
-                        Failed to generate AI summary.
-                      </div>
-                    `;
-                  }
-                }
+                button.disabled = true;
+                button.innerText = "Summary Generated";
+                button.classList.add("opacity-50", "cursor-not-allowed");
+              } catch (error) {
+                content.innerHTML = `
+                  <div class="text-center text-red-500 py-6">
+                    Failed to generate AI summary.
+                  </div>
+                `;
+              }
+            }
 
             function formatSummary(text) {
               if (!text) return "";

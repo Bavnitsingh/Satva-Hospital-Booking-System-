@@ -4,78 +4,99 @@ import { env } from "../config/index.js";
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 
 export class GeminiService {
-  async summarizeMedicalRecord(record: any) {
+  private buildPrompt(record: any) {
+    const medicines = record.prescriptionItems?.length
+      ? record.prescriptionItems
+          .map(
+            (m: any, index: number) => `
+    ${index + 1}. Medicine: ${m.medicine_name}
+      Dosage: ${m.dosage}
+      Frequency: ${m.frequency}
+      Duration: ${m.duration}
+    `,
+          )
+          .join("\n")
+      : "No medicines prescribed.";
+
+    const attachments = record.attachments?.length
+      ? record.attachments
+          .map(
+            (a: any, index: number) => `
+    ${index + 1}. File Name: ${a.file_name}
+      File Path: ${a.file_path}
+    `,
+          )
+          .join("\n")
+      : "No attachments.";
+
+    return `
+    You are an experienced medical assistant.
+
+    Explain this medical record in very simple English for a non-medical person.
+
+    Rules:
+    - Use simple words.
+    - Keep sentences short.
+    - Do not use bold formatting like **.
+    - Do not be overly technical.
+    - Explain the diagnosis, notes, medicines, and next steps clearly.
+    - Add practical prevention and self-care tips.
+    - Add warning signs that require a doctor visit.
+    - Add a short disclaimer.
+
+    Use this exact structure:
+
+    Summary:
+    What This Means:
+    Medicines Explained:
+    What You Should Do:
+    Prevention Tips:
+    When To Contact Doctor:
+    Important Note:
+
+    Medical Record:
+    Doctor: ${record.doctor_first_name} ${record.doctor_last_name}
+    Appointment Type: ${record.appointment_type}
+    Appointment Date: ${record.slot_date}
+    Diagnosis: ${record.diagnosis || "Not Available"}
+    Examination Notes: ${record.examination_notes || "Not Available"}
+    Prescription Notes: ${record.prescription_notes || "Not Available"}
+
+    Medicines:
+    ${medicines}
+
+    Attachments:
+    ${attachments}
+    `;
+  }
+
+  async summarizeMedicalRecord(record: any): Promise<string> {
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
     });
-    const prompt = `
-        You are an experienced medical assistant.
 
-        Explain this medical record in very simple language so that a non-medical patient can easily understand it.
-        Also make sure that, do not use heavy formatting keep it simple & do not use pattern like **.
+    const prompt = this.buildPrompt(record);
 
-        Rules:
-
-        - Use simple English.
-        - Avoid medical jargon.
-        - Keep sentences short.
-        - Explain medicines and diagnosis in plain language.
-        - Give practical health tips.
-        - Mention warning signs that require doctor consultation.
-        - Do not diagnose beyond the provided record.
-        - Format response exactly as below.
-
-        # Summary
-
-        # What This Means
-
-        # Medicines Explained
-
-        # What You Should Do                 
-
-        # Prevention Tips
-
-        # When To Contact Doctor
-
-        # Important Note
-
-        Medical Record:
-
-        Doctor:
-        ${record.doctor_first_name} ${record.doctor_last_name}
-
-        Appointment Type:
-        ${record.appointment_type}
-
-        Diagnosis:
-        ${record.diagnosis || "Not Available"}
-
-        Examination Notes:
-        ${record.examination_notes || "Not Available"}
-
-        Prescription Notes:
-        ${record.prescription_notes || "Not Available"}
-
-        Medicines:
-        ${JSON.stringify(record.prescriptionItems, null, 2)}
-        `;
-
-    let retries = 3;
-    while (retries > 0) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         const result = await model.generateContent(prompt);
-        return result.response.text();
+        const text = result.response.text().trim();
+
+        if (!text) {
+          throw new Error("Gemini returned empty summary");
+        }
+
+        return text;
       } catch (error: any) {
-        if (error?.status === 503 && retries > 1) {
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          retries--;
+        if (error?.status === 503 && attempt < 3) {
+          await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
           continue;
         }
+
         throw error;
       }
     }
-    // This part should ideally not be reached if retries are exhausted and an error is thrown.
-    // Adding a fallback return to avoid 'not all code paths return a value' error.
-    throw new Error("Failed to generate summary after multiple retries.");
+
+    throw new Error("Failed to generate summary");
   }
 }

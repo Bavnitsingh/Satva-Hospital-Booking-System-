@@ -130,7 +130,10 @@ export class PatientService {
     ) {
       const patientId =
         await this.repo.getPatientIdByUserId(userId);
-
+        
+      if (!patientId) {
+        throw new Error("Patient profile not found");
+      }
       const record =
         await this.repo.getMedicalRecordById(
           recordId,

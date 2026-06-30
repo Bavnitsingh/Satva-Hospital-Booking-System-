@@ -37,7 +37,7 @@
     <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
         <div class="mb-6">
-            <a href="http://localhost:3333/admin/doctors" class="inline-flex items-center text-sm font-medium text-[#00966B] hover:underline space-x-1">
+            <a href="/admin/doctors" class="inline-flex items-center text-sm font-medium text-[#00966B] hover:underline space-x-1">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                 </svg>
@@ -290,7 +290,7 @@
     try {
       const token = localStorage.getItem('accessToken');
 
-      const res = await fetch('http://localhost:3333/api/v1/admin/addDoctor', {
+      const res = await fetch('/api/v1/admin/addDoctor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',       
@@ -306,7 +306,7 @@
       }
 
       setFlash('Doctor registered successfully!', 'success');
-      window.location.href = 'http://localhost:3333/admin/doctors';
+      window.location.href = '/admin/doctors';
 
     } catch (err) {
       showFlash(`Failed to register doctor: ${err.message}`, 'error');
@@ -331,7 +331,7 @@ async function loadSpecialties() {
   try {
     const token = localStorage.getItem('accessToken');
 
-    const res = await fetch('http://localhost:3333/api/v1/admin/fetchSpecialties', {
+    const res = await fetch('/api/v1/admin/fetchSpecialties', {
       headers: {
         'Content-Type':  'application/json',
         'Authorization': `Bearer ${token}`,

@@ -12,7 +12,8 @@ export class SuperAdminPageController {
   });
 
   dashboard = catchAsync(async (req: Request, res: Response) => {
-    return res.render("super_admin/dashboard");
+    const stats = await this.superAdminService.getDashboardStats();
+    return res.render("super_admin/dashboard", { stats });
   });
 
   getCreateAdmin = catchAsync(async (req: Request, res: Response) => {

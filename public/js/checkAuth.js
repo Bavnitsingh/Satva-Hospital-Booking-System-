@@ -1,4 +1,4 @@
-const PATHNAME='/doctor/login';
+const PATHNAME='/login';
 
 const isAccessed=()=>{
 const accessToken=window.localStorage.getItem('accessToken')

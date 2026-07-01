@@ -19,6 +19,9 @@ private init():void{
     this.router.get('/profile/edit',this.page.renderEditProfile)
     this.router.get("/login",this.page.renderDoctorLogin)
     this.router.get("/create-medical-record",this.page.renderCreateMedicalRecords)
+    this.router.get("/view-medical-record/:appointment_id",this.page.renderViewMedicalRecordsByAppointment)
+    this.router.get("/view-file",this.page.renderFile)
+    this.router.get("/view-patient-medical-records",this.page.renderPatientMedicalRecords)
 
 }
  

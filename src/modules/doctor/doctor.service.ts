@@ -19,14 +19,13 @@ import {
  
 } from "../../common/helpers/http-exception.js";
 import { getNextWeekStartingDay } from "./utils/doctor.utilts.js";
-import fs from 'fs'
-import { Console } from "winston/lib/winston/transports/index.js";
-import { ResultSetHeader } from "mysql2";
-
+import { AuditService } from "../../services/audit.service.js";
 
 
 export class DoctorService {
   private doctorRepo = new DoctorRepo();
+  private auditService = new AuditService();
+
 
   async getDoctor(user_id: number) {
     const doctorDetails = await this.doctorRepo.findDoctorByUserID(user_id);
@@ -54,9 +53,9 @@ export class DoctorService {
     return doctorDetails.doctor_id;
   }
 
-  async getTodaysAppointment(user_id: number) {
+  async getAppointmentByDate(user_id: number,appointment_date:string) {
     const doctor_id = await this.getDoctorId(user_id);
-    const date = new Date().toISOString();
+    const date = appointment_date?appointment_date:new Date().toISOString();
     const current_date = String(date.split("T")[0]);
     const appointment_list = await this.doctorRepo.findDoctorAppointments(
       doctor_id,
@@ -92,22 +91,69 @@ export class DoctorService {
     const doctor_id=await this.getDoctorId(user_id)
 
     const result = await this.doctorRepo.insertORUpdateDoctorSchedule(data,doctor_id);
-    return { result };
-  }
 
-  async setLeaves(data: IDoctorLeave,user_id:number) {
-    const doctor_id:number=await this.getDoctorId(user_id)
-
-    if(data.from_date){}
-
-    const checkISLeaveExistsBetween:boolean=await this.doctorRepo.checkLeaveExistBetween(data.from_date,data.to_date,doctor_id)
-    if(checkISLeaveExistsBetween){
-      throw new BadRequestException('Your start date or end date is already in your past applied leaves. Cancel that leaves')
-    }
-    const result = await this.doctorRepo.insertDoctorLeaves(data,doctor_id);
+    await this.auditService.log({
+      performed_by_user_id: user_id,
+      action: "SET_WEEKLY_SCHEDULE",
+      entity_name: "doctor",
+      entity_id: String(user_id),
+      ip_address:"127.0.0.1"
+    });
 
     return { result };
   }
+
+  async setLeaves(data: IDoctorLeave, user_id: number) {
+  const doctor_id: number = await this.getDoctorId(user_id);
+
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const daysUntilNextMonday = ((8 - dayOfWeek) % 7) || 7;
+
+  const nextMonday = new Date(today);
+  nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+  nextMonday.setHours(0, 0, 0, 0); // normalize to midnight
+
+  const nextSunday = new Date(nextMonday);
+  nextSunday.setDate(nextMonday.getDate() + 6);
+  nextSunday.setHours(23, 59, 59, 999); // end of day
+
+  const fromDate = new Date(data.from_date);
+  const toDate = new Date(data.to_date);
+
+  if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+    throw new BadRequestException('Invalid date format');
+  }
+
+  const isWithinNextWeek =
+    fromDate >= nextMonday &&
+    toDate <= nextSunday &&
+    fromDate <= toDate;
+
+  if (!isWithinNextWeek) {
+    throw new BadRequestException('Leave can only be applied for next week');
+  }
+
+  const checkIsLeaveExistsBetween: boolean =
+    await this.doctorRepo.checkLeaveExistBetween(data.from_date, data.to_date, doctor_id);
+
+  if (checkIsLeaveExistsBetween) {
+    throw new BadRequestException(
+      'Your start date or end date overlaps with an existing leave. Cancel that leave first.',
+    );
+  }
+
+  await this.auditService.log({
+      performed_by_user_id: user_id,
+      action: "SET_DOCTOR_LEAVES",
+      entity_name: "doctor",
+      entity_id: String(user_id),
+      ip_address:"127.0.0.1"
+    });
+
+  const result = await this.doctorRepo.insertDoctorLeaves(data, doctor_id);
+  return { result };
+}
 
   async getDoctorNotification(doctor_id: number) {
     const notifications =
@@ -122,7 +168,7 @@ export class DoctorService {
 
   async insertMedicalRecords(medical_records: IMedicalRecords) {
     const record_id = await this.doctorRepo.insertMedicalRecords(medical_records);
-   
+
     return record_id ;
   }
 
@@ -168,7 +214,7 @@ export class DoctorService {
     const result =
       await this.doctorRepo.fetchPatientMedicalAttachments(record_id);
 
-    return { result };
+    return { medical_attachments:result };
   }
 
   async getPatientMedicalRecordAllPrescription(record_id: number) {
@@ -212,7 +258,14 @@ export class DoctorService {
     const doc_qualification_result=await this.doctorRepo.updateDoctorQualifications(docQualifictionDetail)
     const doctor_specialties_result=await this.doctorRepo.updateDoctorSpecialities(docSpecialities)
 
-
+    await this.auditService.log({
+      performed_by_user_id: data.user_id,
+      action: "DOCTOR_PROFILE_UPDATE",
+      entity_name: "doctor",
+      entity_id: String(data.user_id),
+      ip_address:"127.0.0.1"
+    });
+    
     return {doc_detail_result,doc_qualification_result,doctor_specialties_result}
 
 
@@ -251,7 +304,16 @@ export class DoctorService {
       }
     }
     
-    const isUpdated=await this.doctorRepo.setAppointmentStatus(appointment_id,appointment_status)
+    const isUpdated=await this.doctorRepo.setAppointmentStatus(appointment_id,appointment_status);
+
+    await this.auditService.log({
+      performed_by_user_id: user_id,
+      action: "UPDATE_APPOINTMENT_STATUS",
+      entity_name: "appointment",
+      entity_id: String(user_id),
+      ip_address:"127.0.0.1"
+    });
+
     return {isUpdated}
 
   }
@@ -259,7 +321,6 @@ export class DoctorService {
 
 
   async deleteLeave(leave_id:number){
-
 
     const result =await this.doctorRepo.cancelLeave(leave_id)
     return {result }
@@ -295,5 +356,27 @@ export class DoctorService {
 
 
     return {}
+  }
+
+
+  async getMedicalRecords(appointment_id:number){
+
+    if(!appointment_id){
+      throw new BadRequestException('Appointment Id not found')
+    } 
+    console.log(appointment_id)
+    const result =await this.doctorRepo.getMedicalRecordsByAppointmentId(appointment_id)
+    return result
+
+  }
+
+  async getPatientAllAppointmentByDoctor(user_id: number, patient_id: number) {
+    const doctor_id = await this.getDoctorId(user_id);
+
+    const result = await this.doctorRepo.fetchPatientAllAppointmentByDoctor(
+      patient_id,
+      doctor_id,
+    );
+    return { result };
   }
 }

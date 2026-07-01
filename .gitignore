@@ -145,3 +145,5 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+logs/.d37a23021c26022c370dc61ecb46113ddaf09d5a-audit.json
+logs/.d37a23021c26022c370dc61ecb46113ddaf09d5a-audit.json

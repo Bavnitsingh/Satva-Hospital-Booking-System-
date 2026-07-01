@@ -9,11 +9,13 @@ import { NotificationService } from "../notification/notification.services.js";
 import { NotificationType } from "../notification/notification.interface.js";
 import { getConnection } from "../../database/connection.js";
 import { TelemedicineService } from "../telemedicine/telemedicine.services.js";
+import { AuditService } from "../../services/audit.service.js";
 
 export class AppointmentService {
   private repo = new AppointmentRepository();
   private notificationService = new NotificationService();
   private telemedicineService = new TelemedicineService();
+  private auditService = new AuditService();
 
   private async resolvePatientId(user_id: number): Promise<number> {
     const id = await this.repo.getPatientIdByUserId(user_id);
@@ -115,6 +117,15 @@ export class AppointmentService {
         new_status: "CONFIRMED",
         changed_by_user_id: user_id,
         remarks: "Payment successful",
+      });
+
+      await this.auditService.log({
+        performed_by_user_id: user_id,
+        action: "APPOINTMENT_BOOKED",
+        entity_name: "appointments",
+        entity_id: String(appointment_id),
+        new_value: data,
+        ip_address:"127.0.0.1",
       });
 
       await this.notificationService.createNotification({
@@ -243,6 +254,14 @@ export class AppointmentService {
         remarks: `Rescheduled to ${data.slot_date} ${data.start_time}`,
       });
 
+      await this.auditService.log({
+        performed_by_user_id: user_id,
+        action: "APPOINTMENT_RESCHEDULED",
+        entity_name: "appointment",
+        entity_id: String(user_id),
+        ip_address:"127.0.0.1"
+      });
+
       await conn.commit();
 
       return {
@@ -317,7 +336,17 @@ export class AppointmentService {
         redirect_url: `/doctor/appointments/${appointment_id}`,
       });
     }
+
+    await this.auditService.log({
+      performed_by_user_id: user_id,
+      action: "APPOINTMENT_CANCELLED",
+      entity_name: "appointment",
+      entity_id: String(user_id),
+      ip_address:"127.0.0.1"
+    });
+
     await conn.commit();
+    
     return {
       appointment_id,
       status: "CANCELLED",

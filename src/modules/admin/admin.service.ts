@@ -36,53 +36,53 @@ export class AdminService{
 
 
 
-     
-     async addDoctor(data: {
-    firstName:       string;
-    lastName:        string;
-    email:           string;
-    password:        string;
-    gender:          string | null;
-    bio:             string | null;
+
+  async addDoctor(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    gender: string | null;
+    bio: string | null;
     consultationFee: number | null;
     experienceYears: number | null;
-    hospitalId:      number;
-    specialties:     number[];
-    qualifications:  { degree: string; college_name: string; graduation_year: number }[];
+    hospitalId: number;
+    specialties: number[];
+    qualifications: { degree: string; college_name: string; graduation_year: number }[];
   }) {
     const { doctor } = await this.authservice.registerDoctor({
-      firstName:       data.firstName,
-      lastName:        data.lastName,
-      email:           data.email,
-      password:        data.password,
-      gender:          data.gender,
-      bio:             data.bio,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: data.password,
+      gender: data.gender,
+      bio: data.bio,
       consultationFee: data.consultationFee,
       experienceYears: data.experienceYears,
-      hospitalId:      data.hospitalId,
+      hospitalId: data.hospitalId,
     });
 
     const doctor_id = doctor.doctor_id;
-    
-    
 
-if (data.qualifications.length > 0) {
-  try {
-    await this.adminRepo.insertDoctorQualifications(doctor_id, data.qualifications);
-  } catch (err: any) {
-    console.log('qualifications FAILED ', err.message);
-    throw err;
-  }
-}
 
-if (data.specialties.length > 0) {
-  try {
-    await this.adminRepo.insertDoctorSpecialties(doctor_id, data.specialties);
-  } catch (err: any) {
-    throw err;
-  }
-}
-   
+
+    if (data.qualifications.length > 0) {
+      try {
+        await this.adminRepo.insertDoctorQualifications(doctor_id, data.qualifications);
+      } catch (err: any) {
+        console.log('qualifications FAILED ', err.message);
+        throw err;
+      }
+    }
+
+    if (data.specialties.length > 0) {
+      try {
+        await this.adminRepo.insertDoctorSpecialties(doctor_id, data.specialties);
+      } catch (err: any) {
+        throw err;
+      }
+    }
+
 
     // Step 4 — return full doctor with specialties + qualifications
     return await this.adminRepo.getDoctorById(doctor_id);
@@ -123,70 +123,74 @@ if (data.specialties.length > 0) {
   }
 
 
-async editDoctor(doctor_id: number, data: any) {
-  // Check doctor exists before updating
-  const existing = await this.adminRepo.getDoctorById(doctor_id);
-  if (!existing) throw new Error('Doctor not found');
+  async editDoctor(doctor_id: number, data: any) {
+    // Check doctor exists before updating
+    const existing = await this.adminRepo.getDoctorById(doctor_id);
+    if (!existing) throw new Error('Doctor not found');
 
-  return await this.adminRepo.editDoctor(doctor_id, data);
-}
+    return await this.adminRepo.editDoctor(doctor_id, data);
+  }
 
-  async addAuditLogs(payload:AuditPayload){
-   const logs = await this.adminRepo.addAuditLogs(payload);
-   return logs;
-  }   
+  async addAuditLogs(payload: AuditPayload) {
+    const logs = await this.adminRepo.addAuditLogs(payload);
+    return logs;
+  }
 
-  async fetchAppointmentsByHospitalId(hospital_id:number){
+  async fetchAppointmentsByHospitalId(hospital_id: number) {
     const appointments = await this.adminRepo.fetchAppointments(hospital_id);
     return appointments;
   }
-  async fetchAuditLogs (hospital_id:number){
+  async fetchAuditLogs(hospital_id: number) {
     const logs = await this.adminRepo.fetchAuditLogs(hospital_id);
     return logs;
   }
 
-  async fetchSpecialties(){
+  async fetchSpecialties() {
     const spec = await this.adminRepo.fetchSpecialties();
     return spec;
   }
 
   async toggleDoctorStatus(doctorId: number, is_deactivated: number) {
-         return await this.adminRepo.updateDoctorStatus(doctorId, is_deactivated);
-     }
-  
-  async fetchPatientDetails(patient_id:number){
-    const patient= await this.adminRepo.fetchPatientDetailsById(patient_id);
+    return await this.adminRepo.updateDoctorStatus(doctorId, is_deactivated);
+  }
+
+  async fetchPatientDetails(patient_id: number) {
+    const patient = await this.adminRepo.fetchPatientDetailsById(patient_id);
     return patient;
   }
 
-  async fetchHospitalDetails(hospital_id:number){
+  async fetchHospitalDetails(hospital_id: number) {
     const hospital = await this.adminRepo.fetchHospitalDetails(hospital_id);
     return hospital;
   }
 
-  async updateSettings(hospital_id:number,payload:Hospital){
-    const hospital = await this.adminRepo.updateSettings(hospital_id,payload);
+  async updateSettings(hospital_id: number, payload: Hospital) {
+    const hospital = await this.adminRepo.updateSettings(hospital_id, payload);
     return hospital;
   }
 
-  async fetchStats(hospital_id:number){
+  async fetchStats(hospital_id: number) {
     const stats = await this.adminRepo.fetchStatsOfHospital(hospital_id);
     return stats;
   }
 
 
-  async fetchAppointment(appointment_id:number){
+  async fetchAppointment(appointment_id: number) {
     const appointment = await this.adminRepo.fetchAppointmentDetails(appointment_id);
     return appointment;
   }
 
-  async fetchStaff (hospital_id:number){
+  async fetchStaff(hospital_id: number) {
     const staff = await this.adminRepo.fetchStaffs(hospital_id);
     return staff;
   }
 
-  async getStaffById(staff_id:number){
+  async getStaffById(staff_id: number) {
     const staff = await this.adminRepo.getStaffById(staff_id);
     return staff;
   }
+
+
+
+
 }

@@ -14,7 +14,6 @@ export class AuthController {
   login = catchAsync(async (req: Request, res: Response) => {
 
     const { refreshToken, ...data } = await this.authService.login(req.body);
-
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -174,16 +173,50 @@ export class AuthController {
     await this.authService.logout((req as AuthRequest).user.id);
 
     req.session?.destroy(() => { });
-
+    res.clearCookie("refreshToken");
     generalResponse({
       res,
       message: "Logged out successfully",
-  }
+      statusCode: 200
+    }
 
-)})
+    )
+  })
 
 
-registerStaff = catchAsync(async (req: Request, res: Response) => {
+  refresh = catchAsync(async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refreshToken;
+    
+    if (!refreshToken) {
+      generalResponse({
+        res,
+        data: null,
+        message: "Refresh token missing",
+        statusCode: 401,
+      });
+      return;
+    }
+
+    try {
+      const result = await this.authService.refreshAccessToken(refreshToken);
+      generalResponse({
+        res,
+        data: result,
+        message: "Token refreshed successfully",
+        statusCode: 200,
+      });
+    } catch (error) {
+      generalResponse({
+        res,
+        data: null,
+        message: "Invalid or expired refresh token",
+        statusCode: 401,
+      });
+    }
+  });
+
+
+  registerStaff = catchAsync(async (req: Request, res: Response) => {
 
     const result = await this.authService.registerStaff(req.body);
 
@@ -193,6 +226,16 @@ registerStaff = catchAsync(async (req: Request, res: Response) => {
       data: result,
       message: "Staff Registration Successful",
       statusCode: 201,
+    });
+  });
+
+  checkStatus = catchAsync(async (req: Request, res: Response) => {
+    const user = (req as AuthRequest).user;
+    generalResponse({
+      res,
+      data: { role: user.role },
+      message: "User is authenticated",
+      statusCode: 200,
     });
   });
 }

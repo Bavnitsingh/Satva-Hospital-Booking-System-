@@ -230,7 +230,7 @@
         </h3>
         <p class="text-gray-500 text-sm mb-5">Choose a new date and time.</p>
 
-        <div class="grid sm:grid-cols-2 gap-4">
+        <div class="space-y-4">
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2"
               >Date</label
@@ -238,18 +238,13 @@
             <input
               id="rescheduleDate"
               type="date"
-              class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white"
             />
           </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2"
-              >Time</label
-            >
-            <input
-              id="rescheduleTime"
-              type="time"
-              class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white"
-            />
+          <div id="rescheduleSlotsContainer" class="grid grid-cols-3 gap-2">
+             <div class="col-span-full text-xs text-gray-500 border border-dashed rounded-lg p-4 text-center">
+              Please select a date to see available slots.
+            </div>
           </div>
         </div>
 
@@ -290,6 +285,8 @@
         filtered: [],
         cancelAppointmentId: null,
         rescheduleAppointmentId: null,
+        rescheduleDoctorId: null,
+        rescheduleNewSlot: null,
       };
 
       const el = (id) => document.getElementById(id);
@@ -466,6 +463,7 @@
                       type="button"
                       class="rescheduleBtn px-4 py-2.5 rounded-2xl border border-gray-200 hover:bg-gray-50 font-semibold text-sm ${canMutate ? "" : "opacity-50 cursor-not-allowed"}"
                       data-id="${appt.appointment_id}"
+                      data-doctor-id="${appt.doctor_id}"
                       ${canMutate ? "" : "disabled"}
                     >
                       Reschedule
@@ -498,8 +496,8 @@
         document.querySelectorAll(".rescheduleBtn").forEach((btn) => {
           btn.addEventListener("click", () => {
             state.rescheduleAppointmentId = btn.getAttribute("data-id");
+            state.rescheduleDoctorId = btn.getAttribute("data-doctor-id");
             el("rescheduleDate").value = "";
-            el("rescheduleTime").value = "";
             el("rescheduleModal").classList.remove("hidden");
           });
         });
@@ -601,17 +599,17 @@
       async function rescheduleAppointment() {
         if (!state.rescheduleAppointmentId) return;
 
-        const slotDate = el("rescheduleDate").value;
-        const startTime = el("rescheduleTime").value;
+        const slot_date = el("rescheduleDate").value;
+        const start_time = state.rescheduleNewSlot;
 
-        if (!slotDate || !startTime) {
-          showMessage("Please select both date and time.", "error");
+        if (!slot_date || !start_time) {
+          showMessage("Please select a new date and time slot.", "error");
           return;
         }
 
         try {
           const res = await fetch(
-            `/api/v1/patient/appointments/${state.rescheduleAppointmentId}/reschedule`,
+            `/api/v1/appointments/${state.rescheduleAppointmentId}/reschedule`,
             {
               method: "PATCH",
               headers: {
@@ -619,8 +617,8 @@
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                slotDate,
-                startTime: `${startTime}:00`,
+                slot_date: slot_date,
+                start_time: `${start_time}:00`,
               }),
             },
           );
@@ -636,12 +634,58 @@
         }
       }
 
+      async function loadRescheduleSlots() {
+        const date = el("rescheduleDate").value;
+        const container = el("rescheduleSlotsContainer");
+        state.rescheduleNewSlot = null;
+
+        if (!date) {
+          container.innerHTML = `<div class="col-span-full text-xs text-gray-500 border border-dashed rounded-lg p-4 text-center">Please select a date.</div>`;
+          return;
+        }
+
+        container.innerHTML = `<div class="col-span-full text-xs text-gray-500 p-4 text-center">Loading slots...</div>`;
+
+        try {
+          const res = await fetch(`/api/v1/appointments/slots?doctorId=${state.rescheduleDoctorId}&date=${date}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.message || 'Failed to load slots');
+
+          const slots = json.data?.available_slots || [];
+          if (!slots.length) {
+            container.innerHTML = `<div class="col-span-full text-xs text-gray-500 border border-dashed rounded-lg p-4 text-center">${json.data?.reason || 'No slots available.'}</div>`;
+            return;
+          }
+
+          container.innerHTML = slots.map(slot => `
+            <button type="button" data-slot="${slot}" class="reschedule-slot-btn text-sm font-semibold border rounded-lg py-2 text-center transition hover:border-primary hover:bg-primary-light">
+              ${formatTime(slot)}
+            </button>
+          `).join('');
+
+          document.querySelectorAll('.reschedule-slot-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              document.querySelectorAll('.reschedule-slot-btn').forEach(b => b.classList.remove('bg-primary', 'text-white', 'border-primary'));
+              btn.classList.add('bg-primary', 'text-white', 'border-primary');
+              state.rescheduleNewSlot = btn.dataset.slot;
+            });
+          });
+
+        } catch (err) {
+          container.innerHTML = `<div class="col-span-full text-xs text-red-500 border border-dashed border-red-200 rounded-lg p-4 text-center">${err.message}</div>`;
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         loadAppointments();
 
         el("filterBtn").addEventListener("click", applyFilters);
         el("searchInput").addEventListener("input", applyFilters);
         el("statusFilter").addEventListener("change", applyFilters);
+
+        el("rescheduleDate").addEventListener("change", loadRescheduleSlots);
 
         el("closeCancelModalBtn").addEventListener("click", () =>
           el("cancelModal").classList.add("hidden"),

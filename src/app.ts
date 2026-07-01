@@ -16,12 +16,9 @@ import { SuperAdminPageRoutes } from "./modules/super_admin/super.admin.page.rou
 import { HospitalPageRoutes } from "./modules/hospital/hospital.page.routes.js";
 import { AdminPageRoutes } from "./modules/admin/admin.page.routes.js";
 import { StaffPageRoutes } from "./modules/staff/staff.page.routes.js";
-import limiter, { rateLimit } from "express-rate-limit";
 
 
 import { notFoundMiddleware } from "./common/middlewares/not-found.middlware.js";
-
-
 
 
 export function buildApp(): Application {
@@ -29,15 +26,6 @@ export function buildApp(): Application {
 
   let __filePath = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filePath);
-
-  let limiter = rateLimit({
-    max:10,  // max 5 request allowed from a particular IP
-    windowMs:3*60*1000, // in 3 minutes
-    message:"We have received too many requests from this IP, Please try again later."
-  })
-
-
-  // app.use("/api/v1",limiter);
 
 
   //configuring ejs settings
@@ -79,7 +67,7 @@ export function buildApp(): Application {
     const doctor_profile = path.join(folderpath, "doctor_profile");
     fs.mkdirSync(doctor_profile);
     // Add logic below for creating new folder
-    const medical_records=path.join(folderpath,"medical_records")
+    const medical_records = path.join(folderpath, "medical_records")
     fs.mkdirSync(medical_records)
 
     console.log("Folder Created Successfully ");
@@ -99,11 +87,9 @@ export function buildApp(): Application {
   app.use(passport.session());
   // HANDLES GLOBAL ERROR
 
-app.use('/admin', new AdminPageRoutes().router);
+  app.use('/admin', new AdminPageRoutes().router);
 
-app.use('/staff',new StaffPageRoutes().router)
-
-
+  app.use('/staff', new StaffPageRoutes().router)
 
 
   //ROUTER
@@ -115,7 +101,12 @@ app.use('/staff',new StaffPageRoutes().router)
 
   app.use('/super-admin', new SuperAdminPageRoutes().router);
   app.use('/hospital', new HospitalPageRoutes().router);
-
+  app.get("/about", (req, res) => {
+    res.render("about");
+  });
+  app.get("/contact", (req, res) => {
+    res.render("contact");
+  });
 
 
 

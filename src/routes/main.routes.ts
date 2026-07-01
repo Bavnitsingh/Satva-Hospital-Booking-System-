@@ -10,6 +10,7 @@ import { TelemedicineRoutes } from "../modules/telemedicine/telemedicine.routes.
 import { AppointmentRoutes } from "../modules/appointment/appointment.routes.js";
 import { NotificationRouter } from "../modules/notification/notification.route.js";
 import { StaffRoutes } from "../modules/staff/staff.routes.js";
+import { ContactUsRoutes } from "../modules/contactus/contactus.routes.js";
 
 export function buildApiRouter(): Router {
   const router = Router();
@@ -25,7 +26,8 @@ export function buildApiRouter(): Router {
     new TelemedicineRoutes(),
     new AppointmentRoutes(),
     new NotificationRouter(),
-    new StaffRoutes()
+    new StaffRoutes(),
+    new ContactUsRoutes()
 
   ];
 

@@ -1,4 +1,6 @@
 import { getConnection } from "../../database/connection.js";
+import { AuditService } from "../../services/audit.service.js";
+import { GeminiService } from "../../services/gemini.service.js";
 import { NotificationType } from "../notification/notification.interface.js";
 import { NotificationRepository } from "../notification/notification.repository.js";
 import { NotificationService } from "../notification/notification.services.js";
@@ -12,9 +14,11 @@ import {
 
 
 export class PatientService {
-
+  private geminiService = new GeminiService();
   private repo = new PatientRepository();
   private notificationService = new NotificationService(); 
+  private auditService = new AuditService();
+
   private async resolvePatientId(userId: number): Promise<number> {
     const id = await this.repo.getPatientIdByUserId(userId);
     if (!id) throw new Error("Patient profile not found");
@@ -87,8 +91,7 @@ export class PatientService {
     await this.repo.updateProfile(patientId, filtered);
   
 
-    // this is for creating and storing the notification in db
-
+    // this is for creating and storing the notification in d
 
     await this.notificationService.createNotification({
       user_id: userId,
@@ -113,6 +116,14 @@ export class PatientService {
     } else {
       await this.repo.deleteInsuranceDetails(patientId);
     }
+
+    await this.auditService.log({
+      performed_by_user_id: userId,
+      action: "PATINET_PROFILE_UPDATE",
+      entity_name: "patient",
+      entity_id: String(userId),
+      ip_address:"127.0.0.1"
+    });
     
     await conn.commit();
 
@@ -123,6 +134,33 @@ export class PatientService {
     }
   }
 
+    async getMedicalRecordSummary(
+      userId: number,
+      recordId: number,
+    ) {
+      const patientId =
+        await this.repo.getPatientIdByUserId(userId);
+        
+      if (!patientId) {
+        throw new Error("Patient profile not found");
+      }
+      const record =
+        await this.repo.getMedicalRecordById(
+          recordId,
+          patientId,
+        );
+
+      if (!record) {
+        throw new Error("Medical record not found");
+      }
+
+      const summary =
+        await this.geminiService.summarizeMedicalRecord(
+          record,
+        );
+
+      return summary;
+    }
 
   // Family members
   async getFamilyMembers(userId: number) {

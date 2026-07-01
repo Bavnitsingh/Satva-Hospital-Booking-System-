@@ -6,6 +6,7 @@ export class HospitalService {
   async createHospital(hospitalData: Hospital) {
     try {
       return await this.hospitalRepository.create(hospitalData);
+
     } catch (error) {
       console.error("Database error during createHospital:", error);
       throw new Error("Something unexpected happened", {

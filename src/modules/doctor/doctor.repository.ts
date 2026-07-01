@@ -122,7 +122,7 @@ export class DoctorRepo {
     const rows: any = await query(
       `    
 select 
-	COUNT(a.appointment_status)-SUM(CASE WHEN a.appointment_status='CANCELLED' THEN 1 WHEN a.appointment_status='RESCHEDULED' THEN 1 ELSE 0 END) as 'TOTAL APPOINTMENT',
+	COUNT(a.appointment_status)-COALESCE(SUM(CASE WHEN a.appointment_status='CANCELLED' THEN 1 WHEN a.appointment_status='RESCHEDULED' THEN 1 ELSE 0 END),0) as 'TOTAL APPOINTMENT',
     COUNT(CASE WHEN a.appointment_status = 'CONFIRMED' OR a.appointment_status='CHECKED_IN' THEN 1 END) AS 'UPCOMING',
     COUNT(CASE WHEN a.appointment_status = 'CANCELLED' THEN 1 END) AS 'CANCELLED',
     COUNT(CASE WHEN a.appointment_status = 'RESCHEDULED' THEN 1 END) AS 'RESCHEDULED'
@@ -326,6 +326,7 @@ select
       `select file_name,file_path from medical_record_attachments where record_id=?`,
       [record_id],
     );
+    
 
     return rows;
   }
@@ -334,10 +335,10 @@ select
     // this fetches all prescription from record_id
 
     const rows: any = await query(
-      `select notes from prescriptions where record_id=?`,
+      `select prescription_id,notes from prescriptions where record_id=?`,
       [record_id],
     );
-    return rows;
+    return rows[0];
   }
 
   async fetchPatientPrescriptionsItems(prescription_id:number){
@@ -463,5 +464,23 @@ async getPatientAndDoctorIdByAppointmentId(appointment_id:number){
   return rows[0]
 
 }
+
+async getMedicalRecordsByAppointmentId(appointment_id:number){
+  const rows =await query("select record_id,doctor_id,patient_id,diagnosis,examination_notes from medical_records where appointment_id=?",[appointment_id]) as RowDataPacket
+  return rows[0]
+}
+
+ async fetchPatientAllAppointmentByDoctor(patient_id: number, doctor_id: number) {
+    
+    const rows: any = await query(
+      `
+     select appointment_id,slot_date, chief_complaint,appointment_type from appointments where patient_id=? and doctor_id=?
+      `,
+      [patient_id, doctor_id],
+    );
+
+    return rows;
+  }
+
 
 }

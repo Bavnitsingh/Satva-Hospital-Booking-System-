@@ -134,7 +134,7 @@ async editDoctor(doctor_id: number, data: any) {
   async addAuditLogs(payload:AuditPayload){
    const logs = await this.adminRepo.addAuditLogs(payload);
    return logs;
-  }
+  }   
 
   async fetchAppointmentsByHospitalId(hospital_id:number){
     const appointments = await this.adminRepo.fetchAppointments(hospital_id);

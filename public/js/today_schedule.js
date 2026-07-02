@@ -109,6 +109,14 @@ async function updateInProgress(btn, appointment_id,patient_name,chief_complaint
 
   let appts = [];
 
+  // ---- Pagination state ----
+  let currentPage = 1;
+  const LIMIT = 10;
+  let hasMore = true;
+  let isLoadingMore = false;
+  let currentDateISO = null;
+  let observer = null;
+
   // ---- Date helpers ----
   function todayISO() {
     const d = new Date();
@@ -118,7 +126,6 @@ async function updateInProgress(btn, appointment_id,patient_name,chief_complaint
 
   function formatLabel(isoDate) {
     const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    // Parse as local date, not UTC, to avoid off-by-one day issues
     const [y, m, d] = isoDate.split('-').map(Number);
     const localDate = new Date(y, m - 1, d);
     return localDate.toLocaleDateString('en-US', opts);
@@ -137,7 +144,6 @@ async function updateInProgress(btn, appointment_id,patient_name,chief_complaint
 
 
   function isConsultationTime(start_time, end_time, selectedDateISO) {
-    // Only allow "Start Consultation" to be enabled for today's date
     if (selectedDateISO !== todayISO()) return false;
 
     const localTime = new Date().toLocaleTimeString().substring(0, 5)
@@ -240,6 +246,103 @@ async function updateInProgress(btn, appointment_id,patient_name,chief_complaint
     if (countEl) countEl.textContent = `${count} appointment${count !== 1 ? 's' : ''} scheduled`;
   }
 
+  // ---- Infinite scroll helpers ----
+
+  // Find nearest scrollable ancestor of an element (or null if the page itself scrolls)
+  function getScrollParent(el) {
+    let node = el.parentElement;
+    while (node && node !== document.body) {
+      const style = window.getComputedStyle(node);
+      const overflowY = style.overflowY;
+      const isScrollable = (overflowY === 'auto' || overflowY === 'scroll');
+      if (isScrollable && node.scrollHeight > node.clientHeight) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return null; // page-level scroll
+  }
+
+  function ensureSentinel() {
+    let sentinel = document.getElementById('today-appointments-sentinel');
+    if (!sentinel) {
+      sentinel = document.createElement('div');
+      sentinel.id = 'today-appointments-sentinel';
+      sentinel.style.width = '100%';
+      sentinel.style.height = '1px';
+    }
+    return sentinel;
+  }
+
+  function renderLoadingMore(show) {
+    let el = document.getElementById('today-loading-more');
+    const list = document.getElementById('today-appointments-list');
+    if (!list) return;
+
+    if (show) {
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'today-loading-more';
+        el.className = 'py-4 flex justify-center text-gray-400 text-xs';
+        el.textContent = 'Loading more…';
+        list.parentNode.insertBefore(el, list.nextSibling);
+      }
+    } else if (el) {
+      el.remove();
+    }
+  }
+
+  function attachSentinel() {
+    const list = document.getElementById('today-appointments-list');
+    if (!list) return null;
+    const sentinel = ensureSentinel();
+    // always place sentinel immediately after the list
+    list.parentNode.insertBefore(sentinel, list.nextSibling);
+    return sentinel;
+  }
+
+  function setupObserver(selectedDateISO) {
+    const list = document.getElementById('today-appointments-list');
+    if (!list) return;
+
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+
+    const sentinel = attachSentinel();
+    if (!sentinel) return;
+
+    const scrollRoot = getScrollParent(list); // null = page scroll
+
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && hasMore && !isLoadingMore) {
+          loadMore(selectedDateISO);
+        }
+      });
+    }, { root: scrollRoot, rootMargin: '250px', threshold: 0 });
+
+    observer.observe(sentinel);
+
+    // Fallback: also listen to scroll directly, in case IntersectionObserver
+    // misbehaves with dynamically-resizing containers. This is cheap and
+    // just re-checks the sentinel's bounding position.
+    const scrollTarget = scrollRoot || window;
+    scrollTarget.addEventListener('scroll', onScrollFallback, { passive: true });
+  }
+
+  function onScrollFallback() {
+    if (!hasMore || isLoadingMore) return;
+    const sentinel = document.getElementById('today-appointments-sentinel');
+    if (!sentinel) return;
+    const rect = sentinel.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    if (rect.top <= viewportHeight + 250) {
+      loadMore(currentDateISO);
+    }
+  }
+
 
   function render(selectedDateISO) {
     const list = document.getElementById('today-appointments-list');
@@ -250,12 +353,15 @@ async function updateInProgress(btn, appointment_id,patient_name,chief_complaint
       list.innerHTML = '';
       if (emptyState) emptyState.classList.remove('hidden');
       mountHeader(0, selectedDateISO);
+      attachSentinel();
       return;
     }
 
     list.innerHTML = appts.map(appt => renderCard(appt, selectedDateISO)).join('');
     if (emptyState) emptyState.classList.add('hidden');
     mountHeader(appts.length, selectedDateISO);
+
+    attachSentinel();
   }
 
 
@@ -286,9 +392,15 @@ async function updateInProgress(btn, appointment_id,patient_name,chief_complaint
 
 
   async function fetchAppointments(selectedDateISO) {
+    currentDateISO = selectedDateISO;
+    currentPage = 1;
+    hasMore = true;
+    appts = [];
+    isLoadingMore = false;
+
     renderLoading();
     try {
-      const res = await fetch(`/api/v1/doctor/get-appointment?appointment_date=${selectedDateISO}`, {
+      const res = await fetch(`/api/v1/doctor/get-appointment?appointment_date=${selectedDateISO}&page=${currentPage}&limit=${LIMIT}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -296,13 +408,50 @@ async function updateInProgress(btn, appointment_id,patient_name,chief_complaint
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const result = await res.json();
-      appts = (result.data && result.data[0] && result.data[0].appointment_list) || [];
+      const pageItems = (result.data && result.data[0] && result.data[0].appointment_list) || [];
+
+      appts = pageItems;
+      hasMore = pageItems.length === LIMIT;
+
       render(selectedDateISO);
+      setupObserver(selectedDateISO);
     } catch (err) {
       console.error('Failed to load appointments:', err);
       appts = [];
+      hasMore = false;
       renderError();
       mountHeader(0, selectedDateISO);
+    }
+  }
+
+
+  async function loadMore(selectedDateISO) {
+    if (isLoadingMore || !hasMore) return;
+    isLoadingMore = true;
+    const nextPage = currentPage + 1;
+
+    renderLoadingMore(true);
+    try {
+      const res = await fetch(`/api/v1/doctor/get-appointment?appointment_date=${selectedDateISO}&page=${nextPage}&limit=${LIMIT}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const result = await res.json();
+      const pageItems = (result.data && result.data[0] && result.data[0].appointment_list) || [];
+
+      currentPage = nextPage;
+      appts = appts.concat(pageItems);
+      hasMore = pageItems.length === LIMIT;
+
+      render(selectedDateISO);
+    } catch (err) {
+      console.error('Failed to load more appointments:', err);
+    } finally {
+      isLoadingMore = false;
+      renderLoadingMore(false);
     }
   }
 

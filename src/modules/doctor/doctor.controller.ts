@@ -28,9 +28,10 @@ getDoctor=catchAsync(async(req:Request,res:Response)=>{
 getAppointmentByDate=catchAsync(async(req:Request,res:Response)=>{
 
     const user_id:number=(req as AuthRequest).user.id 
-    const date=req.query.appointment_date || ''
-  
-    const result =await this.doctorService.getAppointmentByDate(user_id,date)
+    const date=String(req.query.appointment_date) || ''
+    const {page,limit}=req.query
+   
+    const result =await this.doctorService.getAppointmentByDate(user_id,date,Number(page),Number(limit))
     
     generalResponse({res,data:[result],message:'Successfully Fetched Todays Appointment',statusCode:200})
 })
@@ -72,7 +73,9 @@ postWeeklySchedule=catchAsync(async(req:Request,res:Response)=>{
 
 getPatientList=catchAsync(async(req:Request,res:Response)=>{
     const user_id=(req as AuthRequest).user.id 
-    const result =await this.doctorService.getPatientList(user_id)
+    let {page, limit}=req.query
+    
+    const result =await this.doctorService.getPatientList(user_id,Number(page),Number(limit))
 
     generalResponse({res,data:[result],message:'Successfully Fetched Data',statusCode:200})
 

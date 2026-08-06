@@ -1,4 +1,4 @@
-import { Router } from "express";
+ import { Router } from "express";
 import { AdminPageController } from "./admin.page.controller.js";
 import { Routes } from "../../common/interfaces/routes.interfaces.js";
 

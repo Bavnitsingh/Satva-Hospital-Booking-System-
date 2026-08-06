@@ -136,10 +136,17 @@ export class AdminService{
     return logs;
   }
 
-  async fetchAppointmentsByHospitalId(hospital_id: number) {
-    const appointments = await this.adminRepo.fetchAppointments(hospital_id);
-    return appointments;
-  }
+async fetchAppointmentsByHospitalId(hospital_id: number, page: number, limit: number, search: string = "") {
+  const filters = {page,limit,search}
+  const { rows, total } = await this.adminRepo.fetchAppointments(hospital_id,filters);
+  
+  return {
+    data: rows,
+    total,
+    page,
+    limit
+  };
+}
   async fetchAuditLogs(hospital_id: number) {
     const logs = await this.adminRepo.fetchAuditLogs(hospital_id);
     return logs;

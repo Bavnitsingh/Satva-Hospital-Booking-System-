@@ -18,6 +18,8 @@ type UpdatePatientProfileDto = Partial<
     IPatient,
     | "first_name"
     | "last_name"
+    |"country_code" 
+    | "mobile"
     | "address_line1"
     | "address_line2"
     | "blood_group"

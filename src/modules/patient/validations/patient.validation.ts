@@ -7,6 +7,9 @@ export const update_patient_profile_schema = z.object({
 
   address_line1: z.string().max(255).optional(),
   address_line2: z.string().max(255).optional(),
+  country_code: z.string().max(5).optional(),
+  mobile: z.string().min(7).max(15).optional(),
+  dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 
   blood_group: z
     .enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])

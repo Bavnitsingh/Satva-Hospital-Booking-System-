@@ -14,26 +14,53 @@ export class PatientController {
   private service = new PatientService();
 
   // Profile
-  getProfile = catchAsync(async (req: Request, res: Response) => {
-    let result: any = null;
-    try {
-      result = await this.service.getProfile((req as AuthRequest).user.id);
-    } catch (e) {
-      // Patient record might be missing, ignore to allow profile update check
-    }
-    const isProfileUpdated = !!(result?.mobile?.trim() && result?.address_line1?.trim());
-    generalResponse({
-      res,
-      data: { ...result, isProfileUpdated },
-      message: "Profile fetched",
-      statusCode: 200,
-    });
+ getProfile = catchAsync(async (req: Request, res: Response) => {
+  let result: any = null;
+  const authUser = (req as AuthRequest).user; // Contains ID, email, role, first_name, last_name, etc.
+
+  try {
+    result = await this.service.getProfile(authUser.id);
+  } catch (e) {
+    // Patient profile model row might be missing, ignore to allow creation flow
+  }
+
+  const isProfileUpdated = !!(result?.mobile?.trim() && result?.address_line1?.trim());
+
+  const userProfilePayload = {
+    // Fallbacks to Auth Token details if profile row record hasn't been instantiated yet
+    id: authUser.id,
+    email: authUser.email,
+    role: authUser.role,
+    first_name: result?.first_name || "",
+    last_name: result?.last_name  || "",
+    
+    // Profile-specific fields
+    country_code: result?.country_code || "",
+    mobile: result?.mobile || "",
+    dob: result?.dob || "",
+    gender: result?.gender || "MALE",
+    blood_group: result?.blood_group || "O+",
+    address_line1: result?.address_line1 || "",
+    address_line2: result?.address_line2 || "",
+    is_insured: result?.is_insured || false,
+    insurance: result?.insurance || null,
+    familyMembers: result?.familyMembers || [],
+    profile_path: result?.profile_path || null,
+    
+    isProfileUpdated
+  };
+
+  generalResponse({
+    res,
+    data: userProfilePayload,
+    message: "Profile fetched successfully",
+    statusCode: 200,
   });
+});
 
 updateProfile = catchAsync(async (req: Request, res: Response) => {
   const files = req.files as any;
   const body = req.body as IUpdatePatientProfile;
-
   const profileImage = files?.profile_upload?.[0];
   const policyDocument = files?.policy_document?.[0];
 
@@ -76,7 +103,6 @@ updateProfile = catchAsync(async (req: Request, res: Response) => {
       (req as AuthRequest).user.id,
       req.body,
     );
-    console.log(req.body)
     generalResponse({
       res,
       data: result,

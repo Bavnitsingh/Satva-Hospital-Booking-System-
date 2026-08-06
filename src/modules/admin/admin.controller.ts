@@ -133,17 +133,28 @@ editDoctor = catchAsync(async (req: Request, res: Response) => {
 });
     // Just call addAuditLog method and give payload in parameters
     
-   fetchAppointments = catchAsync(async(req:Request,res:Response)=>{
- const hospital_id = await this.getHospitalIdFromReq(req);
-    const appointments = await this.adminService.fetchAppointmentsByHospitalId(hospital_id);
+  fetchAppointments = catchAsync(async (req: Request, res: Response) => {
+  const hospital_id = await this.getHospitalIdFromReq(req);
+  
+  // Extract and parse incoming pagination metrics safely
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const search = (req.query.search as string) || "";
 
-    generalResponse({
-        res,
-        data:appointments,
-        message:"Appointments fetched properly",
-        statusCode:200
-    })
-    })
+  const appointmentDataEnvelope = await this.adminService.fetchAppointmentsByHospitalId(
+    hospital_id, 
+    page, 
+    limit, 
+    search
+  );
+
+  generalResponse({
+    res,
+    data: appointmentDataEnvelope, // This will match { data: [...], total, page, limit }
+    message: "Appointments fetched properly",
+    statusCode: 200
+  });
+});
 
     fetchAuditLogs = catchAsync(async(req:Request,res:Response)=>{
          const hospital_id = await this.getHospitalIdFromReq(req);

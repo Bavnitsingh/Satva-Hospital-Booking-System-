@@ -13,6 +13,8 @@ export class AuthController {
 
   login = catchAsync(async (req: Request, res: Response) => {
 
+    console.log(req.body )
+
     const { refreshToken, ...data } = await this.authService.login(req.body);
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -63,6 +65,8 @@ export class AuthController {
   sendOtp = catchAsync(async (req: Request, res: Response) => {
     const { email } = req.body;
 
+
+ 
     if (!email) {
       generalResponse({
         res,
@@ -75,13 +79,15 @@ export class AuthController {
 
     const otpResult: any = await this.authService.getOtp(email);
 
+
+
     req.session.email = email;
     req.session.isEmailVerified = true;
     req.session.user_id = otpResult.data.user_id;
 
     generalResponse({
       res,
-      data: null,
+      data: otpResult.data.otp,
       message: "OTP sent successfully",
       statusCode: 200,
     });
@@ -102,6 +108,7 @@ export class AuthController {
   resetPassword = async (req: Request, res: Response) => {
     try {
       let { otp, newPassword, confirm_password } = req.body;
+      console.log(req.body)
 
       let user_id = req.session.user_id as number;
       let email = req.session.email as string;

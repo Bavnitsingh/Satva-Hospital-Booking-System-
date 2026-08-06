@@ -35,6 +35,7 @@ export class SuperAdminRoutes implements Routes {
 
 
     this.router.get("/list", superAdminAuth, this.superAdminController.getAdminsList);
+    this.router.get("/getAdmin", superAdminAuth, this.superAdminController.getAdminById);
 
     // Admin CRUD routes
 

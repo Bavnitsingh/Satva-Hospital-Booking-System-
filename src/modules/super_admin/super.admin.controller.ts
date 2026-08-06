@@ -99,6 +99,27 @@ export class SuperAdminController {
   });
 
 
+  getAdminById = catchAsync(async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.query.id as string);
+      const admin = await this.superAdminService.getAdminById(id);
+      generalResponse({
+        res,
+        data: admin,
+        message: "Admin fetched successfully.",
+        statusCode: 200,
+      });
+    } catch (error) {
+      generalResponse({
+        res,
+        data: error,
+        message: `${error instanceof Error ? error.message : "Error"}`,
+        statusCode: error instanceof Error ? ((error.cause as { status?: number })?.status ?? 500) : 500,
+      });
+    }
+  });
+
+
   postCreateAdmin = catchAsync(async (req: Request, res: Response) => {
     try {
       // The registerAdmin method in service already handles user/admin creation

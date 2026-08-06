@@ -79,6 +79,7 @@ export class PatientService {
       const filtered = Object.fromEntries(
         Object.entries(data).filter(([k]) => allowed.includes(k)),
       );
+      console.log("filtered:" , filtered)
       
       const isInsured =
       filtered.is_insured === true ||

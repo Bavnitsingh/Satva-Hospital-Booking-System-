@@ -23,6 +23,9 @@ export interface IUpdatePatientProfile {
   last_name?: string;
   address_line1?: string;
   address_line2?: string;
+  mobile:string;
+  dob:string;
+  country_code:string;
   blood_group?: string;
   profile_path?: string;
   is_insured?: boolean;

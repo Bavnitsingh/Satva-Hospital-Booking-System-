@@ -47,6 +47,17 @@ export class HospitalController {
   });
 
 
+getHospitalById = catchAsync(async(req:Request,res:Response)=>{
+  const id = req?.query?.id;
+  const hospital = await this.hospitalService.getHospitalById(Number(id));
+   generalResponse({
+        res,
+        data: hospital,
+        message: "Hospital fetched successfully.",
+        statusCode: 201,
+      });
+})
+
   postCreateHospital = catchAsync(async (req: Request, res: Response) => {
     try {
       await this.hospitalService.createHospital(req.body);

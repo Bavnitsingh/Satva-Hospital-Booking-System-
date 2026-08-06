@@ -20,6 +20,9 @@ export class HospitalRoutes implements Routes {
   private initializationRoutes(): void {
     this.router.get("/list", superAdminAuth, this.hospitalController.getHospitalsList);
 
+        this.router.get("/getHospital", superAdminAuth, this.hospitalController.getHospitalById);
+
+
     this.router.post(
       "/create-hospital",
       superAdminAuth,

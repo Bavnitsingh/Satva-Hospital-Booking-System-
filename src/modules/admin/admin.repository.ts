@@ -277,21 +277,64 @@ ORDER BY al.created_at DESC
   }
 
 
-  async fetchAppointments(hospital_id: number) {
-    const rows = await query(`SELECT 
-    a.appointment_id,
-    CONCAT(d.first_name, ' ', d.last_name) AS doctor_name,
-    a.start_time,
-    a.appointment_type,
-    a.appointment_status,
-    CONCAT(p.first_name, ' ', p.last_name) AS patient_name
-FROM appointments a 
-INNER JOIN doctors d ON a.doctor_id = d.doctor_id 
-LEFT JOIN patients p ON a.patient_id = p.patient_id
+async fetchAppointments(
+  hospital_id: number,
+  filters: {
+    page:   number;
+    limit:  number;
+    search?: string | undefined;
+  }
+) {
+  const { page, limit, search } = filters;
+  const offset = (page - 1) * limit;
 
-WHERE d.hospital_id = ? order by a.start_time ; `, [hospital_id]);
-    return rows;
-  };
+  const conditions: string[] = ['d.hospital_id = ?'];
+  const params: any[]        = [hospital_id];
+
+  if (search) {
+    conditions.push(
+      '(CONCAT(d.first_name, \' \', d.last_name) LIKE ? OR CONCAT(p.first_name, \' \', p.last_name) LIKE ?)'
+    );
+    const searchWildcard = `%${search}%`;
+    params.push(searchWildcard, searchWildcard);
+  }
+
+  const WHERE = `WHERE ${conditions.join(' AND ')}`;
+
+  // ✅ Safe explicit number interpolation for pool.execute compatibility
+  const safeLimit  = Number(limit)  || 10;
+  const safeOffset = Number(offset) || 0;
+
+  // 1. Fetch data rows segment
+  const rows = await query(
+    `SELECT 
+       a.appointment_id,
+       CONCAT(d.first_name, ' ', d.last_name) AS doctor_name,
+       a.start_time,
+       a.appointment_type,
+       a.appointment_status,
+       CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+     FROM appointments a 
+     INNER JOIN doctors  d ON a.doctor_id = d.doctor_id 
+     LEFT JOIN  patients p ON a.patient_id = p.patient_id
+     ${WHERE} 
+     ORDER BY a.start_time ASC 
+     LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+    params
+  );
+
+  // 2. Fetch overall matching count metrics
+  const totalRows: any = await query(
+    `SELECT COUNT(*) AS total
+     FROM appointments a 
+     INNER JOIN doctors  d ON a.doctor_id = d.doctor_id 
+     LEFT JOIN  patients p ON a.patient_id = p.patient_id
+     ${WHERE}`,
+    params
+  );
+
+  return { rows, total: totalRows[0]?.total ?? 0 };
+}
 
   async fetchAuditLogs(hospital_id: number) {
     const rows = await query(`

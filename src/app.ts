@@ -5,7 +5,7 @@ import { buildApiRouter } from "./routes/main.routes.js";
 import passport from "./modules/auth/utils/googleauth.js";
 import session from "express-session";
 import { env } from "./config/index.js";
-
+import cors from "cors"
 import { fileURLToPath } from "url";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
@@ -27,102 +27,80 @@ export function buildApp(): Application {
   let __filePath = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filePath);
 
+  // 1. MUST BE FIRST: Apply CORS middleware globally before any processing happens
+  app.use(cors({
+    origin: [
+      'http://localhost:5174' ,
+      'http://localhost:5173'
+    ], // Your exact React front-end URL
+    credentials: true,               // Essential for authorization cookies/headers
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
 
-  //configuring ejs settings
-  app.set("view engine", "ejs");
-  app.set("views", path.join(__dirname, "views"));
-
-  app.use(express.static(path.join(__dirname, "uploads")));
-  app.use(express.static(path.join(__dirname, "../public")));
-
-  // GLOBAL MIDDLEWARE
+  // 2. Parsers must run next to read incoming payloads
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
+
+  // 3. CLEAN UP SESSIONS: Use only ONE session setup using your secure env secrets
   app.use(
     session({
-      secret: "scret",
+      secret: env.SESSION_SECRET || "scret",
       resave: false,
-      saveUninitialized: true,
-      cookie: { secure: false },
+      saveUninitialized: false,
+      cookie: { 
+        secure: false, // Set to true if using HTTPS in production
+        httpOnly: true,
+        sameSite: 'lax' // Helps cookies attach securely cross-origin in dev environments
+      },
     }),
   );
-  app.use(express.urlencoded({ extended: true }));
 
-  app.use(express.static("public"));
-  app.use(cookieParser());
-  app.use(express.static("public"));
+  // 4. Initialize Auth modules
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-  // CREATE FOLDER FOR FILE UPLOADING
+  // 5. Create Folders for File Uploads
   const parentpath = path.dirname(import.meta.dirname);
   const folderpath = path.join(parentpath, "uploads");
 
-  app.use("/uploads", express.static(path.join(parentpath, "uploads")));
-
   if (!fs.existsSync(folderpath)) {
-    //uploads folder
     fs.mkdirSync(folderpath);
-    //patient_profile folder
-    const patient_profile = path.join(folderpath, "patient_profile");
-    fs.mkdirSync(patient_profile);
-    //doctor_profile folder
-    const doctor_profile = path.join(folderpath, "doctor_profile");
-    fs.mkdirSync(doctor_profile);
-    // Add logic below for creating new folder
-    const medical_records = path.join(folderpath, "medical_records")
-    fs.mkdirSync(medical_records)
-
-    console.log("Folder Created Successfully ");
+    fs.mkdirSync(path.join(folderpath, "patient_profile"));
+    fs.mkdirSync(path.join(folderpath, "doctor_profile"));
+    fs.mkdirSync(path.join(folderpath, "medical_records"));
+    console.log("Folders Created Successfully");
   }
 
-  //SESSION
-  app.use(
-    session({
-      secret: env.SESSION_SECRET,
-      resave: false,
-      saveUninitialized: false,
-    }),
-  );
-  console.log(path.join(__dirname, "views"));
+  // 6. Mount Static Assertions and Templates
+  app.set("view engine", "ejs");
+  app.set("views", path.join(__dirname, "views"));
+  app.use(express.static(path.join(__dirname, "uploads")));
+  app.use(express.static(path.join(__dirname, "../public")));
+  app.use(express.static("public"));
+  app.use("/uploads", express.static(path.join(parentpath, "uploads")));
 
-  app.use(passport.initialize());
-  app.use(passport.session());
-  // HANDLES GLOBAL ERROR
-
-  app.use('/admin', new AdminPageRoutes().router);
-
-  app.use('/staff', new StaffPageRoutes().router)
-
-
-  //ROUTER
+  // 7. MOUNT API ROUTER FIRST (so your React app's fetch endpoints execute cleanly)
   app.use("/api/v1", buildApiRouter());
 
-  app.get("/", (req, res) => {
-    res.render("index");
-  });
-
+  // 8. Mount MVC Page/View Routers
+  app.use('/admin', new AdminPageRoutes().router);
+  app.use('/staff', new StaffPageRoutes().router);
   app.use('/super-admin', new SuperAdminPageRoutes().router);
   app.use('/hospital', new HospitalPageRoutes().router);
-  app.get("/about", (req, res) => {
-    res.render("about");
-  });
-  app.get("/contact", (req, res) => {
-    res.render("contact");
-  });
+  app.use("/patient", new PatientPageRoutes().router);
+  app.use('/doctor', new DoctorPageRoutes().router);
+  app.use("/", new AuthPageRoutes().router);
 
+  // 9. Standard EJS views
+  app.get("/", (req, res) => { res.render("index"); });
+  app.get("/about", (req, res) => { res.render("about"); });
+  app.get("/contact", (req, res) => { res.render("contact"); });
 
-
-
-app.use("/patient", new PatientPageRoutes().router);
-app.use('/doctor', new DoctorPageRoutes().router);
-
-
-  //ROUTER 
-app.use("/", new AuthPageRoutes().router);
-  
-
-app.use(notFoundMiddleware);
-// HANDLES GLOBAL ERROR
-  app.use(errorMiddleware)
-  
+  // 10. Fallbacks and Global error handlers must be last
+  app.use(notFoundMiddleware);
+  app.use(errorMiddleware);
 
   return app;
 }

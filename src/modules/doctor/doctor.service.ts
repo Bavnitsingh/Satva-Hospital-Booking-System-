@@ -53,13 +53,23 @@ export class DoctorService {
     return doctorDetails.doctor_id;
   }
 
-  async getAppointmentByDate(user_id: number,appointment_date:string) {
+  async getAppointmentByDate(user_id: number,appointment_date:string,page:number,limit:number) {
     const doctor_id = await this.getDoctorId(user_id);
     const date = appointment_date?appointment_date:new Date().toISOString();
     const current_date = String(date.split("T")[0]);
+    if(!page){
+      page=1
+    }
+    if(!limit){
+      limit=10
+    }
+
+
     const appointment_list = await this.doctorRepo.findDoctorAppointments(
       doctor_id,
       current_date,
+      Number(page),
+      Number(limit)
     );
     return { appointment_list };
   }
@@ -194,10 +204,17 @@ export class DoctorService {
     return { result };
   }
 
-  async getPatientList(user_id: number) {
+  async getPatientList(user_id: number,page:number,limit:number) {
     const doctor_id = await this.getDoctorId(user_id);
-    const result = await this.doctorRepo.fetchPatientList(doctor_id);
-    return { result };
+
+    if(!page){
+      page=1
+    }
+    if(!limit){
+      limit=10
+    }
+    const result = await this.doctorRepo.fetchPatientList(doctor_id,page,limit);
+    return { ...result };
   }
 
   async getPatientAllMedicalRecords(user_id: number, patient_id: number) {
@@ -364,7 +381,7 @@ export class DoctorService {
     if(!appointment_id){
       throw new BadRequestException('Appointment Id not found')
     } 
-    console.log(appointment_id)
+
     const result =await this.doctorRepo.getMedicalRecordsByAppointmentId(appointment_id)
     return result
 
